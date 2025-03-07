@@ -1,14 +1,12 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import AdminRoutes from "./pages/Admin/AdminRoutes";
+import { BrowserRouter } from "react-router-dom";
+import AppRoutes from "./routes";
 
-const App = () => {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/*" element={<AdminRoutes />} />
-      </Routes>
-    </Router>
-  );
-};
+function App() {
+    return (
+        <BrowserRouter>
+            <AppRoutes />
+        </BrowserRouter>
+    );
+}
 
 export default App;

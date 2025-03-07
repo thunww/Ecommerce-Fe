@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchProducts, addProduct, updateProduct, deleteProduct } from "../Service/productService";
+import { fetchProducts, addProduct, updateProduct, deleteProduct } from "./Service/productService";
 import { FaEdit, FaTrash, FaSearch, FaPlus } from "react-icons/fa";
 
 const ManageProducts = () => {
