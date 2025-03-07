@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import AdminLayout from "./AdminLayout";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/ManageUsers";
-import Products from "./pages/ManageProducts";
+import ManageProducts from "./pages/ManageProducts";
 import ManageOrders from "./pages/ManageOrders";
 
 const AdminRoutes = () => {
@@ -11,7 +11,7 @@ const AdminRoutes = () => {
             <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="users" element={<Users />} />
-                <Route path="products" element={<Products />} />
+                <Route path="products" element={<ManageProducts />} />
                 <Route path="orders" element={<ManageOrders />} />
             </Route>
         </Routes>
