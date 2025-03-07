@@ -5,21 +5,25 @@ const Header = ({ isOnline, setIsOnline, notifications = [] }) => {
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [avatar, setAvatar] = useState(null);
 
   const userMenuRef = useRef(null);
   const notificationsRef = useRef(null);
 
-  // Xử lý đóng menu khi click ra ngoài
+  useEffect(() => {
+    const savedProfile = localStorage.getItem("profileData");
+    if (savedProfile) {
+      const { avatar } = JSON.parse(savedProfile);
+      setAvatar(avatar);
+    }
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        userMenuRef.current && !userMenuRef.current.contains(event.target)
-      ) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setShowUserMenu(false);
       }
-      if (
-        notificationsRef.current && !notificationsRef.current.contains(event.target)
-      ) {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
         setShowNotifications(false);
       }
     };
@@ -30,7 +34,7 @@ const Header = ({ isOnline, setIsOnline, notifications = [] }) => {
 
   return (
     <div className="flex justify-between items-center p-4 bg-gradient-to-r from-red-500 to-red-700 shadow-md text-white relative">
-      {/* Logo bên trái */}
+      {/* Logo */}
       <div className="ml-4 flex items-center">
         <img
           src="https://img.freepik.com/premium-vector/cute-courier-delivery-package-cartoon-vector_941466-7880.jpg"
@@ -39,19 +43,10 @@ const Header = ({ isOnline, setIsOnline, notifications = [] }) => {
         />
       </div>
 
-      {/* Tiêu đề ShipPro ở giữa */}
+      {/* Tiêu đề */}
       <h1 className="text-2xl font-bold tracking-wide">ShipPro</h1>
 
       <div className="flex items-center space-x-4">
-        {/* Online/Offline Toggle */}
-        <button
-          onClick={() => setIsOnline(!isOnline)}
-          className={`px-4 py-2 rounded-full font-semibold ${
-            isOnline ? "bg-green-500" : "bg-gray-400"
-          }`}
-        >
-          {isOnline ? "Online" : "Offline"}
-        </button>
 
         {/* Notification Bell */}
         <div className="relative" ref={notificationsRef}>
@@ -88,18 +83,33 @@ const Header = ({ isOnline, setIsOnline, notifications = [] }) => {
 
         {/* User Profile & Logout */}
         <div className="relative" ref={userMenuRef}>
-          <button onClick={() => setShowUserMenu((prev) => !prev)} className="p-2 bg-white text-gray-700 rounded-full">
-            👤
+          <button onClick={() => setShowUserMenu((prev) => !prev)} className="p-2 rounded-full">
+            {avatar ? (
+              <img src={avatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-white" />
+            ) : (
+              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-gray-500">
+                ?
+              </div>
+            )}
           </button>
           {showUserMenu && (
             <div className="absolute right-0 mt-2 w-48 bg-white text-black shadow-lg rounded-lg p-2 z-50">
               <button
-                onClick={() => navigate("/shipper/profile")}
+                onClick={() => {
+                  navigate("/shipper/profile");
+                  setShowUserMenu(false);
+                }}
                 className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
               >
                 Xem hồ sơ
               </button>
-              <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+              <button
+                onClick={() => {
+                  setShowUserMenu(false);
+                  // Thêm logic đăng xuất nếu cần
+                }}
+                className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+              >
                 Đăng xuất
               </button>
             </div>

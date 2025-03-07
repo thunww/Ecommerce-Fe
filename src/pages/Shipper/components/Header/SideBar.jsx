@@ -1,15 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Home, Package } from "lucide-react";
 import { motion } from "framer-motion";
 
-const SidebarItem = ({ to, icon: Icon, label }) => {
+const SidebarItem = ({ to, icon: Icon, label, onClick }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
 
   return (
     <Link
       to={to}
+      onClick={onClick} // Đóng Sidebar khi chọn
       className={`flex items-center px-6 py-3 transition-colors duration-200 ${
         isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
       }`}
@@ -22,10 +23,27 @@ const SidebarItem = ({ to, icon: Icon, label }) => {
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const sidebarRef = useRef(null);
+
+  // Đóng sidebar khi click bên ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
 
   return (
     <>
-      {/* Chỉ hiển thị nút mở nếu sidebar đang đóng */}
       {!isOpen && (
         <button
           className="fixed top-1 left-2 z-50 text-gray-800 bg-gray-200 p-2 rounded-md shadow-lg"
@@ -35,8 +53,9 @@ const Sidebar = () => {
         </button>
       )}
 
-      {/* Sidebar với animation */}
+      {/* Sidebar */}
       <motion.div
+        ref={sidebarRef}
         initial={{ x: "-100%" }}
         animate={{ x: isOpen ? "0%" : "-100%" }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
@@ -50,18 +69,18 @@ const Sidebar = () => {
         </div>
 
         <nav>
-          <SidebarItem to="/shipper" icon={Home} label="Dashboard" />
-          <SidebarItem to="/shipper/orders" icon={Package} label="Đơn hàng" />
+          <SidebarItem to="/shipper" icon={Home} label="Dashboard" onClick={() => setIsOpen(false)} />
+          <SidebarItem to="/shipper/orders" icon={Package} label="Đơn hàng" onClick={() => setIsOpen(false)} />
         </nav>
       </motion.div>
 
-      {/* Overlay mờ khi Sidebar mở */}
+      {/* Overlay khi Sidebar mở */}
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.5 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black opacity-50"
+          className="fixed inset-0 bg-black opacity-50 z-30"
           onClick={() => setIsOpen(false)}
         />
       )}
