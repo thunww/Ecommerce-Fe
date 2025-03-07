@@ -1,0 +1,92 @@
+.footer {
+    background-color: #f8f9fa;
+    padding: 5px 0;
+    font-size: 16px;
+    color: #333;
+    border-top: 3px solid #ddd;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+  
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding-bottom: 20px;
+  
+      .footer-column {
+        width: 18%;
+        min-width: 200px;
+  
+        h3 {
+          font-size: 20px;
+          margin-bottom: 15px;
+          color: #ee4d2d;
+          font-weight: bold;
+          text-transform: uppercase;
+        }
+  
+        ul {
+          list-style: none;
+          padding: 0;
+  
+          li {
+            margin: 8px 0;
+            cursor: pointer;
+            transition: color 0.3s;
+            font-size: 14px;
+  
+            &:hover {
+              color: #ee4d2d;
+            }
+          }
+        }
+  
+        .payment-icons {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-top: 10px;
+  
+          span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            padding: 12px 18px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            transition: all 0.3s ease;
+  
+            &:hover {
+              background: #ee4d2d;
+              color: #fff;
+              transform: translateY(-3px);
+            }
+          }
+        }
+      }
+    }
+  
+    .footer-bottom {
+      text-align: center;
+      padding-top: 15px;
+      font-size: 14px;
+      color: #777;
+      border-top: 1px solid #ddd;
+      background: #f8f9fa;
+    }
+  }
+  
+  body {
+    padding-bottom: 150px; // Để nội dung không bị che bởi footer
+  }
+  
