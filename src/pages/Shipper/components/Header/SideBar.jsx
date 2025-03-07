@@ -19,8 +19,9 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <div 
-        className={`fixed top-0 left-0 h-full bg-gray-900 text-white w-64 shadow-lg z-40 transform transition-transform duration-300 ease-in-out
-        ${isOpen ? "translate-x-0" : "-translate-x-64"}`}
+        className={`fixed top-0 left-0 h-full bg-gray-900 text-white w-64 shadow-lg z-40 transform transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-64"
+        }`}
       >
         <div className="p-5 flex items-center justify-between">
           <h2 className="text-xl font-bold">Delivery Dashboard</h2>
@@ -31,9 +32,9 @@ const Sidebar = () => {
         </div>
 
         <nav>
-          <Link to="/" className="block px-6 py-3 hover:bg-gray-700">🏠 Dashboard</Link>
-          <Link to="/orders" className="block px-6 py-3 hover:bg-gray-700">📦 Đơn hàng</Link>
-          <Link to="/profile" className="block px-6 py-3 hover:bg-gray-700">👤 Hồ sơ</Link>
+          <Link to="/shipper" className="block px-6 py-3 hover:bg-gray-700">🏠 Dashboard</Link>
+          <Link to="/shipper/orders" className="block px-6 py-3 hover:bg-gray-700">📦 Đơn hàng</Link>
+          <Link to="/shipper/profile" className="block px-6 py-3 hover:bg-gray-700">👤 Hồ sơ</Link>
         </nav>
       </div>
 

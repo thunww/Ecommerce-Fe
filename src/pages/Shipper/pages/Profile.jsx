@@ -1,50 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const Profile = () => {
-  const [profileData, setProfileData] = useState({
-    name: "Nguyễn Văn Anh",
-    id: "SP10023",
-    rating: 4.7,
-    totalOrders: 1286,
-    completionRate: "98%",
-    onTimeRate: "96%",
-    avatar: "", // Thêm trạng thái avatar
-    contact: {
-      phone: "0912.345.678",
-      email: "vananh@shiperpro.vn",
-      location: "Quận 1, Quận 3, Quận 10",
-      joined: "15/06/2023",
-      vehicle: "Honda Wave - 59P1-23456",
-    },
-    reviews: [
-      {
-        name: "Trần Thị Bình",
-        order: "ORD00893",
-        date: "05/03/2025",
-        rating: 5,
-        comment:
-          "Shipper rất thân thiện và giao hàng cực nhanh. Đóng gói cẩn thận, không bị hư hỏng gì cả.",
+  const [profileData, setProfileData] = useState(() => {
+    const savedData = localStorage.getItem("profileData");
+    return savedData ? JSON.parse(savedData) : {
+      name: "Nguyễn Văn Anh",
+      id: "SP10023",
+      rating: 4.7,
+      totalOrders: 1286,
+      completionRate: "98%",
+      onTimeRate: "96%",
+      avatar: "",
+      contact: {
+        phone: "0912.345.678",
+        email: "vananh@shiperpro.vn",
+        location: "Quận 1, Quận 3, Quận 10",
+        joined: "15/06/2023",
+        vehicle: "Honda Wave - 59P1-23456",
       },
-      {
-        name: "Lê Văn Cường",
-        order: "ORD00725",
-        date: "02/03/2025",
-        rating: 5,
-        comment:
-          "Shipper đúng giờ và rất lịch sự. Đã đợi tôi xuống lấy hàng mà không phàn nàn gì.",
-      },
-      {
-        name: "Phạm Thị Diễm",
-        order: "ORD00684",
-        date: "28/02/2025",
-        rating: 4,
-        comment:
-          "Giao hàng nhanh, nhưng không gọi trước khi đến như tôi dặn trong ghi chú.",
-      },
-    ],
+      reviews: [],
+    };
   });
 
-  const [filter, setFilter] = useState(0);
+  useEffect(() => {
+    localStorage.setItem("profileData", JSON.stringify(profileData));
+  }, [profileData]);
+
   const [isEditing, setIsEditing] = useState(false);
   const [editProfile, setEditProfile] = useState(profileData);
 
@@ -74,11 +55,6 @@ const Profile = () => {
     setProfileData(editProfile);
     setIsEditing(false);
   };
-
-  const filteredReviews =
-    filter === 0
-      ? profileData.reviews
-      : profileData.reviews.filter((review) => review.rating === filter);
 
   return (
     <div className="p-4 bg-white shadow rounded-lg">
@@ -122,24 +98,6 @@ const Profile = () => {
             <button onClick={() => setIsEditing(true)} className="bg-blue-500 text-white px-3 py-1 rounded mt-2">Chỉnh sửa</button>
           </div>
         )}
-      </div>
-      <div className="border-t pt-4 mt-4">
-        <h3 className="font-bold text-lg mb-2">Đánh giá</h3>
-        <div className="flex gap-2 mb-4">
-          {[0, 5, 4, 3, 2, 1].map((star) => (
-            <button key={star} className={`px-3 py-1 border rounded ${filter === star ? "bg-blue-500 text-white" : "bg-gray-100"}`} onClick={() => setFilter(star)}>
-              {star === 0 ? "Tất cả" : `${star} ⭐`}
-            </button>
-          ))}
-        </div>
-        {filteredReviews.map((review, index) => (
-          <div key={index} className="mb-4 border-b pb-2">
-            <h4 className="font-semibold">{review.name}</h4>
-            <p className="text-gray-500 text-sm">Đơn hàng: {review.order} - {review.date}</p>
-            <p className="text-yellow-500">{"⭐".repeat(review.rating)}</p>
-            <p>{review.comment}</p>
-          </div>
-        ))}
       </div>
     </div>
   );

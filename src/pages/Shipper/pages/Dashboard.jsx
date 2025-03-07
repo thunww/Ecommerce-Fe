@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../components/Header/SideBar";
+import { useNavigate } from "react-router-dom";
+import Header from "../components/Header/Header";
 import StatsCards from "../components/Header/StatsCards";
 import OrdersTable from "../components/Header/OrdersTable";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalOrders: 0,
     completedOrders: 0,
@@ -13,6 +15,9 @@ const Dashboard = () => {
 
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,55 +52,78 @@ const Dashboard = () => {
   };
 
   return (
-    <main className="flex-1 p-6">
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-      <p className="text-gray-600">Xin chào, đây là bảng điều khiển giao hàng của bạn.</p>
+    <div className="flex-1 flex flex-col relative">
+      {/* Header */}
+      <Header />
 
-      {/* Stats Cards */}
-      <div className="mt-6">
-        <StatsCards stats={stats} />
-      </div>
+      {/* Notification Bell & User Menu */}
+      <div className="absolute top-4 right-6 flex items-center space-x-4">
+        {/* Online/Offline Toggle */}
+        <button 
+          onClick={() => setIsOnline(!isOnline)} 
+          className={`px-4 py-2 rounded-full text-white ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}
+        >
+          {isOnline ? "Online" : "Offline"}
+        </button>
 
-      {/* Orders Table */}
-      <div className="mt-8">
-        <OrdersTable />
-      </div>
-
-      {/* Recent Orders */}
-      <div className="mt-8 bg-white shadow rounded-lg">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-700">Đơn hàng gần đây</h2>
+        {/* Notification Bell */}
+        <div className="relative">
+          <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-gray-200 rounded-full">
+            🔔
+            {notifications.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 rounded-full">
+                {notifications.length}
+              </span>
+            )}
+          </button>
+          {showNotifications && (
+            <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg p-4">
+              <h3 className="text-sm font-semibold border-b pb-2">Thông báo</h3>
+              {notifications.length === 0 ? (
+                <p className="text-xs text-gray-500 mt-2">Không có thông báo nào</p>
+              ) : (
+                <ul className="mt-2 space-y-2">
+                  {notifications.map((notification, index) => (
+                    <li key={index} className="text-xs text-gray-700 border-b pb-2">
+                      {notification}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
-        {loading ? (
-          <div className="p-4 text-center">Đang tải dữ liệu...</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã đơn</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Người nhận</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Địa chỉ</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Giá trị</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thời gian hoàn thành</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">#{order.id}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{order.customer}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{order.address}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{formatCurrency(order.amount)}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{order.time}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+        {/* User Profile & Logout */}
+        <div className="relative">
+          <button className="p-2 bg-gray-200 rounded-full">👤</button>
+          <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg p-2">
+            <button 
+              onClick={() => navigate("/shipper/profile")} 
+              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              Xem hồ sơ
+            </button>
+            <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Đăng xuất</button>
           </div>
-        )}
+        </div>
       </div>
-    </main>
+
+      <main className="p-6">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600">Xin chào, đây là bảng điều khiển giao hàng của bạn.</p>
+
+        {/* Stats Cards */}
+        <div className="mt-6">
+          <StatsCards stats={stats} />
+        </div>
+
+        {/* Orders Table */}
+        <div className="mt-8">
+          <OrdersTable />
+        </div>
+      </main>
+    </div>
   );
 };
 
