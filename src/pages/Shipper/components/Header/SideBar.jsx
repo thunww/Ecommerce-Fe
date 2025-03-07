@@ -1,49 +1,69 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react"; // Import icons
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, Home, Package } from "lucide-react";
+import { motion } from "framer-motion";
+
+const SidebarItem = ({ to, icon: Icon, label }) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+
+  return (
+    <Link
+      to={to}
+      className={`flex items-center px-6 py-3 transition-colors duration-200 ${
+        isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
+      }`}
+    >
+      <Icon className="mr-3" size={20} />
+      {label}
+    </Link>
+  );
+};
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-      {/* Nút mở Sidebar (ẩn khi Sidebar mở) */}
+      {/* Chỉ hiển thị nút mở nếu sidebar đang đóng */}
       {!isOpen && (
-        <button 
-          className="fixed top-2 left-2 z-50 text-gray-800 bg-gray-200 p-2 rounded-md shadow-lg"
+        <button
+          className="fixed top-1 left-2 z-50 text-gray-800 bg-gray-200 p-2 rounded-md shadow-lg"
           onClick={() => setIsOpen(true)}
         >
-          <Menu size={28} />
+          <Menu size={20} />
         </button>
       )}
 
-      {/* Sidebar */}
-      <div 
-        className={`fixed top-0 left-0 h-full bg-gray-900 text-white w-64 shadow-lg z-40 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "-translate-x-64"
-        }`}
+      {/* Sidebar với animation */}
+      <motion.div
+        initial={{ x: "-100%" }}
+        animate={{ x: isOpen ? "0%" : "-100%" }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="fixed top-0 left-0 h-full bg-gray-900 text-white w-64 shadow-lg z-40"
       >
         <div className="p-5 flex items-center justify-between">
           <h2 className="text-xl font-bold">Delivery Dashboard</h2>
-          {/* Nút đóng Sidebar */}
           <button onClick={() => setIsOpen(false)}>
             <X size={28} />
           </button>
         </div>
 
         <nav>
-          <Link to="/shipper" className="block px-6 py-3 hover:bg-gray-700">🏠 Dashboard</Link>
-          <Link to="/shipper/orders" className="block px-6 py-3 hover:bg-gray-700">📦 Đơn hàng</Link>
-          <Link to="/shipper/profile" className="block px-6 py-3 hover:bg-gray-700">👤 Hồ sơ</Link>
+          <SidebarItem to="/shipper" icon={Home} label="Dashboard" />
+          <SidebarItem to="/shipper/orders" icon={Package} label="Đơn hàng" />
         </nav>
-      </div>
+      </motion.div>
 
       {/* Overlay mờ khi Sidebar mở */}
       {isOpen && (
-        <div 
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.5 }}
+          exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black opacity-50"
           onClick={() => setIsOpen(false)}
-        ></div>
+        />
       )}
     </>
   );
