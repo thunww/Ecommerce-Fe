@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Bell, Search, Sun, Moon, LogOut, User, Menu, Home, Settings } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
 const Header = ({ onMenuClick }) => {
   const [darkMode, setDarkMode] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <header className="p-4 bg-gray-900 text-white shadow-md flex items-center gap-4">
@@ -16,7 +17,10 @@ const Header = ({ onMenuClick }) => {
       </button>
       
       {/* Icon Home */}
-      <button className="p-2 rounded-xl hover:bg-gray-800 transition-all">
+      <button
+        className="p-2 rounded-xl hover:bg-gray-800 transition-all"
+        onClick={() => navigate("/admin")} // Chuyển hướng đến trang chủ
+      >
         <Home size={24} />
       </button>
       

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom"; // Dùng Outlet để hiển thị route con
-import Header from "./components/Header";
-import Sidebar from "./components/Sidebar";
+import Header from "../components/admin/AdminHeader";
+import Sidebar from "../components/admin/Sidebar";
 
 const AdminLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);

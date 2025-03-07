@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchOrders, updateOrderStatus, deleteOrder } from "../Service/orderService";
-import OrderTable from "../components/OrderTable";
+import { fetchOrders, updateOrderStatus, deleteOrder } from "./Service/orderService";
+import OrderTable from "../../components/admin/OrderTable";
 
 const ManageOrders = () => {
   const [orders, setOrders] = useState([]);
