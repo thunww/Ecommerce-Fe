@@ -1,59 +1,101 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { 
-  LayoutDashboard, Users, Package, ShoppingCart, Calendar, Mail, FileText, Ticket, 
-  MessageCircle, Kanban, Box, Globe, Menu 
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  Package,
+  Users,
+  BarChart2,
+  Settings,
+  Truck,
+  DollarSign,
+  Store,
+  MessageSquare,
+  FileText,
+  Image,
+  Folder,
+  LogOut,
+  Layout,
+  ChevronDown,
 } from "lucide-react";
 
-const Sidebar = ({ isOpen, toggleSidebar }) => {
+const Sidebar = ({ isOpen }) => {
+  const [openDropdown, setOpenDropdown] = useState(null);
+
+  const toggleDropdown = (section) => {
+    setOpenDropdown(openDropdown === section ? null : section);
+  };
+
   return (
-    <aside
-      className={`fixed top-0 left-0 h-full bg-gray-900 text-white shadow-lg transition-all duration-300 ${
-        isOpen ? "w-64" : "w-20"
-      }`}
-    >
+        <aside
+        className={`fixed top-0 left-0 h-full bg-gray-900 text-white shadow-lg transition-all duration-300 flex flex-col ${
+            isOpen ? "w-64" : "w-20"
+        } overflow-y-auto scrollbar scrollbar-thumb-gray-600 scrollbar-track-gray-800 scrollbar-thumb-rounded-md`}
+        >
       {/* Logo */}
       <div className={`flex items-center gap-3 p-5 ${isOpen ? "" : "justify-center"}`}>
         <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-          <span className="text-white text-lg font-bold">M</span>
+          <span className="text-white text-lg font-bold">E</span>
         </div>
-        {isOpen && <h2 className="text-xl font-bold">Modernize</h2>}
+        {isOpen && <h2 className="text-xl font-bold">E-Admin</h2>}
       </div>
 
-      {/* HOME Section */}
-      <SidebarSection title="Home" isOpen={isOpen}>
-        <SidebarItem to="/admin" icon={<Globe size={20} />} label="Modern" isOpen={isOpen} isNew />
-        <SidebarItem to="/admin/ecommerce" icon={<ShoppingCart size={20} />} label="eCommerce" isOpen={isOpen} />
-        <SidebarItem to="/admin/pages" icon={<LayoutDashboard size={20} />} label="Frontend pages" isOpen={isOpen} hasDropdown />
+      {/* DASHBOARD Section */}
+    <SidebarSection title="Dashboard" isOpen={isOpen}>
+        <SidebarItem to="/admin" icon={<LayoutDashboard size={20} />} label="Home" isOpen={isOpen} />
+        <SidebarItem to="/admin/overview" icon={<BarChart2 size={20} />} label="Overview" isOpen={isOpen} />
+        <SidebarItem to="/admin/sales" icon={<DollarSign size={20} />} label="Sales Analytics" isOpen={isOpen} />
+        <SidebarItem to="/admin/traffic" icon={<Users size={20} />} label="Traffic" isOpen={isOpen} />
+        <SidebarItem to="/admin/top-products" icon={<Package size={20} />} label="Top Products" isOpen={isOpen} />
+        <SidebarItem to="/admin/recent-activities" icon={<FileText size={20} />} label="Recent Activities" isOpen={isOpen} />
+    </SidebarSection>
+
+
+      {/* MANAGEMENT Section */}
+      <SidebarSection title="Management" isOpen={isOpen}>
+        <SidebarItem to="/admin/orders" icon={<ShoppingCart size={20} />} label="Orders" isOpen={isOpen} />
+        <SidebarItem to="/admin/products" icon={<Package size={20} />} label="Products" isOpen={isOpen} />
+        <SidebarItem to="/admin/vendors" icon={<Store size={20} />} label="Vendors" isOpen={isOpen} />
+        <SidebarItem to="/admin/shipping" icon={<Truck size={20} />} label="Shipping" isOpen={isOpen} />
+        <SidebarItem to="/admin/transactions" icon={<DollarSign size={20} />} label="Transactions" isOpen={isOpen} />
       </SidebarSection>
 
-      {/* APPS Section */}
-      <SidebarSection title="Apps" isOpen={isOpen}>
-        <SidebarItem to="/admin/contacts" icon={<Box size={20} />} label="Contacts" isOpen={isOpen} notification={2} />
-        <SidebarItem to="/admin/blog" icon={<FileText size={20} />} label="Blog" isOpen={isOpen} hasDropdown />
-        <SidebarItem to="/admin/ecommerce" icon={<Package size={20} />} label="Ecommerce" isOpen={isOpen} hasDropdown />
-        <SidebarItem to="/admin/chats" icon={<MessageCircle size={20} />} label="Chats" isOpen={isOpen} />
-        <SidebarItem to="/admin/users" icon={<Users size={20} />} label="Users" isOpen={isOpen} hasDropdown />
-        <SidebarItem to="/admin/notes" icon={<FileText size={20} />} label="Notes" isOpen={isOpen} />
-        <SidebarItem to="/admin/calendar" icon={<Calendar size={20} />} label="Calendar" isOpen={isOpen} />
-        <SidebarItem to="/admin/email" icon={<Mail size={20} />} label="Email" isOpen={isOpen} />
-        <SidebarItem to="/admin/tickets" icon={<Ticket size={20} />} label="Tickets" isOpen={isOpen} />
-        <SidebarItem to="/admin/kanban" icon={<Kanban size={20} />} label="Kanban" isOpen={isOpen} />
+      {/* CONTENT Section */}
+      <SidebarSection title="Content" isOpen={isOpen}>
+        <SidebarDropdown label="Page Layout" icon={<Layout size={20} />} isOpen={isOpen} isExpanded={openDropdown === "page"} onClick={() => toggleDropdown("page")}>          
+          <SidebarItem to="/admin/page-layout/header" label="Header" isOpen={isOpen} />
+          <SidebarItem to="/admin/page-layout/footer" label="Footer" isOpen={isOpen} />
+        </SidebarDropdown>
+        <SidebarDropdown label="Users" icon={<Users size={20} />} isOpen={isOpen} isExpanded={openDropdown === "users"} onClick={() => toggleDropdown("users")}>          
+          <SidebarItem to="/admin/users/admin" label="Admins" isOpen={isOpen} />
+          <SidebarItem to="/admin/users/customer" label="Customers" isOpen={isOpen} />
+          <SidebarItem to="/admin/users/seller" label="Sellers" isOpen={isOpen} />
+          <SidebarItem to="/admin/users/shipper" label="Shippers" isOpen={isOpen} />
+        </SidebarDropdown>
+        <SidebarItem to="/admin/chat" icon={<MessageSquare size={20} />} label="Chat" isOpen={isOpen} />
+        <SidebarItem to="/admin/posts" icon={<FileText size={20} />} label="Posts" isOpen={isOpen} />
+        <SidebarItem to="/admin/comments" icon={<MessageSquare size={20} />} label="Comments" isOpen={isOpen} />
+        <SidebarItem to="/admin/media" icon={<Image size={20} />} label="Media" isOpen={isOpen} />
+        <SidebarItem to="/admin/categories" icon={<Folder size={20} />} label="Categories" isOpen={isOpen} />
       </SidebarSection>
 
-      {/* User Profile */}
-      <div className={`absolute bottom-5 left-0 right-0 p-3 bg-gray-800 flex items-center shadow-md transition-all ${isOpen ? "gap-3" : "justify-center"}`}>
-        <img src="https://via.placeholder.com/40" alt="User" className="w-10 h-10 rounded-full" />
-        {isOpen && (
-          <div className="flex-1">
-            <h4 className="font-semibold text-white">Mathew</h4>
-            <p className="text-sm text-gray-400">Designer</p>
-          </div>
-        )}
-        <button className="text-blue-400 hover:text-blue-300">
-          ⏻
-        </button>
-      </div>
+      {/* ANALYTICS Section */}
+      <SidebarSection title="Analytics" isOpen={isOpen}>
+        <SidebarItem to="/admin/reports" icon={<BarChart2 size={20} />} label="Reports" isOpen={isOpen} />
+      </SidebarSection>
+
+      {/* SETTINGS Section */}
+      <SidebarSection title="Settings" isOpen={isOpen}>
+        <SidebarItem to="/admin/settings" icon={<Settings size={20} />} label="Settings" isOpen={isOpen} />
+      </SidebarSection>
+
+      {/* Logout */}
+      <div className="mt-auto p-3 bg-gray-800 flex items-center shadow-md transition-all cursor-pointer hover:bg-gray-700">
+        <LogOut size={20} className="text-red-500" />
+        {isOpen && <span className="ml-3 text-red-500">Logout</span>}
+    </div>
+
+
     </aside>
   );
 };
@@ -65,22 +107,21 @@ const SidebarSection = ({ title, isOpen, children }) => (
   </div>
 );
 
-const SidebarItem = ({ to, icon, label, isOpen, isNew, hasDropdown, notification }) => (
+const SidebarItem = ({ to, icon, label, isOpen }) => (
   <li>
-    <Link
-      to={to}
-      className="flex items-center p-3 rounded-lg hover:bg-gray-800 transition"
-    >
-      <div className="flex items-center gap-3">
-        {icon}
-        {isOpen && <span>{label}</span>}
-      </div>
-      {isNew && isOpen && <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-lg">New</span>}
-      {notification && isOpen && (
-        <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">{notification}</span>
-      )}
-      {hasDropdown && isOpen && <span className="text-gray-400">▼</span>}
+    <Link to={to} className="flex items-center p-3 rounded-lg hover:bg-gray-800 transition">
+      <div className="flex items-center gap-3">{icon} {isOpen && <span>{label}</span>}</div>
     </Link>
+  </li>
+);
+
+const SidebarDropdown = ({ label, icon, isOpen, isExpanded, onClick, children }) => (
+  <li>
+    <div onClick={onClick} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-800 transition cursor-pointer">
+      <div className="flex items-center gap-3">{icon} {isOpen && <span>{label}</span>}</div>
+      {isOpen && <ChevronDown size={16} className={`${isExpanded ? "rotate-180" : ""} transition-transform`} />}
+    </div>
+    {isExpanded && <ul className="pl-5 space-y-1">{children}</ul>}
   </li>
 );
 

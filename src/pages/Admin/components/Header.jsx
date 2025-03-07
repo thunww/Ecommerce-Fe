@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Search, Sun, Moon, LogOut, User, Menu } from "lucide-react";
+import { Bell, Search, Sun, Moon, LogOut, User, Menu, Home, Settings } from "lucide-react";
 
 const Header = ({ onMenuClick }) => {
   const [darkMode, setDarkMode] = useState(false);
@@ -14,7 +14,12 @@ const Header = ({ onMenuClick }) => {
       >
         <Menu size={26} />
       </button>
-
+      
+      {/* Icon Home */}
+      <button className="p-2 rounded-xl hover:bg-gray-800 transition-all">
+        <Home size={24} />
+      </button>
+      
       {/* Thanh tìm kiếm */}
       <div className="relative hidden md:block w-80">
         <input
@@ -39,6 +44,11 @@ const Header = ({ onMenuClick }) => {
         <button className="relative p-2 rounded-xl hover:bg-gray-800 transition-all">
           <Bell size={24} />
           <span className="absolute top-1 right-1 bg-red-500 w-3 h-3 rounded-full animate-pulse"></span>
+        </button>
+        
+        {/* Cài đặt */}
+        <button className="p-2 rounded-xl hover:bg-gray-800 transition-all">
+          <Settings size={24} />
         </button>
 
         {/* Avatar với dropdown menu */}

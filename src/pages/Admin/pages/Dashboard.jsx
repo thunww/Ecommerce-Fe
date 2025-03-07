@@ -1,4 +1,4 @@
-import { BarChart, ShoppingCart, Users, DollarSign } from "lucide-react";
+import { BarChart, ShoppingCart, Users, DollarSign, TrendingUp, Package } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const data = [
@@ -10,28 +10,39 @@ const data = [
   { name: "Jun", revenue: 8000 },
 ];
 
-const recentOrders = [
-  { id: "#001", customer: "John Doe", amount: "$120", status: "Completed" },
-  { id: "#002", customer: "Jane Smith", amount: "$90", status: "Pending" },
-  { id: "#003", customer: "Alice Johnson", amount: "$250", status: "Shipped" },
+const bestSellingProducts = [
+  { name: "Smartphone", sales: 120, growth: "+15%" },
+  { name: "Laptop", sales: 95, growth: "+10%" },
+  { name: "Headphones", sales: 80, growth: "+8%" },
+];
+
+const userActivities = [
+  { user: "John Doe", action: "purchased a Laptop", time: "5 mins ago", avatar: "https://i.pravatar.cc/40?img=1" },
+  { user: "Jane Smith", action: "left a review", time: "10 mins ago", avatar: "https://i.pravatar.cc/40?img=2" },
+  { user: "Alice Johnson", action: "added a Smartphone to cart", time: "15 mins ago", avatar: "https://i.pravatar.cc/40?img=3" },
+];
+
+const stockLevels = [
+  { product: "Smartphone", stock: 50 },
+  { product: "Laptop", stock: 30 },
+  { product: "Headphones", stock: 75 },
 ];
 
 const Dashboard = () => {
   return (
-    <div className="p-6">
-      <h2 className="text-3xl font-bold mb-6">Dashboard</h2>
+    <div className="p-4 md:p-6">
+      <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">Dashboard</h2>
 
-      {/* Thống kê nhanh */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <StatCard icon={<DollarSign size={28} />} label="Total Revenue" value="$25,000" />
         <StatCard icon={<ShoppingCart size={28} />} label="Total Orders" value="320" />
         <StatCard icon={<Users size={28} />} label="Customers" value="1,200" />
+        <StatCard icon={<TrendingUp size={28} />} label="Conversion Rate" value="4.5%" />
       </div>
 
-      {/* Biểu đồ doanh thu */}
-      <div className="mt-8 bg-white p-5 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-4">Revenue Chart</h3>
-        <ResponsiveContainer width="100%" height={300}>
+      <div className="mt-6 md:mt-8 bg-white p-4 md:p-5 rounded-lg shadow-md w-full">
+        <h3 className="text-lg font-semibold mb-3 md:mb-4">Revenue Chart</h3>
+        <ResponsiveContainer width="100%" height={250}>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
@@ -42,52 +53,61 @@ const Dashboard = () => {
         </ResponsiveContainer>
       </div>
 
-      {/* Danh sách đơn hàng gần đây */}
-      <div className="mt-8 bg-white p-5 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-4">Recent Orders</h3>
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-3">Order ID</th>
-              <th className="p-3">Customer</th>
-              <th className="p-3">Amount</th>
-              <th className="p-3">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentOrders.map((order, index) => (
-              <tr key={index} className="border-b">
-                <td className="p-3">{order.id}</td>
-                <td className="p-3">{order.customer}</td>
-                <td className="p-3">{order.amount}</td>
-                <td className="p-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm ${
-                      order.status === "Completed"
-                        ? "bg-green-500 text-white"
-                        : order.status === "Pending"
-                        ? "bg-yellow-500 text-white"
-                        : "bg-blue-500 text-white"
-                    }`}
-                  >
-                    {order.status}
-                  </span>
-                </td>
-              </tr>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div className="bg-white p-4 md:p-5 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold mb-3">Best Selling Products</h3>
+          <ul>
+            {bestSellingProducts.map((product, index) => (
+              <li key={index} className="flex justify-between items-center py-2 border-b last:border-none hover:bg-gray-100 p-2 rounded-lg transition">
+                <span>{product.name}</span>
+                <div className="text-right">
+                  <span className="font-semibold block">{product.sales} sales</span>
+                  <span className="text-green-500 text-sm">{product.growth}</span>
+                </div>
+              </li>
             ))}
-          </tbody>
-        </table>
+          </ul>
+        </div>
+
+        <div className="bg-white p-4 md:p-5 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold mb-3">Recent User Activities</h3>
+          <ul>
+            {userActivities.map((activity, index) => (
+              <li key={index} className="flex items-center gap-3 py-2 border-b last:border-none hover:bg-gray-100 p-2 rounded-lg transition">
+                <img src={activity.avatar} alt="avatar" className="w-8 h-8 rounded-full" />
+                <div>
+                  <span className="font-semibold">{activity.user}</span> {activity.action}
+                  <span className="text-gray-500 text-xs block">{activity.time}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="mt-6 md:mt-8 bg-white p-4 md:p-5 rounded-lg shadow-md w-full">
+        <h3 className="text-lg font-semibold mb-3">Stock Levels</h3>
+        <ul>
+          {stockLevels.map((stock, index) => (
+            <li key={index} className="flex justify-between py-2 border-b last:border-none">
+              <span>{stock.product}</span>
+              <span className={`font-semibold ${stock.stock < 40 ? "text-red-500" : "text-green-500"}`}>
+                {stock.stock} in stock
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
 };
 
 const StatCard = ({ icon, label, value }) => (
-  <div className="bg-white p-5 rounded-lg shadow-md flex items-center gap-4">
-    <div className="p-3 bg-blue-500 text-white rounded-full">{icon}</div>
+  <div className="bg-white p-4 md:p-5 rounded-lg shadow-md flex items-center gap-4">
+    <div className="p-2 md:p-3 bg-blue-500 text-white rounded-full">{icon}</div>
     <div>
-      <p className="text-gray-500">{label}</p>
-      <h4 className="text-xl font-bold">{value}</h4>
+      <p className="text-gray-500 text-sm md:text-base">{label}</p>
+      <h4 className="text-lg md:text-xl font-bold">{value}</h4>
     </div>
   </div>
 );

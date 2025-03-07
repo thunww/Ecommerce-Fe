@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* Tùy chỉnh thanh cuộn */
+::-webkit-scrollbar {
+    width: 4px; /* Độ rộng của thanh kéo dọc */
+    height: 4px; /* Độ rộng của thanh kéo ngang */
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #4a5568; /* Màu của thanh kéo */
+    border-radius: 8px; /* Bo góc thanh kéo */
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #2d3748; /* Màu nền của thanh kéo */
+  }
+  
