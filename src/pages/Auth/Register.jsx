@@ -3,7 +3,7 @@ import { User, Mail, Lock, UserPlus } from "lucide-react";
 
 const Register = () => {
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-50 to-teal-100">
+    <div className="flex justify-center items-center min-h-[calc(100vh-64px)] bg-gradient-to-br from-green-50 to-teal-100 pt-16">
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
         <div className="flex items-center justify-center mb-8">
           <div className="bg-green-600 p-3 rounded-full">
