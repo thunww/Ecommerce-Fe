@@ -1,69 +1,84 @@
 import { useEffect, useState } from "react";
 import { fetchOrders, updateOrderStatus, deleteOrder } from "./Service/orderService";
-import OrderTable from "../../components/admin/OrderTable";
+import Table from "../../components/common/Table";
 
 const ManageOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
 
   useEffect(() => {
-    const getOrders = async () => {
-      setLoading(true);
-      const data = await fetchOrders();
-      setOrders(data);
-      setLoading(false);
+    const loadOrders = async () => {
+      try {
+        const data = await fetchOrders();
+        setOrders(data);
+      } catch (error) {
+        console.error("Failed to fetch orders:", error);
+      } finally {
+        setLoading(false);
+      }
     };
-    getOrders();
+    loadOrders();
   }, []);
 
-  const handleUpdateStatus = async (id, newStatus) => {
-    await updateOrderStatus(id, newStatus);
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === id ? { ...order, status: newStatus } : order
-      )
-    );
-  };
-
   const handleDelete = async (id) => {
-    await deleteOrder(id);
-    setOrders((prevOrders) => prevOrders.filter((order) => order.id !== id));
+    try {
+      const success = await deleteOrder(id);
+      if (success) {
+        setOrders((prevOrders) => prevOrders.filter((order) => order.id !== id));
+      }
+    } catch (error) {
+      console.error("Failed to delete order:", error);
+    }
   };
 
-  const filteredOrders = orders.filter(order =>
-    (search === "" || order.customer.toLowerCase().includes(search.toLowerCase()) || order.id.toString().includes(search)) &&
-    (filterStatus === "" || order.status === filterStatus)
-  );
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const success = await updateOrderStatus(id, newStatus);
+      if (success) {
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.id === id ? { ...order, status: newStatus } : order
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Failed to update order status:", error);
+    }
+  };
 
-  if (loading) return <p>Loading order list...</p>;
-
-  return (
-    <div className="p-5">
-      <h2 className="text-2xl font-bold mb-5">Orders Management</h2>
-      
-      <div className="mb-4 flex gap-4">
-        <input
-          type="text"
-          placeholder="Search by Order ID or Customer"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border p-2 rounded-md w-1/3"
-        />
+  const columns = [
+    { header: "Order ID", field: "id" },
+    { header: "Customer", field: "customer" },
+    { 
+      header: "Total", 
+      field: "total", 
+      render: (value) => `₫${value?.toLocaleString() || "0"}` 
+    },
+    {
+      header: "Status",
+      field: "status",
+      render: (value, row) => (
         <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
           className="border p-2 rounded-md"
+          value={value}
+          onChange={(e) => handleStatusChange(row.id, e.target.value)}
         >
-          <option value="">All Status</option>
           <option value="Pending">Pending</option>
           <option value="Shipped">Shipped</option>
           <option value="Completed">Completed</option>
         </select>
-      </div>
-      
-      <OrderTable orders={filteredOrders} onUpdateStatus={handleUpdateStatus} onDelete={handleDelete} />
+      ),
+    },
+  ];
+
+  return (
+    <div className="p-5 bg-gray-100 min-h-screen">
+      <h2 className="text-2xl font-bold mb-5">Orders Management</h2>
+      {loading ? (
+        <p className="text-center text-gray-500">Loading orders...</p>
+      ) : (
+        <Table columns={columns} data={orders} onDelete={handleDelete} pageSize={5} />
+      )}
     </div>
   );
 };
