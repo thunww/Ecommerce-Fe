@@ -5,16 +5,236 @@
 
 /* Tùy chỉnh thanh cuộn */
 ::-webkit-scrollbar {
-    width: 4px; /* Độ rộng của thanh kéo dọc */
-    height: 4px; /* Độ rộng của thanh kéo ngang */
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: #4a5568; /* Màu của thanh kéo */
-    border-radius: 8px; /* Bo góc thanh kéo */
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: #2d3748; /* Màu nền của thanh kéo */
-  }
-  
+  width: 4px;
+  /* Độ rộng của thanh kéo dọc */
+  height: 4px;
+  /* Độ rộng của thanh kéo ngang */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4a5568;
+  /* Màu của thanh kéo */
+  border-radius: 8px;
+  /* Bo góc thanh kéo */
+}
+
+::-webkit-scrollbar-track {
+  background: #2d3748;
+  /* Màu nền của thanh kéo */
+}
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.body {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  background: #f5f0f0;
+  color: rgba(0, 0, 0, 0.9);
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ff5252 !important;
+}
+
+::-webkit-scrollbar-track {
+  background: #fff !important;
+}
+
+.container {
+  width: 90%;
+  margin: auto;
+}
+
+.btn-org {
+  background: #ff5252 !important;
+  color: #fff !important;
+  font-weight: 500;
+  font-size: 16px;
+  padding: 7px 20px !important;
+}
+
+.bg-org {
+  background: #ff5252;
+}
+
+.link:hover {
+  color: #ff5252;
+}
+
+.MuiBadge-badge {
+  background-color: #ff5252 !important;
+}
+
+.nav ul button {
+  text-transform: capitalize !important;
+}
+
+.nav ul button:hover {
+  background: none !important;
+}
+
+.sliderHome {
+  overflow: inherit !important;
+}
+
+
+
+.swiper-button-prev,
+.swiper-button-next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 100%;
+  width: 45px;
+  height: 45px;
+  min-width: 45px;
+  box-shadow: 0 1px 3px #0000001f, 0 1px 2px #0000003d !important;
+  ;
+}
+
+.swiper-button-prev:after,
+.swiper-button-next::after {
+  font-size: 22px !important;
+  color: #000000;
+}
+
+.smlBtn .swiper-button-prev,
+.smlBtn .swiper-button-next {
+  width: 30px;
+  height: 30px !important;
+  min-width: 30px !important;
+  top: 55% !important
+}
+
+.smlBtn .swiper-button-prev:after,
+.smlBtn .swiper-button-next::after {
+  font-size: 18px !important;
+  color: #000000;
+}
+
+.homeCatSlider .swiper-button-prev,
+.homeCatSlider .swiper-button-next {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+}
+
+.homeCatSlider .swiper-button-prev:after,
+.homeCatSlider .swiper-button-next::after {
+  font-size: 16px !important;
+}
+
+.homeCatSlider {
+  overflow: inherit !important;
+}
+
+.homeCatSlider .swiper-button-prev {
+  left: 5px !important;
+}
+
+.homeCatSlider .swiper-button-next {
+  right: 5px !important;
+}
+
+.homeCatSlider .swiper-button-prev:hover,
+.homeCatSlider .swiper-button-next:hover {
+  background: #ff5252 !important;
+}
+
+.homeCatSlider .item {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.homeCatSlider .swiper-button-prev:hover:after,
+.homeCatSlider .swiper-button-next:hover::after {
+  color: #fff !important;
+}
+
+.homeCatSlider .item:hover img {
+  transform: scale(1.1);
+}
+
+.MuiTabs-indicator {
+  background-color: #ff5252 !important
+}
+
+.MuiTab-textColorPrimary.Mui-selected {
+  color: #ff5252 !important;
+}
+
+.productsSlider .swiper-wrapper {
+  padding: 15px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+footer form input::placeholder {
+  font-size: 14px;
+}
+
+.css-imrjgg-MuiButtonBase-root-MuiCheckbox-root.Mui-checked,
+.css-imrjgg-MuiButtonBase-root-MuiCheckbox-root.MuiCheckbox-indeterminate {
+  color: #ff5252 !important;
+}
+
+.MuiFormControlLabel-label {
+  font-size: 13px !important;
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.swiper-pagination-bullet-active {
+  background: #ff5252 !important;
+}
+
+.homeSliderV2 .swiper-slide-active .info {
+  right: 0px !important;
+  opacity: 1;
+}
+
+.homeSliderV2 .swiper-slide-active .info h4 {
+  right: 0px !important;
+  opacity: 1;
+}
+
+.homeSliderV2 .swiper-slide-active .info h3 {
+  right: 0px !important;
+  opacity: 1;
+}
+
+.homeSliderV2 .swiper-slide-active .info h2 {
+  right: 0px !important;
+  opacity: 1;
+}
+
+.homeSliderV2 .swiper-slide-active .info .btn_ {
+  right: 0px !important;
+  opacity: 1;
+}
+
+.homeSliderV2 .info h4 {
+  transition-duration: 1.2s;
+}
+
+.homeSliderV2 .info h2 {
+  transition-duration: 1.5s;
+}
+
+.homeSliderV2 .info h3 {
+  transition-duration: 1.8s;
+}
+
+.homeSliderV2 .info .btn_ {
+  transition-duration: 2.1s;
+}
