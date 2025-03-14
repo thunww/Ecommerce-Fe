@@ -55,6 +55,13 @@ const ManageOrders = () => {
       render: (value) => `₫${value?.toLocaleString() || "0"}` 
     },
     {
+      header: "Product Image",
+      field: "productImage",
+      render: (value) => (
+        <img src={value} alt="Product" className="w-16 h-16 object-cover rounded-md" />
+      ),
+    },
+    {
       header: "Status",
       field: "status",
       render: (value, row) => (
@@ -70,7 +77,7 @@ const ManageOrders = () => {
       ),
     },
   ];
-
+  
   return (
     <div className="p-5 bg-gray-100 min-h-screen">
       <h2 className="text-2xl font-bold mb-5">Orders Management</h2>

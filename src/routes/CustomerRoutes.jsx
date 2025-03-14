@@ -17,5 +17,4 @@ const CustomerRoutes = () => {
         </Routes>
     );
 };
-
 export default CustomerRoutes;
