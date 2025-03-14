@@ -1,0 +1,29 @@
+import { Routes, Route } from "react-router-dom";
+import VendorLayout from "../layouts/vendorLayout/Layout";
+
+import Dashboard from "../pages/Vendor/Dashboard";
+import Orders from "../pages/Vendor/Orders";
+import Products from "../pages/Vendor/Products";
+import AnalyticsPage from "../pages/Vendor/Analytics";
+import Settings from "../pages/Vendor/Setting";
+import NotFound from "../pages/Vendor/NotFound";
+
+
+const VendorRoutes = () => {
+  return (
+    <Routes>
+      {/* Bọc tất cả route trong VendorLayout */}
+      <Route path="/" element={<VendorLayout />}>
+         <Route index element={<Dashboard/>} />  
+         
+        <Route path="orders" element={<Orders />} />
+        <Route path="products" element={<Products />} />
+        <Route path="analytics" element={<AnalyticsPage />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
+  );
+};
+
+export default VendorRoutes;

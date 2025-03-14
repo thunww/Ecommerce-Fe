@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import AdminRoutes from "./AdminRoutes";
 import CustomerRoutes from "./CustomerRoutes";
+import VendorRoutes from "./VendorRoutes";
 
 
 const AppRoutes = () => {
@@ -11,6 +12,8 @@ const AppRoutes = () => {
 
             {/* Routes cho Khách hàng */}
             <Route path="/*" element={<CustomerRoutes />} />
+            {/* Routes dành cho người bán */}
+            <Route path="/vendor/*" element={<VendorRoutes />} />
         </Routes>
     );
 };
