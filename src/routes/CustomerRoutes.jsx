@@ -12,7 +12,7 @@ const CustomerRoutes = () => {
                 <Route index element={<Home />} />
                 <Route path="productListing" element={<ProductListing />} />
                 <Route path="login" element={<Login />} />
-                <Route path="register" element={<Register/>}/>
+                <Route path="register" element={<Register />} />
             </Route>
         </Routes>
     );
