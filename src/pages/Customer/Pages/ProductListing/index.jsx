@@ -10,6 +10,7 @@ import { IoGrid } from "react-icons/io5";
 import { GiHamburgerMenu } from "react-icons/gi";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import Pagination from '@mui/material/Pagination';
 
 const ProductListing = () => {
     const [itemView, setItemView] = useState('grid')
@@ -23,7 +24,7 @@ const ProductListing = () => {
     };
 
     return (
-        <section className='py-5'>
+        <section className='py-5 pb-0'>
             <div className='container'>
                 <Breadcrumbs aria-label="breadcrumb">
                     <Link underline="hover" color="inherit" href="/" className='link transition'>
@@ -50,17 +51,19 @@ const ProductListing = () => {
 
                     <div className='rightContent w-[80%] py-3'>
                         <div className='bg-[#f1f1f1] p-2 w-full mb-3 rounded-md flex items-center justify-between'>
-                            <div className='col1 flex items-center gap-3'>
+                            <div className='col1 flex items-center gap-3 itemViewActions'>
 
                                 <Button
-                                    className='!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000]'
+                                    className={`!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] ${itemView === "list" ? 'active' : ''}`}
+
                                     onClick={() => setItemView('list')}>
 
                                     <GiHamburgerMenu
                                         className='text-[rgba(0,0,0,0.7)]' />
                                 </Button>
                                 <Button
-                                    className='!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000]'
+                                    className={`!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] ${itemView === "grid" ? 'active' : ''}`}
+
                                     onClick={() => setItemView('grid')}>
 
                                     <IoGrid className='text-[rgba(0,0,0,0.7)]' />
@@ -106,9 +109,8 @@ const ProductListing = () => {
                             </div>
                         </div>
 
-                        <div className={`grid ${itemView === 'grid' ? 'grid-cols-4 md:grid-cols-4 gap-4' :
+                        <div className={`grid ${itemView === 'grid' ? 'grid-cols-4 md:grid-cols-4  ' :
                             'grid-cols-1 md:grid-cols-1'} gap-4`}>
-
                             {
                                 itemView === 'grid' ? (
                                     <>
@@ -138,9 +140,13 @@ const ProductListing = () => {
                             }
 
                         </div>
+
+                        <div className='flex items-center justify-center mt-10'>
+                            <Pagination count={10} showFirstButton showLastButton />
+                        </div>
                     </div>
                 </div>
-            </div>
+            </div >
         </section >
     )
 }
