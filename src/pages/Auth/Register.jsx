@@ -10,7 +10,6 @@ import { register } from "../../redux/authSlice";
 const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isLoading, error } = useSelector((state) => state.auth);
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -18,26 +17,28 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const userData = { username, email, password };
 
-    console.log("User Data:", userData);
-    try {
-      const resultAction = await dispatch(register(userData)); // Bắt đầu gọi action
-      if (register.fulfilled.match(resultAction)) {
-        console.log("Success:", resultAction);
-        toast.success("Đăng ký thành công!", { position: "top-right", autoClose: 1500 });
-        setTimeout(() => {
-          navigate("/login");
-          window.location.reload(); // Reload trang sau khi chuyển hướng
-        }, 1000);
-      } else {
-        toast.error(resultAction.payload?.message || "Registration failed", { position: "top-right" });
-      }
-    } catch (error) {
-      toast.error(error.message);
+    if (!username.trim() || !email.trim() || !password.trim()) {
+        toast.error("Vui lòng nhập đầy đủ thông tin!", { position: "top-right" });
+        return;
     }
-  };
-  
+
+    try {
+        const result = await dispatch(register({ username, email, password })).unwrap();
+
+        // Hiển thị message từ API trước khi chuyển trang
+        toast.success(result.message || "Đăng ký thành công!", { position: "top-right" });
+
+        // Chờ 2 giây rồi chuyển đến trang login
+        setTimeout(() => {
+            navigate("/login");
+        }, 2000);
+
+    } catch (error) {
+        toast.error(error.message || "Đăng ký thất bại!", { position: "top-right" });
+    }
+};
+
   return (
     <div className="flex justify-center items-center h-[calc(100vh-200px)] p-2 bg-gradient-to-br from-blue-50 to-purple-100">
       <div className="w-full max-w-6xl overflow-hidden rounded-3xl shadow-lg border border-gray-100 bg-white bg-opacity-90 backdrop-blur-md">
@@ -63,7 +64,7 @@ const Register = () => {
               
               <form className="space-y-5" onSubmit={handleSubmit} >
                 <div>
-                  <label className="block text-gray-700 font-medium mb-1">Full Name</label>
+                  <label className="block text-gray-700 font-medium mb-1">User Name</label>
                   <input 
                     type="text" 
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none transition duration-150 bg-white shadow-sm"

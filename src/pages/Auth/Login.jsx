@@ -12,38 +12,29 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error } = useSelector((state) => state.auth);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!email || !password) {
-      toast.error("Vui lòng nhập đầy đủ thông tin!", { position: "top-right" });
-      return;
+        toast.error("Vui lòng nhập đầy đủ thông tin!", { position: "top-right" });
+        return;
     }
 
-    const resultAction = await dispatch(login({ email, password }));
-    
-    console.log("Login response:", resultAction);
+    try {
+        const result = await dispatch(login({ email, password })).unwrap();
+        
+        // Lấy message từ backend nếu có
+        const successMessage = result.message || "Đăng nhập thành công!";
+        toast.success(successMessage, { position: "top-right" });
 
-    
-    
-    if (login.fulfilled.match(resultAction)) {
-      toast.dismiss();
-
-      const successMessage = resultAction.payload?.message || "Đăng nhập thành công!"
-      toast.success(successMessage, {
-        position: "top-right",
-        autoClose: 2000,
-        onClose: () => navigate("/"),
-      });
-    }else{
-      toast.dismiss();
-      // Kiểm tra nếu backend trả về message
-      const errorMessage = resultAction.payload || "Đăng nhập thất bại!";
-      toast.error(errorMessage, { position: "top-right" });
+        navigate("/");
+    } catch (error) {
+        toast.error(error || "Đăng nhập thất bại!", { position: "top-right" });
     }
-  };
+};
+
+  
   return (
     <div className="flex justify-center items-center h-[calc(100vh-260px)] p-2 bg-gradient-to-br from-blue-50 to-purple-100">
       {/* Main container */}
@@ -163,6 +154,7 @@ const Login = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
     
   );

@@ -4,14 +4,13 @@ const authService = {
     login: async (userData) => {
         try {
             const response = await authApi.login(userData);
-            console.log("API Response:", response); 
-            const { token, user } = response.data;
+            const { token, user, message } = response.data; // Lấy luôn message từ API
             
             // Lưu token vào localStorage
             localStorage.setItem("accessToken", token);
             localStorage.setItem("user", JSON.stringify(user));
 
-            return { user, token} ;
+            return { user, token, message }; 
         } catch (error) {
             throw new Error(error.response?.data?.message || "Login failed");
         }
@@ -21,7 +20,7 @@ const authService = {
             const response = await authApi.register(userData);
             return response.data;
         } catch (error) {
-            throw new Error(error.response?.data?.message || "Login failed");
+            throw new Error(error.response?.data.message|| "Registration failed");
         }
     },
     logout: async () => {
