@@ -91,7 +91,7 @@ const Header = () => {
 
                             <li className='list-none'>
                                 <Link to="/login" className='text-black text-[14px] link font-[500] transition'>Login</Link>  |  &nbsp;
-                                <Link to="/signup" className='text-black text-[14px] link font-[500] transition'>SignUp</Link>
+                                <Link to="/register" className='text-black text-[14px] link font-[500] transition'>SignUp</Link>
                             </li>
                         </ul>
                     </div>
