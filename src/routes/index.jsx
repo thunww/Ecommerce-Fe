@@ -11,7 +11,7 @@ const AppRoutes = () => {
             <Route path="/admin/*" element={<AdminRoutes />} />
 
             {/* Routes cho Khách hàng */}
-            <Route path="/" element={<Home />} />
+            <Route path="/*" element={< CustomerRoutes />} />
         </Routes>
     );
 };

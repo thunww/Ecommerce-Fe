@@ -23,7 +23,7 @@ const Home = () => {
 
     return (
         <>
-            <Header />
+
             <HomeSlider />
             <section className="py-6">
                 <div className="container flex  gap-5">
@@ -115,7 +115,7 @@ const Home = () => {
                 </div>
             </section>
 
-            <Footer />
+
 
         </>
     );

@@ -193,7 +193,7 @@ const Footer = () => {
 
 
                     <p className='text-[12px] text-center mb-0'>
-                        2025-Ecommerce Web Tempalte
+                        2025-Ecommerce Web 
                     </p>
 
                     <div className='flex items-center'>
@@ -212,4 +212,4 @@ const Footer = () => {
     )
 }
 
-export default Footer
+export default Footer;

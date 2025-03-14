@@ -33,7 +33,7 @@
 .body {
   font-family: "Montserrat", sans-serif;
   font-optical-sizing: auto;
-  background: #f5f0f0;
+  background: #6d6a6a;
   color: rgba(0, 0, 0, 0.9);
   overflow-x: hidden;
 }
@@ -48,7 +48,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #fff !important;
+  background: #7a7777 !important;
 }
 
 .container {
@@ -58,7 +58,7 @@
 
 .btn-org {
   background: #ff5252 !important;
-  color: #fff !important;
+  color: #968d8d !important;
   font-weight: 500;
   font-size: 16px;
   padding: 7px 20px !important;
@@ -95,7 +95,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  background: #9e9a9a;
   border-radius: 100%;
   width: 45px;
   height: 45px;

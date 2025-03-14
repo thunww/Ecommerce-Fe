@@ -62,4 +62,4 @@ const HomeSlider = () => {
     );
 };
 
-export default HomeSlider
+export default HomeSlider;
