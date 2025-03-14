@@ -45,6 +45,7 @@ const Sidebar = ({ isOpen }) => {
         <SidebarItem to="/admin" icon={<LayoutDashboard size={20} />} label="Home" isOpen={isOpen} />
         <SidebarItem to="/admin/overview" icon={<BarChart2 size={20} />} label="Overview" isOpen={isOpen} />
         <SidebarItem to="/admin/sales" icon={<DollarSign size={20} />} label="Sales Analytics" isOpen={isOpen} />
+        <SidebarItem to="/admin/users" label="Users" icon={<Users size={20} />} isOpen={isOpen} />
         <SidebarItem to="/admin/traffic" icon={<Users size={20} />} label="Traffic" isOpen={isOpen} />
         <SidebarItem to="/admin/top-products" icon={<Package size={20} />} label="Top Products" isOpen={isOpen} />
         <SidebarItem to="/admin/recent-activities" icon={<FileText size={20} />} label="Recent Activities" isOpen={isOpen} />
@@ -53,6 +54,7 @@ const Sidebar = ({ isOpen }) => {
 
       {/* MANAGEMENT Section */}
       <SidebarSection title="Management" isOpen={isOpen}>
+        <SidebarItem to="/admin/users" label="Users" icon={<Users size={20} />} isOpen={isOpen} />
         <SidebarItem to="/admin/orders" icon={<ShoppingCart size={20} />} label="Orders" isOpen={isOpen} />
         <SidebarItem to="/admin/products" icon={<Package size={20} />} label="Products" isOpen={isOpen} />
         <SidebarItem to="/admin/vendors" icon={<Store size={20} />} label="Vendors" isOpen={isOpen} />
@@ -66,12 +68,7 @@ const Sidebar = ({ isOpen }) => {
           <SidebarItem to="/admin/page-layout/header" label="Header" isOpen={isOpen} />
           <SidebarItem to="/admin/page-layout/footer" label="Footer" isOpen={isOpen} />
         </SidebarDropdown>
-        <SidebarDropdown label="Users" icon={<Users size={20} />} isOpen={isOpen} isExpanded={openDropdown === "users"} onClick={() => toggleDropdown("users")}>          
-          <SidebarItem to="/admin/users/admin" label="Admins" isOpen={isOpen} />
-          <SidebarItem to="/admin/users/customer" label="Customers" isOpen={isOpen} />
-          <SidebarItem to="/admin/users/seller" label="Sellers" isOpen={isOpen} />
-          <SidebarItem to="/admin/users/shipper" label="Shippers" isOpen={isOpen} />
-        </SidebarDropdown>
+
         <SidebarItem to="/admin/chat" icon={<MessageSquare size={20} />} label="Chat" isOpen={isOpen} />
         <SidebarItem to="/admin/posts" icon={<FileText size={20} />} label="Posts" isOpen={isOpen} />
         <SidebarItem to="/admin/comments" icon={<MessageSquare size={20} />} label="Comments" isOpen={isOpen} />
