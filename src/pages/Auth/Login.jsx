@@ -24,10 +24,14 @@ const Login = () => {
 
     const resultAction = await dispatch(login({ email, password }));
     
+    console.log("Login response:", resultAction);
+
+    
+    
     if (login.fulfilled.match(resultAction)) {
       toast.dismiss();
 
-      const successMessage = resultAction.payload.message || "Đăng nhập thành công!"
+      const successMessage = resultAction.payload?.message || "Đăng nhập thành công!"
       toast.success(successMessage, {
         position: "top-right",
         autoClose: 2000,

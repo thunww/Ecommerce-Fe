@@ -1,7 +1,43 @@
 import { Link } from "react-router-dom";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { register } from "../../redux/authSlice";
 
 const Register = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { isLoading, error } = useSelector((state) => state.auth);
+
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const userData = { username, email, password };
+
+    console.log("User Data:", userData);
+    try {
+      const resultAction = await dispatch(register(userData)); // Bắt đầu gọi action
+      if (register.fulfilled.match(resultAction)) {
+        console.log("Success:", resultAction);
+        toast.success("Đăng ký thành công!", { position: "top-right", autoClose: 1500 });
+        setTimeout(() => {
+          navigate("/login");
+          window.location.reload(); // Reload trang sau khi chuyển hướng
+        }, 1000);
+      } else {
+        toast.error(resultAction.payload?.message || "Registration failed", { position: "top-right" });
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+  
   return (
     <div className="flex justify-center items-center h-[calc(100vh-200px)] p-2 bg-gradient-to-br from-blue-50 to-purple-100">
       <div className="w-full max-w-6xl overflow-hidden rounded-3xl shadow-lg border border-gray-100 bg-white bg-opacity-90 backdrop-blur-md">
@@ -25,13 +61,16 @@ const Register = () => {
                 <h2 className="text-3xl font-bold text-gray-800 ml-3">Register</h2>
               </div>
               
-              <form className="space-y-5">
+              <form className="space-y-5" onSubmit={handleSubmit} >
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">Full Name</label>
                   <input 
                     type="text" 
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none transition duration-150 bg-white shadow-sm"
-                    placeholder="Enter your full name" 
+                    placeholder="Enter your full name"
+                    value={username}
+                    onChange={(e)=>setUsername(e.target.value)}
+                    required 
                   />
                 </div>
                 
@@ -45,6 +84,9 @@ const Register = () => {
                       type="email" 
                       className="w-full pl-10 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none transition duration-150 bg-white shadow-sm"
                       placeholder="Enter your email" 
+                      value={email}
+                      onChange={(e)=>setEmail(e.target.value)}
+                      required
                     />
                   </div>
                 </div>
@@ -59,6 +101,9 @@ const Register = () => {
                       type="password" 
                       className="w-full pl-10 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none transition duration-150 bg-white shadow-sm"
                       placeholder="Enter your password" 
+                      value={password}
+                      onChange={(e)=>setPassword(e.target.value)}
+                      required
                     />
                   </div>
                 </div>
@@ -107,6 +152,7 @@ const Register = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };
