@@ -1,7 +1,45 @@
 import { Link } from "react-router-dom";
 import { Mail, Lock, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "../../redux/authSlice";
+import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { isLoading, error } = useSelector((state) => state.auth);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      toast.error("Vui lòng nhập đầy đủ thông tin!", { position: "top-right" });
+      return;
+    }
+
+    const resultAction = await dispatch(login({ email, password }));
+    
+    if (login.fulfilled.match(resultAction)) {
+      toast.dismiss();
+
+      const successMessage = resultAction.payload.message || "Đăng nhập thành công!"
+      toast.success(successMessage, {
+        position: "top-right",
+        autoClose: 2000,
+        onClose: () => navigate("/"),
+      });
+    }else{
+      toast.dismiss();
+      // Kiểm tra nếu backend trả về message
+      const errorMessage = resultAction.payload || "Đăng nhập thất bại!";
+      toast.error(errorMessage, { position: "top-right" });
+    }
+  };
   return (
     <div className="flex justify-center items-center h-[calc(100vh-260px)] p-2 bg-gradient-to-br from-blue-50 to-purple-100">
       {/* Main container */}
@@ -27,8 +65,9 @@ const Login = () => {
                 </div>
                 <h2 className="text-3xl font-bold text-gray-800 ml-3">Login</h2>
               </div>
-              
-              <form className="space-y-5">
+
+                    
+              <form className="space-y-5" onSubmit={handleSubmit}>
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">Email</label>
                   <div className="relative">
@@ -37,6 +76,8 @@ const Login = () => {
                     </div>
                     <input 
                       type="email" 
+                      value={email}
+                      onChange={(e)=>setEmail(e.target.value)}
                       className="w-full pl-10 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none transition duration-150 bg-white shadow-sm"
                       placeholder="Enter your email" 
                     />
@@ -54,6 +95,8 @@ const Login = () => {
                     </div>
                     <input 
                       type="password" 
+                      value={password}
+                      onChange={(e)=>setPassword(e.target.value)}
                       className="w-full pl-10 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none transition duration-150 bg-white shadow-sm"
                       placeholder="Enter your password" 
                     />
@@ -117,6 +160,7 @@ const Login = () => {
         </div>
       </div>
     </div>
+    
   );
 };
 
