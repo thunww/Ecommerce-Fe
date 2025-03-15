@@ -3,20 +3,20 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Home, Package } from "lucide-react";
 import { motion } from "framer-motion";
 
-const SidebarItem = ({ to, icon: Icon, label, onClick }) => {
+const SidebarItem = ({ to, icon: Icon, label, onClick, expanded }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
 
   return (
     <Link
       to={to}
-      onClick={onClick} // Đóng Sidebar khi chọn
-      className={`flex items-center px-6 py-3 transition-colors duration-200 ${
+      onClick={onClick}
+      className={`flex items-center px-6 py-3 transition-all duration-300 ${
         isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
       }`}
     >
       <Icon className="mr-3" size={20} />
-      {label}
+      {expanded && <span className="fade-in">{label}</span>}
     </Link>
   );
 };
@@ -53,24 +53,24 @@ const Sidebar = () => {
         </button>
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar mở hoàn toàn */}
       <motion.div
         ref={sidebarRef}
         initial={{ x: "-100%" }}
         animate={{ x: isOpen ? "0%" : "-100%" }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="fixed top-0 left-0 h-full bg-gray-900 text-white w-64 shadow-lg z-40"
+        transition={{ duration: 0.4, ease: "easeInOut" }}
+        className="fixed top-0 left-0 h-full w-64 bg-gray-900 text-white shadow-lg z-40"
       >
         <div className="p-5 flex items-center justify-between">
-          <h2 className="text-xl font-bold">Delivery Dashboard</h2>
+          <h2 className="text-xl font-bold fade-in">Delivery Dashboard</h2>
           <button onClick={() => setIsOpen(false)}>
             <X size={28} />
           </button>
         </div>
 
         <nav>
-          <SidebarItem to="/shipper" icon={Home} label="Dashboard" onClick={() => setIsOpen(false)} />
-          <SidebarItem to="/shipper/orders" icon={Package} label="Đơn hàng" onClick={() => setIsOpen(false)} />
+          <SidebarItem to="/shipper" icon={Home} label="Dashboard" expanded={true} onClick={() => setIsOpen(false)} />
+          <SidebarItem to="/shipper/orders" icon={Package} label="Đơn hàng" expanded={true} onClick={() => setIsOpen(false)} />
         </nav>
       </motion.div>
 

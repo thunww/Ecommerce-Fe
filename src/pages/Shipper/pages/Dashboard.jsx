@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import StatsCards from "../components/Header/StatsCards";
 import OrdersTable from "../components/Header/OrdersTable";
 
+
 const initialState = {
+
   stats: {
     totalOrders: 0,
     completedOrders: 0,
@@ -38,6 +40,8 @@ const reducer = (state, action) => {
 };
 
 const Dashboard = () => {
+  console.log("Con meo");
+
   const navigate = useNavigate();
   const [state, dispatch] = useReducer(reducer, initialState);
 
