@@ -22,7 +22,7 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 const Header = () => {
     return (
         <header>
-            <div className='top-strip py-2 border-t-[2px] border-red-500 bg-red-600 border-b-[2px] '>
+            <div className='top-strip py-1 border-t-[2px] border-blue-500 bg-blue-600 border-b-[2px] '>
                 <div className='container'>
                     <div className='flex items-center justify-between'>
                         <div className='col1 w-[50%]'>
@@ -46,7 +46,7 @@ const Header = () => {
             </div>
 
 
-            <div className='header py-3 border-b-[2px] border-red-500'>
+            <div className='header py-3 border-b-[2px] border-blue-500'>
                 <div className='container flex items-center justify-between'>
                     <div className='col1 w-[25%]'>
                         <Link to="/" className='logo'>
