@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,6 +16,8 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+   
 
     if (!email || !password) {
         toast.error("Vui lòng nhập đầy đủ thông tin!", { position: "top-right" });
@@ -28,7 +31,9 @@ const Login = () => {
         const successMessage = result.message || "Đăng nhập thành công!";
         toast.success(successMessage, { position: "top-right" });
 
-        navigate("/");
+        setTimeout(() => {
+          navigate("/");
+      }, 2000);
     } catch (error) {
         toast.error(error || "Đăng nhập thất bại!", { position: "top-right" });
     }
