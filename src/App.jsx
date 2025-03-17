@@ -4,11 +4,11 @@ import AppRoutes from "./routes";
 
 function App() {
     return (
-        <BrowserRouter>
+        <BrowserRouter>     
             <AppRoutes />
         </BrowserRouter>
         
     );
 }
 
-export default App;
+export default App; 

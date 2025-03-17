@@ -5,9 +5,9 @@ import RightSidebar from "./RightSidebar";
 
 const VendorLayout = () => {
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
       {/* Sidebar bên trái */}
-      <div className="w-64 pt-16">
+      <div className="w-64 pt-16 ">
         <Sidebar />
       </div>
 

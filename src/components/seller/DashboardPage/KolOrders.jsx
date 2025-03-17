@@ -3,7 +3,7 @@ import React, { Component } from "react";
 class KOLOrders extends Component {
   render() {
     return (
-      <div className="bg-white p-4 rounded-xl shadow border w-72 overflow-hidden">
+      <div className="bg-white p-4 rounded-xl shadow border w-120  h-[360px] overflow-hidden">
         <div className="flex justify-between">
           <h2 className="font-bold text-lg">Boost Orders with KOL</h2>
           <a href="#" className="text-blue-500">More</a>
