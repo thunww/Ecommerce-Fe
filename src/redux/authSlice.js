@@ -32,6 +32,7 @@ const authSlice = createSlice({
     name: "auth",
     initialState: {
         user: JSON.parse(localStorage.getItem("user")) || null, // Lấy user từ localStorage
+        roles: JSON.parse(localStorage.getItem("roles")) || [],
         isLoading: false,
         error: null,
     },
@@ -46,6 +47,7 @@ const authSlice = createSlice({
                 state.isLoading = false;
                 state.user = action.payload; // Lưu user vào Redux
                 localStorage.setItem("user", JSON.stringify(action.payload));
+                localStorage.setItem("roles", JSON.stringify(action.payload.user.roles));
             })
             .addCase(register.rejected, (state, action) => {
                 state.isLoading = false;

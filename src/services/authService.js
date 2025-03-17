@@ -9,7 +9,7 @@ const authService = {
             // Lưu token vào localStorage
             localStorage.setItem("accessToken", token);
             localStorage.setItem("user", JSON.stringify(user));
-
+            localStorage.setItem("roles", JSON.stringify(user.roles));
             return { user, token, message }; 
         } catch (error) {
             throw new Error(error.response?.data?.message || "Login failed");
