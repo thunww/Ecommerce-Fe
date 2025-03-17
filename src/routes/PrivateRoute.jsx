@@ -4,9 +4,22 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 const PrivateRoute = ({ allowedRoles }) => {
-  const role = useSelector((state) => state.auth.role);
+  const user = useSelector((state)=>state.auth.user);
+  
+  if(!user){
+    return <Navigate to = "/login"></Navigate>
+  }
+  const roles = useSelector((state)=> state.auth.roles) || [];
 
-  return allowedRoles.includes(role) ? <Outlet /> : <Navigate to="/" />;
+
+  if (roles.length === 0) {
+    return <Navigate to="/login" />;
+  }
+
+  const hasPermission = roles.some((role) => allowedRoles.includes(role));
+
+  return hasPermission ? <Outlet /> : <Navigate to="/" />;
 };
+
 
 export default PrivateRoute;
