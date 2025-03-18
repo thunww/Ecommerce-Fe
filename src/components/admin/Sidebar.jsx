@@ -34,11 +34,17 @@ const Sidebar = ({ isOpen }) => {
         >
       {/* Logo */}
       <div className={`flex items-center gap-3 p-5 ${isOpen ? "" : "justify-center"}`}>
-        <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-          <span className="text-white text-lg font-bold">E</span>
+        <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden">
+          <img
+            src="https://static.vecteezy.com/system/resources/previews/020/429/953/original/admin-icon-vector.jpg"
+            alt="Shop Avatar"
+            className="w-full h-full object-cover"
+          />
         </div>
         {isOpen && <h2 className="text-xl font-bold">E-Admin</h2>}
       </div>
+
+
 
       {/* DASHBOARD Section */}
     <SidebarSection title="Dashboard" isOpen={isOpen}>
@@ -49,6 +55,10 @@ const Sidebar = ({ isOpen }) => {
         <SidebarItem to="/admin/traffic" icon={<Users size={20} />} label="Traffic" isOpen={isOpen} />
         <SidebarItem to="/admin/top-products" icon={<Package size={20} />} label="Top Products" isOpen={isOpen} />
         <SidebarItem to="/admin/recent-activities" icon={<FileText size={20} />} label="Recent Activities" isOpen={isOpen} />
+        <SidebarDropdown label="Page Layout" icon={<Layout size={20} />} isOpen={isOpen} isExpanded={openDropdown === "page"} onClick={() => toggleDropdown("page")}>          
+          <SidebarItem to="/" label="Home" isOpen={isOpen} />
+          <SidebarItem to="/admin/page-layout/footer" label="Footer" isOpen={isOpen} />
+        </SidebarDropdown>
     </SidebarSection>
 
 
@@ -64,10 +74,7 @@ const Sidebar = ({ isOpen }) => {
 
       {/* CONTENT Section */}
       <SidebarSection title="Content" isOpen={isOpen}>
-        <SidebarDropdown label="Page Layout" icon={<Layout size={20} />} isOpen={isOpen} isExpanded={openDropdown === "page"} onClick={() => toggleDropdown("page")}>          
-          <SidebarItem to="/admin/page-layout/header" label="Header" isOpen={isOpen} />
-          <SidebarItem to="/admin/page-layout/footer" label="Footer" isOpen={isOpen} />
-        </SidebarDropdown>
+       
 
         <SidebarItem to="/admin/chat" icon={<MessageSquare size={20} />} label="Chat" isOpen={isOpen} />
         <SidebarItem to="/admin/posts" icon={<FileText size={20} />} label="Posts" isOpen={isOpen} />

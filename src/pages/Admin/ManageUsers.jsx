@@ -1,85 +1,102 @@
 import React, { useEffect, useState } from "react";
-import Table from "../../components/common/Table"; // Import table
-import { FaEdit, FaTrash, FaPlus, FaSearch } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAllUsers, deleteUser } from "../../redux/adminSlice"; // Thêm deleteUser action
+import Table from "../../components/common/Table";
+import { FaSearch, FaEdit, FaTrash } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const ManageUsers = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { users = [], loading } = useSelector((state) => state.admin);
   const [search, setSearch] = useState("");
 
-  // Giả lập API gọi danh sách users
   useEffect(() => {
-    setTimeout(() => {
-      setUsers([
-        { id: 1, name: "Nguyễn Văn A", email: "a@gmail.com", role: "Admin" },
-        { id: 2, name: "Trần Thị B", email: "b@gmail.com", role: "User" },
-        { id: 3, name: "Phạm Văn C", email: "c@gmail.com", role: "User" },
-        { id: 4, name: "Lê Thị D", email: "d@gmail.com", role: "Editor" },
-        { id: 5, name: "Hoàng Văn E", email: "e@gmail.com", role: "User" },
-        { id: 6, name: "Đỗ Thị F", email: "f@gmail.com", role: "User" },
-        { id: 7, name: "Bùi Văn G", email: "g@gmail.com", role: "Admin" },
-        { id: 8, name: "Trịnh Thị H", email: "h@gmail.com", role: "User" },
-        { id: 9, name: "Lâm Văn I", email: "i@gmail.com", role: "Editor" },
-        { id: 10, name: "Hồ Thị J", email: "j@gmail.com", role: "User" },
-        { id: 11, name: "Vũ Văn K", email: "k@gmail.com", role: "User" },
-      ]);
-      setLoading(false);
-    }, 500);
-  }, []);
-
-  // Thêm user
-  const handleAddUser = () => {
-    const newUser = {
-      id: users.length + 1,
-      name: `User ${users.length + 1}`,
-      email: `user${users.length + 1}@gmail.com`,
-      role: "User",
-    };
-    setUsers([...users, newUser]);
-  };
-
-  // Sửa user
-  const handleEditUser = (id) => {
-    setUsers(
-      users.map((user) =>
-        user.id === id ? { ...user, name: user.name + " (Edited)" } : user
-      )
-    );
-  };
-
-  // Xóa user
-  const handleDeleteUser = (id) => {
-    setUsers(users.filter((user) => user.id !== id));
-  };
+    dispatch(fetchAllUsers());
+  }, [dispatch]);
 
   // Lọc user theo search
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(search.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.toLowerCase()) ||
-      user.role.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers =
+    users?.filter(
+      (user) =>
+        user.first_name.toLowerCase().includes(search.toLowerCase()) ||
+        user.last_name.toLowerCase().includes(search.toLowerCase()) ||
+        user.email.toLowerCase().includes(search.toLowerCase())
+    ) ?? [];
+
+  // Hàm xử lý khi nhấn nút "Sửa"
+  const handleEdit = (user_id) => {
+    navigate(`/admin/edit-user/${user_id}`); // Điều hướng đến trang sửa người dùng
+  };
+
+  // Hàm xử lý khi nhấn nút "Xóa"
+  const handleDelete = (user_id) => {
+    if (window.confirm("Bạn có chắc muốn xóa người dùng này?")) {
+      dispatch(deleteUser(user_id)); // Gọi action xóa người dùng
+    }
+  };
 
   // Cấu hình cột bảng
   const columns = [
-    { header: "ID", field: "id" },
-    { header: "Name", field: "name" },
+    { header: "ID", field: "user_id" },
+    {
+      header: "Avatar",
+      field: "profile_picture",
+      render: (profile_picture) => (
+        <img
+          src={
+            profile_picture ||
+            "https://i.pinimg.com/736x/c6/e5/65/c6e56503cfdd87da299f72dc416023d4.jpg"
+          }
+          alt="Avatar"
+          className="w-10 h-10 rounded-full"
+        />
+      ),
+    },
+    { header: "Frist Name", field: "first_name" },
+    { header: "Last Name", field: "last_name" },
     { header: "Email", field: "email" },
-    { header: "Role", field: "role" },
+    { header: "Role", field: "roles", render: (roles) => roles.join(", ") },
+    {
+      header: "Verify",
+      field: "is_verified",
+      render: (is_verified) =>
+        is_verified ? (
+          <span className="text-green-600 font-semibold">Verified</span>
+        ) : (
+          <span className="text-red-600 font-semibold">Not Verified</span>
+        ),
+    },
+    {
+      header: "Actions",
+      field: "actions",
+      render: (users) => (
+        <div className="flex space-x-2">
+          {/* Nút Sửa */}
+          <button
+            onClick={() => handleEdit(users.user_id)}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded flex items-center"
+          >
+            <FaEdit className="mr-1" /> Edit
+          </button>
+
+          {/* Nút Xóa */}
+          <button
+            onClick={() => handleDelete(users.user_id)}
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded flex items-center"
+          >
+            <FaTrash className="mr-1" /> Delete
+          </button>
+        </div>
+      ),
+    },
   ];
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
+    <div className="p-4 bg-gray-100 min-h-screen">
       <div className="max-w-full mx-auto bg-white shadow-lg rounded-lg p-8">
-        {/* Tiêu đề + Nút thêm */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-gray-800">Users Management</h2>
-          <button
-            onClick={handleAddUser}
-            className="bg-green-500 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-600 transition"
-          >
-            <FaPlus className="mr-2" /> Add User
-          </button>
         </div>
 
         {/* Thanh tìm kiếm */}
@@ -98,13 +115,7 @@ const ManageUsers = () => {
         {loading ? (
           <p className="text-center text-gray-500">Loading users...</p>
         ) : (
-          <Table
-            columns={columns}
-            data={filteredUsers}
-            onUpdate={handleEditUser}
-            onDelete={handleDeleteUser}
-            pageSize={10}
-          />
+          <Table columns={columns} data={filteredUsers} pageSize={10} />
         )}
       </div>
     </div>
