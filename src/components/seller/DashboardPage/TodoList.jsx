@@ -3,17 +3,23 @@ import { getAllOrders } from "../../../services/vendorService";
 
 const ToDoList = () => {
   const [toProcess, setToProcess] = useState(0);
-  const [processed, setProcessed] = useState(0);
-  const [returnRequests, setReturnRequests] = useState(0);
-  const [restrictedProducts, setRestrictedProducts] = useState(0);
+  const [processing, setProcessing] = useState(0);
+  const [shipped, setShipped] = useState(0);
+  const [cancelled, setCancelled] = useState(0);
 
   useEffect(() => {
     const fetchOrders = async () => {
-      const orders = await getAllOrders();
-      setToProcess(orders.filter(order => order.status === "pending").length);
-      setProcessed(orders.filter(order => order.status === "processed").length);
-      setReturnRequests(orders.filter(order => order.status === "return_requested").length);
-      setRestrictedProducts(orders.filter(order => order.status === "restricted").length);
+      try {
+        const response = await getAllOrders();
+        const orders = response.orders; // API trả về `orders`, cần lấy mảng này
+
+        setToProcess(orders.filter(order => order.status === "pending").length);
+        setProcessing(orders.filter(order => order.status === "processing").length);
+        setShipped(orders.filter(order => order.status === "shipped").length);
+        setCancelled(orders.filter(order => order.status === "cancelled").length);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách đơn hàng:", error);
+      }
     };
 
     fetchOrders();
@@ -25,19 +31,19 @@ const ToDoList = () => {
       <div className="grid grid-cols-4 text-center">
         <div>
           <p className="text-blue-500 text-2xl font-bold">{toProcess}</p>
-          <p>Orders to Process</p>
+          <p>Orders Pending</p>
         </div>
         <div>
-          <p className="text-blue-500 text-2xl font-bold">{processed}</p>
-          <p>Processed</p>
+          <p className="text-blue-500 text-2xl font-bold">{processing}</p>
+          <p>Orders Processing</p>
         </div>
         <div>
-          <p className="text-blue-500 text-2xl font-bold">{returnRequests}</p>
-          <p>Return Requests</p>
+          <p className="text-blue-500 text-2xl font-bold">{shipped}</p>
+          <p>Orders Shipped</p>
         </div>
         <div>
-          <p className="text-blue-500 text-2xl font-bold">{restrictedProducts}</p>
-          <p>Restricted Products</p>
+          <p className="text-blue-500 text-2xl font-bold">{cancelled}</p>
+          <p>Orders Cancelled</p>
         </div>
       </div>
     </div>

@@ -7,7 +7,7 @@ import Products from "../pages/Vendor/Products";
 import AnalyticsPage from "../pages/Vendor/Analytics";
 import Settings from "../pages/Vendor/Setting";
 import NotFound from "../pages/Vendor/NotFound";
-
+import BulkShippingPage from "../pages/Vendor/bulk-shipping";
 
 const VendorRoutes = () => {
   return (
@@ -17,6 +17,8 @@ const VendorRoutes = () => {
          <Route index element={<Dashboard/>} />  
          
         <Route path="orders" element={<Orders />} />
+        <Route path="bulk-shipping" element={<BulkShippingPage />} />
+
         <Route path="products" element={<Products />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="settings" element={<Settings />} />
