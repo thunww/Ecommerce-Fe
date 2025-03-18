@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import "../ProductItem/style.css"
 import { Link } from 'react-router-dom'
 import Rating from '@mui/material/Rating';
@@ -7,7 +7,10 @@ import { FaRegHeart } from "react-icons/fa";
 import { GoGitCompare } from "react-icons/go";
 import { MdOutlineZoomOutMap } from "react-icons/md";
 import { MdOutlineShoppingCart } from "react-icons/md";
+import MyContext from "../../../../context/MyContext";
 const ProductItem = () => {
+
+    const context = useContext(MyContext);
     return (
         <div className='productItem  shadow-lg py-5 rounded-md overflow-hidden border-1 border-[rgba(0,0,0,0.1)] flex items-center'>
             <div className='group imgWrapper w-[25%]  overflow-hidden rounded-md relative'>
@@ -35,7 +38,8 @@ const ProductItem = () => {
                     </Button>
 
                     <Button className='!w-[35px] !h-[35px] !min-w-[35px] !rounded-full !bg-white group text-black
-                    hover:!bg-red-300 hover:text-white'>
+                    hover:!bg-red-300 hover:text-white'
+                        onClick={() => context.setOpenProductDetailsModal(true)}>
                         <MdOutlineZoomOutMap className='text-[18px] !text-black group-hover:text-white hover:!text-whitee' />
                     </Button>
 
@@ -50,7 +54,7 @@ const ProductItem = () => {
             </div>
 
             <div className='info p-3 py-5 px-8 w-[75%]'>
-                <h6 className='text-[15px] '>
+                <h6 className='text-[15px] !font-[400] '>
                     <Link to='/' className='link'>
                         T-Shirt
                     </Link>
