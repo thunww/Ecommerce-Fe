@@ -15,14 +15,14 @@ const CategoryCollapse = () => {
 
     const toggleDrawer = (newOpen) => () => {
         props.setIsOpenCatPanel(newOpen);
+    };
 
-        const openSubmenu = (index) => {
-            setSubmenuIndex(submenuIndex === index ? null : index);
-        };
+    const openSubmenu = (index) => {
+        setSubmenuIndex(submenuIndex === index ? null : index);
+    };
 
-        const openInnerSubmenu = (index) => {
-            setInnerSubmenuIndex(innerSubmenuIndex === index ? null : index);
-        };
+    const openInnerSubmenu = (index) => {
+        setInnerSubmenuIndex(innerSubmenuIndex === index ? null : index);
     };
     return (
         <>
