@@ -17,7 +17,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 import ProductZoom from "../components/customer/Components/ProductZoom";
 import { IoCloseSharp } from "react-icons/io5";
 import ProductDetailsComponent from "../components/customer/Components/ProductDetails";
-import Login from "../pages/Customer/Pages/Login";
+// import Login from "../pages/Customer/Pages/Login";
+import Login from "../pages/Auth/Login";
 import MyContext from "../context/MyContext"; // ✅ Import từ file riêng
 import CartPage from "../pages/Customer/Pages/Cart";
 
