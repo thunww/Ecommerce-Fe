@@ -17,29 +17,29 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-   
+
 
     if (!email || !password) {
-        toast.error("Vui lòng nhập đầy đủ thông tin!", { position: "top-right" });
-        return;
+      toast.error("Vui lòng nhập đầy đủ thông tin!", { position: "top-right" });
+      return;
     }
 
     try {
-        const result = await dispatch(login({ email, password })).unwrap();
-        
-        // Lấy message từ backend nếu có
-        const successMessage = result.message || "Đăng nhập thành công!";
-        toast.success(successMessage, { position: "top-right" });
+      const result = await dispatch(login({ email, password })).unwrap();
 
-        setTimeout(() => {
-          navigate("/");
+      // Lấy message từ backend nếu có
+      const successMessage = result.message || "Đăng nhập thành công!";
+      toast.success(successMessage, { position: "top-right" });
+
+      setTimeout(() => {
+        navigate("/");
       }, 2000);
     } catch (error) {
-        toast.error(error || "Đăng nhập thất bại!", { position: "top-right" });
+      toast.error(error || "Đăng nhập thất bại!", { position: "top-right" });
     }
-};
+  };
 
-  
+
   return (
     <div className="flex justify-center items-center h-[calc(100vh-260px)] p-2 bg-gradient-to-br from-blue-50 to-purple-100">
       {/* Main container */}
@@ -49,13 +49,13 @@ const Login = () => {
           <div className="hidden md:block w-1/2 relative">
             <div className="absolute inset-0 flex items-center justify-center">
               <img
-                src="https://ad2cart.com/wp-content/uploads/2021/02/ecommerce-website-banners.jpg" 
-                alt="Login visual" 
+                src="https://ad2cart.com/wp-content/uploads/2021/02/ecommerce-website-banners.jpg"
+                alt="Login visual"
                 className="h-full w-full object-contain hover:scale-102 transition-transform duration-700"
               />
             </div>
-          </div>  
-          
+          </div>
+
           {/* Right side - Login Form */}
           <div className="w-full md:w-1/2 bg-white p-8 bg-gradient-to-br from-white to-blue-50">
             <div className="max-w-md mx-auto">
@@ -66,7 +66,7 @@ const Login = () => {
                 <h2 className="text-3xl font-bold text-gray-800 ml-3">Login</h2>
               </div>
 
-                    
+
               <form className="space-y-5" onSubmit={handleSubmit}>
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">Email</label>
@@ -74,16 +74,16 @@ const Login = () => {
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Mail className="h-5 w-5 text-indigo-400" />
                     </div>
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       value={email}
-                      onChange={(e)=>setEmail(e.target.value)}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-10 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none transition duration-150 bg-white shadow-sm"
-                      placeholder="Enter your email" 
+                      placeholder="Enter your email"
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <label className="block text-gray-700 font-medium">Password</label>
@@ -93,21 +93,21 @@ const Login = () => {
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Lock className="h-5 w-5 text-indigo-400" />
                     </div>
-                    <input 
-                      type="password" 
+                    <input
+                      type="password"
                       value={password}
-                      onChange={(e)=>setPassword(e.target.value)}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="w-full pl-10 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none transition duration-150 bg-white shadow-sm"
-                      placeholder="Enter your password" 
+                      placeholder="Enter your password"
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex items-center">
-                  <input 
-                    id="remember-me" 
-                    name="remember-me" 
-                    type="checkbox" 
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
                     className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
@@ -115,15 +115,15 @@ const Login = () => {
                   </label>
                 </div>
 
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="w-full py-3 px-4 flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 shadow-md"
                 >
                   Login
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </button>
               </form>
-              
+
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200"></div>
@@ -132,7 +132,7 @@ const Login = () => {
                   <span className="px-2 bg-gradient-to-r from-white to-blue-50 text-gray-500">Or continue with</span>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-3 mb-6">
                 <button className="flex items-center justify-center py-2 px-4 border border-gray-200 rounded-lg shadow-sm bg-white hover:bg-gray-50 transition duration-150">
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -148,7 +148,7 @@ const Login = () => {
                   </svg>
                 </button>
               </div>
-              
+
               <p className="text-center text-gray-600">
                 Don't have an account?{" "}
                 <Link to="/register" className="text-indigo-600 font-medium hover:text-indigo-800 hover:underline transition duration-150">
@@ -161,7 +161,7 @@ const Login = () => {
       </div>
       <ToastContainer />
     </div>
-    
+
   );
 };
 
