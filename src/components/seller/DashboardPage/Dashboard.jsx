@@ -14,8 +14,8 @@ import AdvertisementLivestream from "./AdvertisementCarousel_Livestream";
 class Dashboard extends Component {
   render() {
     return (
-      <div className="p-6 bg-gray-100 flex-grow flex flex-col w-full">
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full flex-grow">
+      <div className="flex flex-col min-h-screen p-6 bg-gray-100 w-full h-full ">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full h-full">
           
           {/* Cột 1 */}
           <div className="col-span-2 space-y-4 w-full">

@@ -12,7 +12,7 @@ const VendorLayout = () => {
       </div>
 
       {/* Nội dung chính */}
-      <div className="flex flex-col flex-1 overflow-hidden pt-16 pr-16">
+      <div className="flex flex-col flex-1 overflow-y-auto scrollbar-hide pt-16 pr-16">
         <Header />
         <main className="p-6">
           <Outlet />

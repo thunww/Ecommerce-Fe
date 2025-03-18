@@ -1,29 +1,43 @@
-import React, { Component } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "./Card";
+import React from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
-class FeaturedNews extends Component {
-  render() {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Featured News</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <img
-            src="https://via.placeholder.com/300x100"
-            alt="News Banner"
-            className="w-full h-auto rounded-lg"
-          />
-          <p className="mt-2 text-gray-700">
-            Join Shopee's latest updates and stay informed!
-          </p>
-          <div className="text-blue-500 cursor-pointer hover:underline mt-2">
-            View More
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-}
+const bannerImages = [
+  "https://down-sg.img.susercontent.com/sg-11134213-7rd75-m7g8pce6mw3aed",
+  "https://down-sg.img.susercontent.com/sg-11134213-7rd6d-m7fzvpnfzw4888",
+];
+
+const FeaturedNews = () => {
+  return (
+    <div className="bg-white p-4 rounded-lg shadow-md w-full">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="font-bold text-lg">Featured News</h2>
+        <a href="#" className="text-blue-500 text-sm hover:underline">
+          View More &gt;
+        </a>
+      </div>
+
+      {/* Swiper Carousel */}
+      <Swiper
+        modules={[Navigation, Autoplay]}
+        slidesPerView={1}
+        navigation={true} // Hiển thị nút mũi tên
+        autoplay={{ delay: 3000, disableOnInteraction: false }} // Tự động chạy
+        loop={true} // Lặp vô hạn
+        className="rounded-lg overflow-hidden"
+      >
+        {bannerImages.map((image, index) => (
+          <SwiperSlide key={index}>
+            <img src={image} alt={`Slide ${index}`} className="w-full h-auto" />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
+  );
+};
 
 export default FeaturedNews;

@@ -1,99 +1,52 @@
-import React, { Component } from 'react';
-import HeaderActions from './HeaderActions';
-import MainTabs from './MainTabs';
-import StatusTabs from './StatusTabs';
-import SearchFilters from './SearchFilters/SearchFilters';
-import OrderSummary from './OrderSummary/OrderSummary';
-import OrderTable from './OrderTable/OrderTable';
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import HeaderActions from "./HeaderActions";
+import MainTabs from "./MainTabs";
+import StatusTabs from "./StatusTabs";
+import SearchFilters from "./SearchFilters/SearchFilters";
+import OrderSummary from "./OrderSummary/OrderSummary";
+import OrderTable from "./OrderTable/OrderTable";
 
-class OrderManagementContainer extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      activeTab: 'waiting-for-pickup',
-      activeSubTab: 'unprocessed',
-      searchOrderCode: '',
-      shippingUnit: 'All Carriers',
-      sortOption: 'Package Order (Farthest - Nearest)',
-      orders: [] // Assuming no orders initially
-    };
-  }
+const OrderManagementContainer = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "waiting-for-pickup";
 
-  handleTabChange = (tab) => {
-    this.setState({ activeTab: tab });
+  const [activeSubTab, setActiveSubTab] = useState("unprocessed");
+  const [searchOrderCode, setSearchOrderCode] = useState("");
+  const [shippingUnit, setShippingUnit] = useState("All Carriers");
+  const [sortOption, setSortOption] = useState("Package Order (Farthest - Nearest)");
+  const [orders, setOrders] = useState([]); // Giả định ban đầu không có đơn hàng
+
+  useEffect(() => {
+    console.log("Tab changed:", activeTab);
+  }, [activeTab]);
+
+  const handleTabChange = (tab) => {
+    setSearchParams({ tab }); // Cập nhật URL
   };
 
-  handleSubTabChange = (subTab) => {
-    this.setState({ activeSubTab: subTab });
-  };
+  return (
+    <div className="bg-white p-4 rounded-lg shadow w-full max-w-50xl mx-auto h-[800px]">
+      <HeaderActions />
 
-  handleSearchChange = (field, value) => {
-    this.setState({ [field]: value });
-  };
+      <MainTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
-  handleApplyFilters = () => {
-    console.log('Applying filters');
-  };
+      <StatusTabs activeSubTab={activeSubTab} onSubTabChange={setActiveSubTab} />
 
-  handleResetFilters = () => {
-    this.setState({
-      searchOrderCode: '',
-      shippingUnit: 'All Carriers'
-    });
-  };
+      <SearchFilters
+        searchOrderCode={searchOrderCode}
+        shippingUnit={shippingUnit}
+        onSearchChange={(field, value) => {
+          if (field === "searchOrderCode") setSearchOrderCode(value);
+          if (field === "shippingUnit") setShippingUnit(value);
+        }}
+      />
 
-  handleSortChange = (sortOption) => {
-    this.setState({ sortOption });
-  };
+      <OrderSummary orderCount={orders.length} sortOption={sortOption} onSortChange={setSortOption} />
 
-  handleBatchShipping = () => {
-    console.log('Processing batch shipping');
-  };
-
-  render() {
-    const { 
-      activeTab, 
-      activeSubTab, 
-      searchOrderCode, 
-      shippingUnit, 
-      sortOption, 
-      orders 
-    } = this.state;
-
-    return (
-        <div className="bg-white p-4 rounded-lg shadow w-full max-w-50xl mx-auto h-[800px]">
-
-        <HeaderActions />
-        
-        <MainTabs 
-          activeTab={activeTab} 
-          onTabChange={this.handleTabChange} 
-        />
-        
-        <StatusTabs 
-          activeSubTab={activeSubTab} 
-          onSubTabChange={this.handleSubTabChange} 
-        />
-        
-        <SearchFilters 
-          searchOrderCode={searchOrderCode}
-          shippingUnit={shippingUnit}
-          onSearchChange={this.handleSearchChange}
-          onApplyFilters={this.handleApplyFilters}
-          onResetFilters={this.handleResetFilters}
-        />
-        
-        <OrderSummary 
-          orderCount={orders.length}
-          sortOption={sortOption}
-          onSortChange={this.handleSortChange}
-          onBatchShipping={this.handleBatchShipping}
-        />
-        
-        <OrderTable orders={orders} />
-      </div>
-    );
-  }
-}
+      <OrderTable orders={orders} />
+    </div>
+  );
+};
 
 export default OrderManagementContainer;
