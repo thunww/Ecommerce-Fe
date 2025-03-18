@@ -1,9 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-import sidebarReducer from "./sidebarSlice";
+import authReducer from "./authSlice";
 
-export const store = configureStore({
+const store = configureStore({
   reducer: {
-    sidebar: sidebarReducer, // Thêm reducer của sidebar vào store
+    auth: authReducer,
   },
 });
 

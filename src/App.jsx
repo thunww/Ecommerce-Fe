@@ -1,21 +1,30 @@
-import { BrowserRouter as Router } from "react-router-dom";
-import ShipperRoutes from "./routes/ShipperRoutes"; // Đảm bảo đường dẫn đúng
-import SideBar from "./pages/Shipper/components/Header/SideBar";
+import React from 'react';
+import { UserProvider } from './contexts/UserContext';
+import ShipperRoutes from "./routes/ShipperRoutes";
 import "./index.css";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-function App() {
+const App = () => {
   return (
-
-      <div className="flex">
-    
-
-        {/* Nội dung chính của trang */}
-        <div className="flex-1 p-6 bg-gray-100 min-h-screen">
-          <ShipperRoutes />
-        </div>
+    <UserProvider>
+      <div className="min-h-screen bg-gray-50">
+        <ShipperRoutes />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
       </div>
- 
+    </UserProvider>
   );
-}
+};
 
 export default App;

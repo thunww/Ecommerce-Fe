@@ -1,28 +1,43 @@
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
-import Layout from "../pages/Shipper/components/Layout";
-import Dashboard from "../pages/Shipper/pages/Dashboard";
-import Orders from "../pages/Shipper/pages/Orders";
-import OrderDetail from "../pages/Shipper/pages/OrderDetail";
-import Profile from "../pages/Shipper/pages/Profile";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import ShipperLayout from "../layouts/ShipperLayout";
+import ShipperDashboard from "../pages/Shipper/ShipperDashboard";
+import ShipperOrders from "../pages/Shipper/ShipperOrders";
+import ShipperOrderDetail from "../pages/Shipper/ShipperOrderDetail";
+import ShipperProfile from "../pages/Shipper/ShipperProfile";
 
-const ShipperLayout = () => (
-  <Layout>
-    <Outlet />
-  </Layout>
-);
+// Component để xử lý route không hợp lệ
+const NotFound = () => {
+  const location = useLocation();
+  
+  // Nếu path bắt đầu bằng /shipper nhưng không hợp lệ
+  if (location.pathname.startsWith('/shipper/')) {
+    return <Navigate to="/shipper/dashboard" replace />;
+  }
+  
+  // Các path khác
+  return <Navigate to="/shipper/dashboard" replace />;
+};
 
 const ShipperRoutes = () => {
   return (
-    <Routes> {/* ✅ KHÔNG có Router ở đây */}
+    <Routes>
+      {/* Root path redirect */}
       <Route path="/" element={<Navigate to="/shipper/dashboard" replace />} />
 
+      {/* Shipper routes */}
       <Route path="/shipper" element={<ShipperLayout />}>
-        <Route index element={<Navigate to="/shipper/dashboard" replace />} />
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="orders" element={<Orders />} />
-        <Route path="orders/:id" element={<OrderDetail />} />
-        <Route path="profile" element={<Profile />} />
+        {/* Default redirect */}
+        <Route index element={<Navigate to="dashboard" replace />} />
+        
+        {/* Main routes */}
+        <Route path="dashboard" element={<ShipperDashboard />} />
+        <Route path="orders" element={<ShipperOrders />} />
+        <Route path="orders/:id" element={<ShipperOrderDetail />} />
+        <Route path="profile" element={<ShipperProfile />} />
       </Route>
+
+      {/* Handle all unknown routes */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
