@@ -9,7 +9,22 @@ const adminService = {
       throw error;
     }
   },
-  getUserById: async (userId) => {},
+  getUserById: async (userId) => {
+    try {
+      const response = await adminApi.getUserById(userId);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  updateUserById: async (userId, userData) => {
+    try {
+      const response = await adminApi.updateUser(userId, userData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default adminService;

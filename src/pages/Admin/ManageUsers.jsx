@@ -26,7 +26,8 @@ const ManageUsers = () => {
 
   // Hàm xử lý khi nhấn nút "Sửa"
   const handleEdit = (user_id) => {
-    navigate(`/admin/edit-user/${user_id}`); // Điều hướng đến trang sửa người dùng
+    console.log("Editing user with ID:", user_id);
+    navigate(`/admin/edit-user/${user_id}`);
   };
 
   // Hàm xử lý khi nhấn nút "Xóa"
@@ -70,25 +71,24 @@ const ManageUsers = () => {
     {
       header: "Actions",
       field: "actions",
-      render: (users) => (
-        <div className="flex space-x-2">
-          {/* Nút Sửa */}
-          <button
-            onClick={() => handleEdit(users.user_id)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded flex items-center"
-          >
-            <FaEdit className="mr-1" /> Edit
-          </button>
-
-          {/* Nút Xóa */}
-          <button
-            onClick={() => handleDelete(users.user_id)}
-            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded flex items-center"
-          >
-            <FaTrash className="mr-1" /> Delete
-          </button>
-        </div>
-      ),
+      render: (_, user) => {
+        return (
+          <div className="flex space-x-2">
+            <button
+              onClick={() => handleEdit(user?.user_id)}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded flex items-center"
+            >
+              <FaEdit className="mr-1" /> Edit
+            </button>
+            <button
+              onClick={() => handleDelete(user?.user_id)}
+              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded flex items-center"
+            >
+              <FaTrash className="mr-1" /> Delete
+            </button>
+          </div>
+        );
+      },
     },
   ];
 

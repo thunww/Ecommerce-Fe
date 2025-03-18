@@ -23,7 +23,7 @@ export const deleteUser = createAsyncThunk(
   }
 );
 
-export const getUserById = createAsyncThunk(
+export const fetchUserById = createAsyncThunk(
   "/admin/getUserById",
   async (userId, { rejectWithValue }) => {
     try {
@@ -33,6 +33,18 @@ export const getUserById = createAsyncThunk(
       return rejectWithValue(
         error.response?.data || "Lỗi khi lấy thông tin user"
       );
+    }
+  }
+);
+
+export const updateUser = createAsyncThunk(
+  "/admin/updateUser",
+  async ({ user_id, ...userData }, { rejectWithValue }) => {
+    try {
+      const response = await adminService.updateUserById(user_id, userData);
+      return response.user; // API trả về user đã cập nhật
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Lỗi khi cập nhật user");
     }
   }
 );
@@ -60,16 +72,32 @@ const adminSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Get user by ID
-      .addCase(getUserById.pending, (state) => {
+      // Fetch user by ID
+      .addCase(fetchUserById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getUserById.fulfilled, (state, action) => {
+      .addCase(fetchUserById.fulfilled, (state, action) => {
         state.loading = false;
-        state.selectedUser = action.payload;
+        state.selectedUser = action.payload; // Lưu user vào Redux store
       })
-      .addCase(getUserById.rejected, (state, action) => {
+      .addCase(fetchUserById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Update user
+      .addCase(updateUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = state.users.map((user) =>
+          user.user_id === action.payload.user_id ? action.payload : user
+        );
+      })
+      .addCase(updateUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
