@@ -3,8 +3,9 @@ import { Routes, Route } from "react-router-dom";
 import CustomerLayout from "../layouts/CustomerLayout";
 import Home from "../pages/Customer/Pages/Home";
 import ProductListing from "../pages/Customer/Pages/ProductListing";
-// import Login from "../pages/Auth/Login";
-
+import Login from "../pages/Auth/Login";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Register from "../pages/Auth/Register";
 import ProductDetails from "../pages/Customer/Pages/ProductDetails";
 
@@ -17,8 +18,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 import ProductZoom from "../components/customer/Components/ProductZoom";
 import { IoCloseSharp } from "react-icons/io5";
 import ProductDetailsComponent from "../components/customer/Components/ProductDetails";
-// import Login from "../pages/Customer/Pages/Login";
-import Login from "../pages/Auth/Login";
+
+
 import MyContext from "../context/MyContext"; // ✅ Import từ file riêng
 import CartPage from "../pages/Customer/Pages/Cart";
 
@@ -63,7 +64,7 @@ const CustomerRoutes = () => {
                     </Route>
                 </Routes>
             </MyContext.Provider>
-
+            <ToastContainer />
             <Dialog
                 open={openProductDetailsModal}
                 fullWidth={fullWidth}

@@ -1,16 +1,18 @@
 import { Routes, Route } from "react-router-dom";
 import AdminRoutes from "./AdminRoutes";
 import CustomerRoutes from "./CustomerRoutes";
-
+import PrivateRoute from "./PrivateRoute";
 
 const AppRoutes = () => {
     return (
         <Routes>
-            {/* Routes cho từng vai trò */}
-            <Route path="/admin/*" element={<AdminRoutes />} />
+           {/* Routes cho Admin */}
+           <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
+                <Route path="/admin/*" element={<AdminRoutes />} />
+            </Route>
 
-            {/* Routes cho Khách hàng */}
-            <Route path="/*" element={<CustomerRoutes />} />
+             {/* Routes cho Khách hàng */}
+             <Route path="/*" element={<CustomerRoutes />} />
         </Routes>
     );
 };

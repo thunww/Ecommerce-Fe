@@ -1,5 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { Outlet } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Header from "../components/customer/Components/Header";
 import Footer from "../components/customer/Components/Footer";
 
@@ -7,31 +9,20 @@ const CustomerLayout = () => {
 
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Handle scroll to top button visibility
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowScrollTop(true);
-      } else {
-        setShowScrollTop(false);
-      }
+      setShowScrollTop(window.scrollY > 300);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Scroll to top function
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* Header Component */}
       <Header />
 
       {/* Main Content Container */}
@@ -41,7 +32,6 @@ const CustomerLayout = () => {
         </div>
       </main>
 
-      {/* Footer Component */}
       <Footer />
 
       {/* Scroll to Top Button */}
