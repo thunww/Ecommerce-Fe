@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { LiaShippingFastSolid } from "react-icons/lia";
 import { PiKeyReturn } from "react-icons/pi";
 import { SlWallet } from "react-icons/sl";
@@ -14,11 +14,20 @@ import { FaFacebookF } from "react-icons/fa";
 import { RiYoutubeLine } from "react-icons/ri";
 import { FaPinterestP } from "react-icons/fa";
 import { FaInstagram } from "react-icons/fa";
+import Drawer from '@mui/material/Drawer';
+import CartPanel from "../CartPanel";
+
+import { IoCloseSharp } from "react-icons/io5";
+import { useContext } from 'react';
+import MyContext from "../../../../context/MyContext";
 
 const Footer = () => {
+
+    const context = useContext(MyContext);
+
     return (
         <>
-            <footer className='py-6 bg-white border-2 border-[rgba(0,0,0,0.1'>
+            <footer className='py-6 bg-white border-2 border-[rgba(0,0,0,0.1)]'>
                 <div className='container'>
                     <div className='flex items-center justify-center gap-2 py-8 pb-8'>
                         <div className='col flex items-center justify-center flex-col group w-[15%] '>
@@ -193,7 +202,7 @@ const Footer = () => {
 
 
                     <p className='text-[12px] text-center mb-0'>
-                        2025-Ecommerce Web 
+                        2025-Ecommerce Web
                     </p>
 
                     <div className='flex items-center'>
@@ -207,7 +216,21 @@ const Footer = () => {
             </div >
 
 
+            {/* Cart Panel */}
+            <Drawer
+                open={context.openCartPanel}
+                onClose={() => context.toggleCartPanel(false)}
 
+                anchor={"right"}
+                className="cartPanel ">
+                <div className="flex items-center justify-between py-3 px-4 gap-3 border-b border-[rgba(0,0,0,0.1)] overflow-hidden">
+                    <h4>Shopping Cart(1)</h4>
+                    <IoCloseSharp className="text-[20px] cursor-pointer" onClick={() => context.toggleCartPanel(false)} />
+                </div>
+
+                <CartPanel />
+
+            </Drawer>
         </>
     )
 }

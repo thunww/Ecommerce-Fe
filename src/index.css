@@ -12,14 +12,14 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4a5568;
+  background: #86888a;
   /* Màu của thanh kéo */
   border-radius: 8px;
   /* Bo góc thanh kéo */
 }
 
 ::-webkit-scrollbar-track {
-  background: #2d3748;
+  background: #bcbec3;
   /* Màu nền của thanh kéo */
 }
 
@@ -33,10 +33,27 @@
 .body {
   font-family: "Montserrat", sans-serif;
   font-optical-sizing: auto;
-  background: #6d6a6a;
-  color: rgba(0, 0, 0, 0.9);
+  background: #fbf6f6;
+  color: rgba(146, 146, 146, 0.9);
   overflow-x: hidden;
 }
+
+p {
+  font-size: 14px;
+  line-height: 25px;
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+}
+
 /* 
 ::-webkit-scrollbar {
   width: 8px !important;
@@ -58,10 +75,15 @@
 
 .btn-org {
   background: #ff5252 !important;
-  color: #968d8d !important;
+  color: #fcf8f8 !important;
   font-weight: 500;
   font-size: 16px;
   padding: 7px 20px !important;
+}
+
+.btn-org:hover {
+  background: #000000 !important;
+
 }
 
 .bg-org {
@@ -95,7 +117,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #9e9a9a;
+  background: #eeeaea;
   border-radius: 100%;
   width: 45px;
   height: 45px;
@@ -272,3 +294,106 @@ html, body {
 }
 
 
+.MuiCheckbox-root {
+  padding: 6px !important;
+}
+
+.ReactCollapse--collapse {
+  transition: height 400ms;
+}
+
+.itemViewActions button.active svg {
+  color: #ff5252 !important;
+  opacity: 1;
+}
+
+.Mui-selected.MuiPaginationItem-page {
+  background: #ff5252 !important;
+  color: #fff !important;
+}
+
+
+.zoomProductSliderThumbs .swiper-slide .swiper-wrapper {
+  padding-top: 38px !important;
+
+}
+
+.zoomProductSliderThumbs .swiper-button-next {
+
+  bottom: 0px !important;
+  right: inherit !important;
+  top: inherit !important;
+  width: 100% !important;
+  height: 30px !important;
+  border-radius: 0px !important;
+}
+
+.zoomProductSliderThumbs .swiper-button-next::after {
+  transform: rotate(90deg);
+}
+
+.zoomProductSliderThumbs .swiper-button-prev {
+  top: 20px !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 30px !important;
+  border-radius: 0px !important;
+
+}
+
+.zoomProductSliderThumbs .swiper-button-prev::after {
+  transform: rotate(90deg);
+}
+
+.zoomProductSliderThumbs .item {
+  opacity: 0.3;
+}
+
+.zoomProductSliderThumbs .swiper-slide-active .item {
+  opacity: 1;
+}
+
+.productContent .actions button {
+  min-width: 40px !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  height: 30px !important;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+/* .iiz div {
+  width: 100%;
+}
+
+.iiz div:first-child {
+  border-radius: 10px !important; 
+  overflow: hidden;
+} */
+.reviewScroll::-webkit-scrollbar {
+  width: 5px !important;
+}
+
+.reviewScroll::-webkit-scrollbar-thumb {
+  background: #ccc !important;
+}
+
+.productDetailsModal .MuiDialogContent-root {
+  padding: 0px !important;
+}
+
+.cartPanel .MuiPaper-root {
+  width: 400px;
+  overflow: hidden;
+}
+
+#size-menu .MuiButtonBase-root {
+  font-size: 12px !important;
+}
