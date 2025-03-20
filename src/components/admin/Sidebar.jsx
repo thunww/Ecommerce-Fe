@@ -52,7 +52,6 @@ const Sidebar = ({ isOpen }) => {
         <SidebarItem to="/admin/overview" icon={<BarChart2 size={20} />} label="Overview" isOpen={isOpen} />
         <SidebarItem to="/admin/sales" icon={<DollarSign size={20} />} label="Sales Analytics" isOpen={isOpen} />
         <SidebarItem to="/admin/users" label="Users" icon={<Users size={20} />} isOpen={isOpen} />
-        <SidebarItem to="/admin/traffic" icon={<Users size={20} />} label="Traffic" isOpen={isOpen} />
         <SidebarItem to="/admin/top-products" icon={<Package size={20} />} label="Top Products" isOpen={isOpen} />
         <SidebarItem to="/admin/recent-activities" icon={<FileText size={20} />} label="Recent Activities" isOpen={isOpen} />
         <SidebarDropdown label="Page Layout" icon={<Layout size={20} />} isOpen={isOpen} isExpanded={openDropdown === "page"} onClick={() => toggleDropdown("page")}>          

@@ -25,6 +25,22 @@ const adminService = {
       throw error;
     }
   },
+  banUser: async (userId) => {
+    try {
+      const response = await adminApi.banUser(userId);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  unbanUser: async (userId) => {
+    try {
+      const response = await adminApi.unbanUser(userId);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default adminService;

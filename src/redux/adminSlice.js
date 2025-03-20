@@ -49,14 +49,47 @@ export const updateUser = createAsyncThunk(
   }
 );
 
+export const banUser = createAsyncThunk(
+  "admin/banUser",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await adminService.banUser(userId);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Lỗi khi ban user");
+    }
+  }
+);
+
+export const unbanUser = createAsyncThunk(
+  "admin/unbanUser",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await adminService.unbanUser(userId);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Lỗi khi unban user");
+    }
+  }
+);
+
 const adminSlice = createSlice({
   name: "admin",
   initialState: {
     users: [],
+    selectedUser: null,
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    updateUserStatus: (state, action) => {
+      const { userId, status } = action.payload;
+      const user = state.users.find((user) => user.user_id === userId);
+      if (user) {
+        user.status = status;
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchAllUsers.pending, (state) => {
@@ -100,8 +133,42 @@ const adminSlice = createSlice({
       .addCase(updateUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      //banUser
+      .addCase(banUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(banUser.fulfilled, (state, action) => {
+        state.loading = false;
+        const userId = action.meta.arg; // userId truyền vào action
+        state.users = state.users.map((user) =>
+          user.user_id === userId ? { ...user, status: "banned" } : user
+        );
+      })
+      .addCase(banUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      //UnBan
+      .addCase(unbanUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(unbanUser.fulfilled, (state, action) => {
+        state.loading = false;
+        const userId = action.meta.arg; // userId truyền vào action
+        state.users = state.users.map((user) =>
+          user.user_id === userId ? { ...user, status: "active" } : user
+        );
+      })
+      .addCase(unbanUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
 
+export const { updateUserStatus } = adminSlice.actions;
 export default adminSlice.reducer;

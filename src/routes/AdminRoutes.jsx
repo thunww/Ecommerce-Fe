@@ -6,7 +6,7 @@ import ManageOrders from "../pages/Admin/ManageOrders";
 import ManageProducts from "../pages/Admin/ManageProducts";
 import ManageUsers from "../pages/Admin/ManageUsers";
 import AdminOverview from "../pages/Admin/AdminOverview";
-import EditUser from "../pages/Admin/EditUsers";
+import ViewUserDetails from "../pages/Admin/ViewUserDetails";
 
 const AdminRoutes = () => {
   return (
@@ -19,7 +19,7 @@ const AdminRoutes = () => {
         <Route path="products" element={<ManageProducts />} />
         <Route path="orders" element={<ManageOrders />} />
         <Route path="overview" element={<AdminOverview />} />
-        <Route path="edit-user/:user_id" element={<EditUser />} />
+        <Route path="edit-user/:user_id" element={<ViewUserDetails />} />
       </Route>
     </Routes>
   );
