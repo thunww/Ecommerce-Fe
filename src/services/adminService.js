@@ -41,6 +41,14 @@ const adminService = {
       throw error;
     }
   },
+  assignRoleToUser: async (userId, roleId) => {
+    try {
+      const response = await adminApi.assignRoleToUser(userId, roleId);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default adminService;

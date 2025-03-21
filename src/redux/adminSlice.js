@@ -73,6 +73,19 @@ export const unbanUser = createAsyncThunk(
   }
 );
 
+export const assignRoleToUser = createAsyncThunk(
+  "admin/assign-role",
+  async ({ userId, roleId }, { rejectWithValue }) => {
+    try {
+      const response = await adminService.assignRoleToUser(userId, roleId);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Lỗi khi assign-role user"
+      );
+    }
+  }
+);
 const adminSlice = createSlice({
   name: "admin",
   initialState: {
@@ -166,6 +179,17 @@ const adminSlice = createSlice({
       .addCase(unbanUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      .addCase(assignRoleToUser.fulfilled, (state, action) => {
+        state.users = state.users.map((user) =>
+          user.user_id === action.payload.userId
+            ? {
+                ...user,
+                roles: [...new Set([...user.roles, action.payload.role])],
+              }
+            : user
+        );
       });
   },
 });
