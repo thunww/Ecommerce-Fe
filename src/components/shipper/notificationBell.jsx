@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import Logo from "./ShipperLogo";
-import NotificationBell from "./NotificationBell";
+import NotificationBell from "./notificationBell";
 import UserMenu from "./UserMenu";
 
 const Header = ({ isOnline, setIsOnline, notifications = [], avatar }) => {
