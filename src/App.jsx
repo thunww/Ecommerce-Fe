@@ -1,5 +1,4 @@
 import React from 'react';
-import CustomerRoutes from "./routes/CustomerRoutes";
 import { UserProvider } from './contexts/UserContext';
 import ShipperRoutes from "./routes/ShipperRoutes";
 import "./index.css";
@@ -10,7 +9,6 @@ const App = () => {
   return (
     <UserProvider>
       <div className="min-h-screen bg-gray-50">
-      <CustomerRoutes />
         <ShipperRoutes />
         <ToastContainer
           position="top-right"
@@ -23,7 +21,6 @@ const App = () => {
           draggable
           pauseOnHover
           theme="light"
-          limit={3}
         />
       </div>
     </UserProvider>

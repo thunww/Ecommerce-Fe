@@ -6,8 +6,7 @@ import {
   User,
   LogOut,
   ChevronLeft,
-  ChevronRight,
-  LineChart
+  ChevronRight
 } from "lucide-react";
 
 const SidebarItem = ({ to, icon: Icon, label, isActive, onClick, isCollapsed }) => {
@@ -30,7 +29,6 @@ const ShipperSidebar = ({ isOpen, toggleSidebar, currentPath, isCollapsed, toggl
   const menuItems = [
     { to: "/shipper/dashboard", icon: Home, label: "Dashboard" },
     { to: "/shipper/orders", icon: Package, label: "Đơn hàng" },
-    { to: "/shipper/income", icon: LineChart, label: "Thu nhập" },
     { to: "/shipper/profile", icon: User, label: "Thông tin" }
   ];
 
