@@ -46,6 +46,7 @@ const authSlice = createSlice({
             .addCase(register.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.user = action.payload; // Lưu user vào Redux
+                state.roles = action.payload.user.roles;
                 localStorage.setItem("user", JSON.stringify(action.payload));
                 localStorage.setItem("roles", JSON.stringify(action.payload.user.roles));
             })
