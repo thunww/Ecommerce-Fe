@@ -51,7 +51,10 @@ const ViewUserDetails = () => {
         <div className="md:w-1/4 flex flex-col items-center">
           <div className="mb-8 relative">
             <img
-              src={userData.profile_picture}
+              src={
+                userData.profile_picture ||
+                "https://i.pinimg.com/736x/c6/e5/65/c6e56503cfdd87da299f72dc416023d4.jpg"
+              }
               alt="Profile"
               className="w-48 h-48 rounded-full border-4 border-blue-500 shadow-lg object-cover"
             />

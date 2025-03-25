@@ -184,10 +184,7 @@ const adminSlice = createSlice({
       .addCase(assignRoleToUser.fulfilled, (state, action) => {
         state.users = state.users.map((user) =>
           user.user_id === action.payload.userId
-            ? {
-                ...user,
-                roles: [...new Set([...user.roles, action.payload.role])],
-              }
+            ? { ...user, roles: [...user.roles, action.payload.role] }
             : user
         );
       });
