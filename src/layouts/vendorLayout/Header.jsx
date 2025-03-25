@@ -1,6 +1,20 @@
-import React from "react";
-import { FaTh, FaUserCircle } from "react-icons/fa";
-import { Link, useLocation } from "react-router-dom";
+import React, {useState, useEffect, useRef} from "react";
+import { 
+  FaTh, 
+  FaUserCircle, 
+  FaStore, 
+  FaCog, 
+  FaGlobe, 
+  FaSignOutAlt,
+  FaShoppingCart,
+  FaBox,
+  FaChartLine,
+  FaMoneyBillWave,
+  FaTools
+} from "react-icons/fa";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../../redux/authSlice";
 import Logo from "../../assets/image/logo.jpg";
 
 // Hàm xử lý breadcrumb từ URL
@@ -31,7 +45,73 @@ const getBreadcrumbTitle = (pathname) => {
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const breadcrumb = getBreadcrumbTitle(location.pathname);
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  
+  // Lấy thông tin user và roles từ Redux store
+  const { user, roles } = useSelector((state) => state.auth);
+  
+  // Tạo ref cho các menu
+  const mainMenuRef = useRef(null);
+  const profileMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Kiểm tra click có phải bên ngoài main menu không
+      if (mainMenuRef.current && !mainMenuRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+      // Kiểm tra click có phải bên ngoài profile menu không
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+
+    // Thêm event listener
+    document.addEventListener('mousedown', handleClickOutside);
+
+    // Cleanup function
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Hàm xử lý khi click vào menu chính
+  const handleMainMenuClick = () => {
+    setDropdownOpen(!isDropdownOpen);
+    setProfileDropdownOpen(false);
+  };
+
+  // Hàm xử lý khi click vào menu profile
+  const handleProfileMenuClick = () => {
+    setProfileDropdownOpen(!isProfileDropdownOpen);
+    setDropdownOpen(false);
+  };
+
+  // Hàm xử lý khi click vào các mục menu
+  const handleMenuItemClick = () => {
+    setDropdownOpen(false);
+    setProfileDropdownOpen(false);
+  };
+
+  // Hàm xử lý đăng xuất
+  const handleLogout = async () => {
+    try {
+      // Đóng dropdown menu
+      setProfileDropdownOpen(false);
+      
+      // Gọi action logout từ Redux
+      await dispatch(logout()).unwrap();
+      
+      // Chuyển hướng về trang login
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   return (
     <div className="fixed top-0 left-0 w-full z-50 bg-white shadow border-b h-16 flex justify-between items-center px-6">
@@ -47,9 +127,100 @@ const Header = () => {
       </div>
 
       {/* Icons & User Info */}
-      <div className="flex items-center gap-4">
-        <FaTh className="text-gray-500 text-xl cursor-pointer" />
-        <FaUserCircle className="text-gray-500 text-2xl cursor-pointer" />
+      <div className="relative flex items-center gap-4">
+        {/* Menu Button and Dropdown */}
+        <div ref={mainMenuRef}>
+          <FaTh 
+            className="text-gray-500 text-xl cursor-pointer" 
+            onClick={handleMainMenuClick} 
+          />
+
+          {/* Main Dropdown Menu */}
+          {isDropdownOpen && (
+            <div className="absolute top-10 right-0 bg-white shadow-md rounded-lg p-3 w-48">
+              <Link to="/vendor/orders" className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded" onClick={handleMenuItemClick}>
+                <FaShoppingCart className="text-gray-500" />
+                <span>All Orders</span>
+              </Link>
+              <Link to="/vendor/products" className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded" onClick={handleMenuItemClick}>
+                <FaBox className="text-gray-500" />
+                <span>All Products</span>
+              </Link>
+              <Link to="/vendor/marketing" className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded" onClick={handleMenuItemClick}>
+                <FaChartLine className="text-gray-500" />
+                <span>Marketing Channels</span>
+              </Link>
+              <Link to="/vendor/revenue" className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded" onClick={handleMenuItemClick}>
+                <FaMoneyBillWave className="text-gray-500" />
+                <span>Revenue Analytics</span>
+              </Link>
+              <Link to="/vendor/shop-settings" className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded" onClick={handleMenuItemClick}>
+                <FaTools className="text-gray-500" />
+                <span>Shop Settings</span>
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Profile Avatar & Dropdown */}
+        <div ref={profileMenuRef} className="relative">
+          {user && user.profile_picture ? (
+            <img 
+              src={user.profile_picture} 
+              alt={user.username || "User Profile"} 
+              className="w-8 h-8 rounded-full cursor-pointer object-cover"
+              onClick={handleProfileMenuClick}
+            />
+          ) : (
+            <FaUserCircle 
+              className="text-gray-500 text-2xl cursor-pointer" 
+              onClick={handleProfileMenuClick}
+            />
+          )}
+          
+          {/* Profile Dropdown Menu */}
+          {isProfileDropdownOpen && (
+            <div className="absolute top-10 right-0 bg-white shadow-md rounded-lg w-48">
+              {/* Thông tin người dùng */}
+              {user && (
+                <div className="px-4 py-2 border-b">
+                  {/* <p className="font-semibold">{user.username || 'User'}</p> */}
+                  {roles && roles.length > 0 && (
+                    <div className="mt-1">
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full capitalize">
+                        {roles[0]}
+                      </span>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 truncate">{user.email || ''}</p>
+                  
+                </div>
+              )}
+              
+              <div className="py-1">
+                <Link to="/vendor/shop-info" className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100" onClick={handleMenuItemClick}>
+                  <FaStore className="text-gray-500" />
+                  <span>Shop Information</span>
+                </Link>
+                <Link to="/vendor/shop-settings" className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100" onClick={handleMenuItemClick}>
+                  <FaCog className="text-gray-500" />
+                  <span>Shop Setting</span>
+                </Link>
+                <Link to="/vendor/language" className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100" onClick={handleMenuItemClick}>
+                  <FaGlobe className="text-gray-500" />
+                  <span>English</span>
+                </Link>
+                <div 
+                  className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100 text-red-600 cursor-pointer" 
+                  onClick={handleLogout}
+                >
+                  <FaSignOutAlt className="text-red-600" />
+                  <span>Logout</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

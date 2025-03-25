@@ -42,7 +42,7 @@ const Header = () => {
         </div>
 
         {/* Nút "Chuẩn bị hàng" */}
-        <button className="border px-4 py-1 text-sm rounded-md hover:bg-gray-100 flex items-center space-x-2">
+        <button className="bg-white border px-4 py-1 text-sm rounded-md hover:bg-gray-100 flex items-center space-x-2">
           <span className="text-blue-600">Chuẩn bị hàng</span>
           <Menu size={18} />
         </button>

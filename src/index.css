@@ -266,6 +266,9 @@ footer form input::placeholder {
 .p-4 {
   padding: 1rem;
 }
+.p-6 {
+  padding: 0.5rem;
+}
 .w-64 {
   width: 12rem;
 }
@@ -396,4 +399,7 @@ input::-webkit-inner-spin-button {
 
 #size-menu .MuiButtonBase-root {
   font-size: 12px !important;
+}
+.p-6 {
+  padding: 0.5rem;
 }

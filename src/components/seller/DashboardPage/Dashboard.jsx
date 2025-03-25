@@ -7,7 +7,7 @@ import Livestream from "../DashboardPage/Livestream";
 import SellerTasks from "../DashboardPage/SellerMissions";
 import FeaturedNews from "../DashboardPage/FeaturedNews";
 import Campaigns from "../DashboardPage/Campaigns";
-import SellerPerformance from "../DashboardPage/SellerPerformance";
+import SalesPerformance from "../DashboardPage/SalesPerformance";
 import AdvertisementCarousel from "./AdvertisementCarousel_KOL";
 import AdvertisementLivestream from "./AdvertisementCarousel_Livestream";
 
@@ -60,7 +60,7 @@ class Dashboard extends Component {
           {/* Cột 2 */}
           <div className="space-y-4 w-full">
             <div className="p-4 bg-white rounded-lg shadow w-full overflow-hidden break-words">
-              <SellerPerformance />
+              <SalesPerformance />
             </div>
             <div className="p-4 bg-white rounded-lg shadow w-full overflow-hidden break-words">
               <FeaturedNews />
