@@ -5,7 +5,7 @@ import ProductFilters from "./ProductFilters";
 import ProductTable from "./ProductTable";
 import NoProductFound from "./NoProductFound";
 
-const ProductPage = ({ products = [], loading = false, error = null, onProductChanged }) => {
+const ProductPage = ({ products = [], loading = false, error = null, shopId, onProductChanged }) => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
   const [filters, setFilters] = useState({
@@ -94,7 +94,7 @@ const ProductPage = ({ products = [], loading = false, error = null, onProductCh
 
   return (
     <div className="bg-gray-50 min-h-screen p-4">
-      <ProductHeader />
+      <ProductHeader shopId={shopId} />
       
       <div className="bg-white rounded-lg shadow-sm mt-4">
         <ProductTabs 

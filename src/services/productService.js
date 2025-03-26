@@ -4,20 +4,10 @@ const productService = {
   // Lấy danh sách sản phẩm theo shopId
   getProductsByShopId: async (shopId) => {
     try {
-      console.log("Đang gọi API lấy danh sách sản phẩm...");
       const response = await productApi.getProductsByShopId(shopId);
-      console.log("Kết quả API sản phẩm:", response);
       return response.data;
     } catch (error) {
       console.error("Error fetching products by shopId:", error);
-      if (error.response) {
-        console.error("Response data:", error.response.data);
-        console.error("Response status:", error.response.status);
-      } else if (error.request) {
-        console.error("No response received:", error.request);
-      } else {
-        console.error("Error setting up request:", error.message);
-      }
       throw error;
     }
   },
@@ -141,16 +131,10 @@ const productService = {
   // Lấy danh sách danh mục sản phẩm
   getCategories: async () => {
     try {
-      console.log("Đang gọi API lấy danh mục sản phẩm...");
       const response = await productApi.getCategories();
-      console.log("Kết quả API danh mục:", response);
       return response.data;
     } catch (error) {
       console.error("Error fetching categories:", error);
-      if (error.response) {
-        console.error("Response data:", error.response.data);
-        console.error("Response status:", error.response.status);
-      }
       throw error;
     }
   },

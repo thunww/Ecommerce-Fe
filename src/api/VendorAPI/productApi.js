@@ -4,8 +4,8 @@ import axiosClient from "../axiosClient";
 const productApi = {
   // Lấy danh sách sản phẩm của shop
   getProductsByShopId: (shopId) => {
-    // Có thể backend sử dụng đường dẫn khác, thử với một số endpoint phổ biến
-    return axiosClient.get("/vendor/my-products");
+    // Sửa để lấy sản phẩm của shop hiện tại (token đã có thông tin vendor)
+    return axiosClient.get("/vendor/products");
   },
 
   // Lấy thông tin chi tiết sản phẩm

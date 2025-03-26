@@ -2,7 +2,7 @@ import React from "react";
 import { FaPlus, FaCog, FaAngleDown } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-const ProductHeader = () => {
+const ProductHeader = ({ shopId }) => {
   const navigate = useNavigate();
 
   const handleAddProduct = () => {

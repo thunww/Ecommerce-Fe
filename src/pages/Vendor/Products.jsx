@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ProductPage from "../../components/seller/Productpage";
+import ProductPage from "../../components/seller/Productpage/ProductPage";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import productService from "../../services/productService";
@@ -11,6 +11,7 @@ const Products = () => {
   
   // Lấy thông tin người dùng từ Redux store
   const user = useSelector((state) => state.auth.user);
+  const shopId = user?.shopId; // Lưu lại để truyền xuống components con
 
   useEffect(() => {
     const fetchProducts = async () => {
