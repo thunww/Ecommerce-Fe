@@ -131,7 +131,8 @@ const ManageShops = () => {
         <div className="flex justify-center">
           <img
             src={
-              "https://static.vecteezy.com/system/resources/previews/007/410/289/original/online-shop-logo-design-vector.jpg"
+              "https://static.vecteezy.com/system/resources/previews/007/410/289/original/online-shop-logo-design-vector.jpg" ||
+              logo
             }
             alt="Logo"
             className="w-12 h-12 rounded-full object-cover border-2 border-blue-500 shadow-md"
