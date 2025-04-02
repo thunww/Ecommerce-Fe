@@ -61,3 +61,26 @@ export const getRevenue = async (userId) => {
   }
 };
 
+export const getShopInfo = async () => {
+  try {
+    const response = await axiosClient.get("/vendor/my-shop");
+    if (!response.data) {
+      throw new Error("No data received from server");
+    }
+    console.log("Thông tin shop:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin shop:", error);
+    if (error.response) {
+      const errorMessage = error.response.data?.message || "Lỗi từ server";
+      console.error("Server error details:", error.response.data);
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      console.error("Network error:", error.request);
+      throw new Error("Không thể kết nối đến server");
+    } else {
+      console.error("Other error:", error);
+      throw error;
+    }
+  }
+};

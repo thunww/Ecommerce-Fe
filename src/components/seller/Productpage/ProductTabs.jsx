@@ -1,30 +1,43 @@
 import React from "react";
 
-const ProductTabs = ({ activeTab, onTabChange, counts = {} }) => {
+const ProductTabs = ({ activeTab, onTabChange, productCounts }) => {
   const tabs = [
-    { id: "all", label: "All", count: counts.all || 0 },
-    { id: "live", label: "Live", count: counts.live || 0 },
-    { id: "violation", label: "Violation", count: counts.violation || 0 },
-    { id: "review", label: "Under Shopee Review", count: counts.review || 0 },
-    { id: "unpublished", label: "Unpublished", count: counts.unpublished || 0 }
+    { id: "all", label: "Tất cả", count: productCounts.all },
+    { id: "active", label: "Đang bán", count: productCounts.active },
+    { id: "inactive", label: "Tạm ngưng", count: productCounts.inactive },
+    { id: "outOfStock", label: "Hết hàng", count: productCounts.outOfStock },
+    { id: "violation", label: "Vi phạm", count: productCounts.violation }
   ];
 
   return (
-    <div className="border-b border-gray-200">
-      <div className="flex overflow-x-auto">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`px-5 py-3 text-sm font-medium whitespace-nowrap ${
-              activeTab === tab.id
-                ? "text-orange-500 border-b-2 border-orange-500"
-                : "text-gray-600 hover:text-gray-800"
-            }`}
-            onClick={() => onTabChange(tab.id)}
-          >
-            {tab.label} ({tab.count})
-          </button>
-        ))}
+    <div className="mb-6">
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              className={`
+                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                ${activeTab === tab.id
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }
+              `}
+            >
+              {tab.label}
+              <span className={`
+                ml-2 py-0.5 px-2 rounded-full text-xs
+                ${activeTab === tab.id
+                  ? "bg-blue-100 text-blue-600"
+                  : "bg-gray-100 text-gray-600"
+                }
+              `}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </nav>
       </div>
     </div>
   );

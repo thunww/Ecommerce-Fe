@@ -16,6 +16,7 @@ const PrivateRoute = ({ allowedRoles }) => {
     return <Navigate to="/login" />;
   }
 
+
   const hasPermission = roles.some((role) => allowedRoles.includes(role));
 
   return hasPermission ? <Outlet /> : <Navigate to="/" />;

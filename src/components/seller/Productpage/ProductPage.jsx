@@ -1,132 +1,96 @@
 import React, { useState, useEffect } from "react";
-import ProductHeader from "./ProductHeader";
-import ProductTabs from "./ProductTabs";
-import ProductFilters from "./ProductFilters";
-import ProductTable from "./ProductTable";
-import NoProductFound from "./NoProductFound";
+import ProductHeader from "./ProductHeader.jsx";
+import ProductTabs from "./ProductTabs.jsx";
+import ProductFilters from "./ProductFilters.jsx";
+import ProductTable from "./ProductTable.jsx";
+import NoProductFound from "./NoProductFound.jsx";
 
-const ProductPage = ({ products = [], loading = false, error = null, shopId, onProductChanged }) => {
+const ProductPage = ({ products = [], loading = false, error = null, onProductChanged }) => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
   const [filters, setFilters] = useState({
     search: "",
-    category: "",
-    productType: ""
+    category: "all",
+    type: "all"
   });
 
-  // Cập nhật danh sách sản phẩm đã lọc khi có thay đổi về products, filters hoặc activeTab
   useEffect(() => {
-    if (!products || products.length === 0) {
-      setFilteredProducts([]);
-      return;
-    }
-
-    let result = [...products];
+    // Lọc sản phẩm dựa trên tab và bộ lọc
+    let filtered = [...products];
 
     // Lọc theo tab
     if (activeTab !== "all") {
-      result = result.filter(product => {
-        switch(activeTab) {
-          case "live":
-            return product.status === "active";
-          case "violation":
-            return product.status === "violation";
-          case "review":
-            return product.status === "reviewing";
-          case "unpublished":
-            return product.status === "unpublished";
-          default:
-            return true;
-        }
-      });
+      filtered = filtered.filter(product => product.status === activeTab);
     }
 
     // Lọc theo từ khóa tìm kiếm
     if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      result = result.filter(product => 
-        product.name.toLowerCase().includes(searchTerm) || 
-        (product.sku && product.sku.toLowerCase().includes(searchTerm))
+      const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(searchLower) ||
+        product.sku.toLowerCase().includes(searchLower)
       );
     }
 
     // Lọc theo danh mục
-    if (filters.category) {
-      result = result.filter(product => 
-        product.category && product.category.toLowerCase().includes(filters.category.toLowerCase())
-      );
+    if (filters.category !== "all") {
+      filtered = filtered.filter(product => product.category === filters.category);
     }
 
     // Lọc theo loại sản phẩm
-    if (filters.productType) {
-      result = result.filter(product => 
-        product.type === filters.productType
-      );
+    if (filters.type !== "all") {
+      filtered = filtered.filter(product => product.type === filters.type);
     }
 
-    setFilteredProducts(result);
-  }, [products, filters, activeTab]);
+    setFilteredProducts(filtered);
+  }, [products, activeTab, filters]);
 
+  // Xử lý khi tab thay đổi
   const handleTabChange = (tab) => {
     setActiveTab(tab);
   };
 
+  // Xử lý khi bộ lọc thay đổi
   const handleFilterChange = (newFilters) => {
-    setFilters({ ...filters, ...newFilters });
-  };
-
-  const handleResetFilters = () => {
-    setFilters({
-      search: "",
-      category: "",
-      productType: ""
-    });
-  };
-
-  // Tính toán số lượng sản phẩm cho mỗi tab
-  const tabCounts = {
-    all: products.length,
-    live: products.filter(p => p.status === "active").length,
-    violation: products.filter(p => p.status === "violation").length,
-    review: products.filter(p => p.status === "reviewing").length,
-    unpublished: products.filter(p => p.status === "unpublished").length
+    setFilters(prev => ({ ...prev, ...newFilters }));
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen p-4">
-      <ProductHeader shopId={shopId} />
+    <div className="flex flex-col h-full bg-gray-100">
+      <ProductHeader />
       
-      <div className="bg-white rounded-lg shadow-sm mt-4">
+      <div className="flex-1 p-6">
         <ProductTabs 
           activeTab={activeTab} 
-          onTabChange={handleTabChange} 
-          counts={tabCounts}
+          onTabChange={handleTabChange}
+          productCounts={{
+            all: products.length,
+            active: products.filter(p => p.status === 'active').length,
+            inactive: products.filter(p => p.status === 'inactive').length,
+            outOfStock: products.filter(p => p.stock === 0).length,
+            violation: products.filter(p => p.status === 'violation').length
+          }}
         />
-        
-        <div className="p-4">
-          <ProductFilters 
-            filters={filters} 
-            onFilterChange={handleFilterChange} 
-            onReset={handleResetFilters}
+
+        <ProductFilters 
+          filters={filters}
+          onFilterChange={handleFilterChange}
+        />
+
+        {loading ? (
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          </div>
+        ) : error ? (
+          <div className="text-red-500 p-4 text-center">{error}</div>
+        ) : filteredProducts.length > 0 ? (
+          <ProductTable 
+            products={filteredProducts}
+            onProductChanged={onProductChanged}
           />
-          
-          {loading ? (
-            <div className="py-10 flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-            </div>
-          ) : error ? (
-            <div className="py-10 text-center text-red-500">
-              {error}
-            </div>
-          ) : filteredProducts.length > 0 ? (
-            <ProductTable 
-              products={filteredProducts} 
-              onProductChanged={onProductChanged}
-            />
-          ) : (
-            <NoProductFound />
-          )}
-        </div>
+        ) : (
+          <NoProductFound />
+        )}
       </div>
     </div>
   );

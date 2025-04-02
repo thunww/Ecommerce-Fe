@@ -17,9 +17,9 @@ const Table = ({ columns, data, onUpdate, onDelete, pageSize = 10 }) => {
     <div className="overflow-x-auto bg-white shadow-md rounded-lg p-4">
       <table className="min-w-full border-collapse border border-gray-300">
         <thead>
-          <tr className="bg-gray-100 text-gray-700">
+          <tr className="bg-gray-100 text-gray-100">
             {columns.map((col, index) => (
-              <th key={index} className="border p-3 text-left">{col.header}</th>
+              <th key={index} className="border p-3 text-left bg-gray-900">{col.header}</th>
             ))}
             {(onUpdate || onDelete) && <th className="border p-3 text-center">Actions</th>}
           </tr>

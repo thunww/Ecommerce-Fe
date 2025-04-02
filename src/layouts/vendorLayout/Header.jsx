@@ -103,13 +103,18 @@ const Header = () => {
       // Đóng dropdown menu
       setProfileDropdownOpen(false);
       
+      // Xóa token và thông tin user từ localStorage
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+      localStorage.removeItem('roles');
+      
       // Gọi action logout từ Redux
       await dispatch(logout()).unwrap();
       
       // Chuyển hướng về trang login
       navigate("/login");
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error("Đăng xuất thất bại:", error);
     }
   };
 
@@ -188,7 +193,7 @@ const Header = () => {
                   {roles && roles.length > 0 && (
                     <div className="mt-1">
                       <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full capitalize">
-                        {roles[0]}
+                        {roles[1]}
                       </span>
                     </div>
                   )}

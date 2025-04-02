@@ -1,0 +1,54 @@
+import React from 'react';
+import { FaSearch } from 'react-icons/fa';
+
+const ProductFilters = ({ filters, onFilterChange }) => {
+  return (
+    <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Tìm kiếm */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Tìm kiếm theo tên hoặc SKU"
+            value={filters.search}
+            onChange={(e) => onFilterChange({ search: e.target.value })}
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        </div>
+
+        {/* Lọc theo danh mục */}
+        <div>
+          <select
+            value={filters.category}
+            onChange={(e) => onFilterChange({ category: e.target.value })}
+            className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">Tất cả danh mục</option>
+            <option value="electronics">Điện tử</option>
+            <option value="clothing">Thời trang</option>
+            <option value="books">Sách</option>
+            <option value="home">Đồ gia dụng</option>
+            <option value="beauty">Làm đẹp</option>
+          </select>
+        </div>
+
+        {/* Lọc theo loại sản phẩm */}
+        <div>
+          <select
+            value={filters.type}
+            onChange={(e) => onFilterChange({ type: e.target.value })}
+            className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">Tất cả loại</option>
+            <option value="physical">Sản phẩm vật lý</option>
+            <option value="digital">Sản phẩm số</option>
+            <option value="service">Dịch vụ</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductFilters; 

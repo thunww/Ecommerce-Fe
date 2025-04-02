@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaInfoCircle, FaSort, FaEllipsisH, FaEye, FaEdit, FaTrashAlt, FaAngleDown } from "react-icons/fa";
+import { FaInfoCircle, FaSort, FaEllipsisH, FaEye, FaEdit, FaTrashAlt, FaAngleDown, FaPen } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import productService from "../../../services/productService";
@@ -95,6 +95,36 @@ const ProductTable = ({ products, onProductChanged }) => {
 
   const formatPrice = (price) => {
     return price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : 'N/A';
+  };
+
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800';
+      case 'outOfStock':
+        return 'bg-red-100 text-red-800';
+      case 'violation':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'active':
+        return 'Đang bán';
+      case 'inactive':
+        return 'Tạm ngưng';
+      case 'outOfStock':
+        return 'Hết hàng';
+      case 'violation':
+        return 'Vi phạm';
+      default:
+        return 'Không xác định';
+    }
   };
 
   return (
@@ -200,13 +230,8 @@ const ProductTable = ({ products, onProductChanged }) => {
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium 
-                    ${product.status === 'active' ? 'bg-green-100 text-green-800' : 
-                      product.status === 'reviewing' ? 'bg-blue-100 text-blue-800' : 
-                      product.status === 'violation' ? 'bg-red-100 text-red-800' : 
-                      'bg-gray-100 text-gray-800'}`}>
-                    {product.status === 'active' ? 'Đang bán' : 
-                     product.status === 'reviewing' ? 'Đang xem xét' : 
-                     product.status === 'violation' ? 'Vi phạm' : 'Chưa đăng bán'}
+                    ${getStatusBadgeClass(product.status)}`}>
+                    {getStatusText(product.status)}
                   </span>
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm font-medium relative">
@@ -234,7 +259,7 @@ const ProductTable = ({ products, onProductChanged }) => {
                               onClick={() => handleEditProduct(product.id)}
                               className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                             >
-                              <FaEdit className="mr-2" /> Chỉnh sửa
+                              <FaPen className="mr-2" /> Chỉnh sửa
                             </button>
                           </li>
                           <li>

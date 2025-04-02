@@ -1,43 +1,32 @@
 import React from "react";
-import { FaPlus, FaCog, FaAngleDown } from "react-icons/fa";
+import { FaPlus, FaCog } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-const ProductHeader = ({ shopId }) => {
+const ProductHeader = () => {
   const navigate = useNavigate();
 
-  const handleAddProduct = () => {
-    navigate(`/vendor/product/add`);
-  };
-
   return (
-    <div className="flex justify-between items-center">
-      <h1 className="text-xl font-semibold text-gray-800">My Products</h1>
-      
-      <div className="flex space-x-2">
-        <div className="relative">
-          <button className="px-3 py-2 border border-gray-300 rounded-md bg-white flex items-center text-sm">
-            <FaCog className="mr-2 text-gray-500" />
-            <span>Product Settings</span>
-            <FaAngleDown className="ml-2 text-gray-500" />
-          </button>
-          {/* Dropdown menu would go here */}
-        </div>
+    <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold text-gray-800">Sản phẩm của tôi</h1>
         
-        <div className="relative">
-          <button className="px-3 py-2 border border-gray-300 rounded-md bg-white flex items-center text-sm">
-            <span>Mass Function</span>
-            <FaAngleDown className="ml-2 text-gray-500" />
+        <div className="flex space-x-4">
+          <button
+            onClick={() => navigate('/vendor/product/add')}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <FaPlus className="mr-2" />
+            Thêm sản phẩm
           </button>
-          {/* Dropdown menu would go here */}
+          
+          <button
+            onClick={() => navigate('/vendor/products/settings')}
+            className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <FaCog className="mr-2" />
+            Cài đặt
+          </button>
         </div>
-        
-        <button 
-          className="px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md flex items-center text-sm"
-          onClick={handleAddProduct}
-        >
-          <FaPlus className="mr-2" />
-          <span>Add a New Product</span>
-        </button>
       </div>
     </div>
   );
