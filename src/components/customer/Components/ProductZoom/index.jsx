@@ -1,14 +1,14 @@
 import React from 'react';
 import { useRef, useState } from 'react';
-import InnerImageZoom from 'react-inner-image-zoom';
-import 'react-inner-image-zoom/lib/InnerImageZoom/styles.css';
+import Zoom from 'react-medium-image-zoom';
+import 'react-medium-image-zoom/dist/styles.css';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
 import { Link } from 'react-router-dom';
-const ProductZoom = () => {
 
+const ProductZoom = () => {
     const [slideIndex, setSlideIndex] = useState(0);
     const zoomSliderBig = useRef();
     const zoomSliderSml = useRef();
@@ -74,7 +74,6 @@ const ProductZoom = () => {
                     </Swiper>
                 </div>
 
-
                 <div className='zoomContainer w-[85%] h-[500px] overflow-hidden rounded-md'>
                     <Swiper
                         ref={zoomSliderBig}
@@ -83,35 +82,35 @@ const ProductZoom = () => {
                         navigation={false}
                     >
                         <SwiperSlide>
-                            <InnerImageZoom
-                                zoomType="hover"
-                                zoomScale={1}
-                                src={"https://img.lazcdn.com/g/p/4e991e25c92b980b56aed006ec7e8a2d.jpg_720x720q80.jpg_.webp"} />
+                            <Zoom>
+                                <img src="https://img.lazcdn.com/g/p/4e991e25c92b980b56aed006ec7e8a2d.jpg_720x720q80.jpg_.webp" 
+                                    className="w-full h-full object-contain" />
+                            </Zoom>
                         </SwiperSlide>
 
                         <SwiperSlide>
-                            <InnerImageZoom
-                                zoomType="hover"
-                                zoomScale={1}
-                                src={"https://img.lazcdn.com/g/p/2c889567bef0266709b53d05244d8809.jpg_720x720q80.jpg_.webp"} />
+                            <Zoom>
+                                <img src="https://img.lazcdn.com/g/p/2c889567bef0266709b53d05244d8809.jpg_720x720q80.jpg_.webp" 
+                                    className="w-full h-full object-contain" />
+                            </Zoom>
                         </SwiperSlide>
 
                         <SwiperSlide>
-                            <InnerImageZoom
-                                zoomType="hover"
-                                zoomScale={1}
-                                src={"/productimg2.webp"} />
+                            <Zoom>
+                                <img src="/productimg2.webp" 
+                                    className="w-full h-full object-contain" />
+                            </Zoom>
                         </SwiperSlide>
 
                         <SwiperSlide>
-                            <InnerImageZoom
-                                zoomType="hover"
-                                zoomScale={1}
-                                src={"/productimg1.jpg"} />
+                            <Zoom>
+                                <img src="/productimg1.jpg" 
+                                    className="w-full h-full object-contain" />
+                            </Zoom>
                         </SwiperSlide>
                     </Swiper>
                 </div>
-            </div >
+            </div>
         </>
     )
 }

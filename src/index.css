@@ -2,13 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
 
 /* Tùy chỉnh thanh cuộn */
 ::-webkit-scrollbar {
-  width: 4px;
-  /* Độ rộng của thanh kéo dọc */
-  height: 4px;
-  /* Độ rộng của thanh kéo ngang */
+  width: 4px; /* Độ rộng của thanh kéo dọc */
+  height: 4px; /* Độ rộng của thanh kéo ngang */
 }
 
 ::-webkit-scrollbar-thumb {
@@ -22,7 +44,6 @@
   background: #bcbec3;
   /* Màu nền của thanh kéo */
 }
-
 
 * {
   margin: 0;
@@ -110,8 +131,6 @@ h6 {
   overflow: inherit !important;
 }
 
-
-
 .swiper-button-prev,
 .swiper-button-next {
   display: flex;
@@ -123,7 +142,6 @@ h6 {
   height: 45px;
   min-width: 45px;
   box-shadow: 0 1px 3px #0000001f, 0 1px 2px #0000003d !important;
-  ;
 }
 
 .swiper-button-prev:after,
@@ -137,7 +155,7 @@ h6 {
   width: 30px;
   height: 30px !important;
   min-width: 30px !important;
-  top: 55% !important
+  top: 55% !important;
 }
 
 .smlBtn .swiper-button-prev:after,
@@ -189,7 +207,7 @@ h6 {
 }
 
 .MuiTabs-indicator {
-  background-color: #ff5252 !important
+  background-color: #ff5252 !important;
 }
 
 .MuiTab-textColorPrimary.Mui-selected {
