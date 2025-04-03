@@ -1,4 +1,5 @@
 import axiosClient from "../api/axiosClient";
+import categoryApi from "../api/VendorAPI/categoryApi";
 
 export const getAllOrders = async (userId) => {
   try {
@@ -84,3 +85,27 @@ export const getShopInfo = async () => {
     }
   }
 };
+export const getAllCategory = async () => {
+  try {
+    const response = await categoryApi.getAllCategories();
+    if (!response.data) {
+      throw new Error("Không nhận được dữ liệu từ server");
+    }
+    console.log("Danh sách danh mục:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách danh mục:", error);
+    if (error.response) {
+      const errorMessage = error.response.data?.message || "Lỗi từ server";
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      throw new Error("Không thể kết nối đến server");
+    } else {
+      throw error;
+    }
+  }
+};
+
+
+
+

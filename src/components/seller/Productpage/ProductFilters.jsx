@@ -1,7 +1,26 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
+import { getAllCategory } from "../../../services/vendorService";
 
 const ProductFilters = ({ filters, onFilterChange }) => {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getAllCategory();
+        setCategories(data);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh mục:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -23,13 +42,14 @@ const ProductFilters = ({ filters, onFilterChange }) => {
             value={filters.category}
             onChange={(e) => onFilterChange({ category: e.target.value })}
             className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={loading}
           >
             <option value="all">All Categories</option>
-            <option value="electronics">Electronics</option>
-            <option value="clothing">Fashion</option>
-            <option value="books">Books</option>
-            <option value="home">Home & Living</option>
-            <option value="beauty">Beauty</option>
+            {categories.map((category) => (
+              <option key={category.category_id} value={category.category_id}>
+                {category.category_name}
+              </option>
+            ))}
           </select>
         </div>
 
