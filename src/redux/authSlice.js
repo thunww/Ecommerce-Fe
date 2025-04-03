@@ -4,7 +4,7 @@ import authService from "../services/authService";
 // Action đăng ký (register)
 export const register = createAsyncThunk("auth/register", async (userData, thunkAPI) => {
     try {
-        const response = await authService.register(userData); 
+        const response = await authService.register(userData);
         return response;
     } catch (error) {
         return thunkAPI.rejectWithValue(error);
@@ -33,8 +33,18 @@ const authSlice = createSlice({
     initialState: {
         user: JSON.parse(localStorage.getItem("user")) || null, // Lấy user từ localStorage
         roles: JSON.parse(localStorage.getItem("roles")) || [],
+        token: localStorage.getItem("accessToken") || null,
+        isAuthenticated: !!localStorage.getItem("accessToken"),
         isLoading: false,
         error: null,
+    },
+    reducers: {
+        // Hàm kiểm tra trạng thái đăng nhập
+        checkAuthStatus: (state) => {
+            const token = localStorage.getItem("accessToken");
+            state.isAuthenticated = !!token;
+            state.token = token;
+        },
     },
 
     extraReducers: (builder) => {
@@ -47,7 +57,9 @@ const authSlice = createSlice({
                 state.isLoading = false;
                 state.user = action.payload; // Lưu user vào Redux
                 state.roles = action.payload.user.roles;
+                state.isAuthenticated = true;
                 localStorage.setItem("user", JSON.stringify(action.payload));
+                localStorage.setItem("accessToken", action.payload.token);
                 localStorage.setItem("roles", JSON.stringify(action.payload.user.roles));
             })
             .addCase(register.rejected, (state, action) => {
@@ -61,6 +73,9 @@ const authSlice = createSlice({
             .addCase(login.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.user = action.payload.user;
+                state.token = action.payload.token;
+                state.isAuthenticated = true;
+                localStorage.setItem("user", JSON.stringify(action.payload.user));
                 localStorage.setItem("accessToken", action.payload.token);
             })
             .addCase(login.rejected, (state, action) => {
@@ -69,10 +84,15 @@ const authSlice = createSlice({
             })
             .addCase(logout.fulfilled, (state) => {
                 state.user = null; // Xóa user khỏi Redux
+                state.token = null;
+                state.isAuthenticated = false;
+                state.roles = [];
                 localStorage.removeItem("user");
                 localStorage.removeItem("accessToken");
+                localStorage.removeItem("roles");
             });
     },
 });
 
-export default authSlice.reducer
+export const { checkAuthStatus } = authSlice.actions;
+export default authSlice.reducer;

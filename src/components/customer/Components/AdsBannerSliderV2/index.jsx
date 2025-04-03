@@ -7,15 +7,27 @@ import BannerBoxV2 from '../BannerBoxV2';
 
 const AdsbannerSlider = (props) => {
     return (
-        <div className='py-5 w-full'>
-
+        <div className='py-3 sm:py-5 w-full'>
             <Swiper
-                slidesPerView={props.items}
+                slidesPerView={1}
                 spaceBetween={10}
                 navigation={true}
                 modules={[Navigation]}
                 className='smlBtn'
-
+                breakpoints={{
+                    480: {
+                        slidesPerView: 2,
+                        spaceBetween: 10,
+                    },
+                    768: {
+                        slidesPerView: 3,
+                        spaceBetween: 10,
+                    },
+                    1024: {
+                        slidesPerView: props.items || 4,
+                        spaceBetween: 10,
+                    },
+                }}
             >
                 <SwiperSlide>
                     <BannerBoxV2 info='left' image={'https://demos.codezeel.com/prestashop/PRS21/PRS210502/img/cms/sub-banner-1.jpg'} link={'/'} />
@@ -41,7 +53,6 @@ const AdsbannerSlider = (props) => {
                     <BannerBoxV2 info='left' image={'https://demos.codezeel.com/prestashop/PRS21/PRS210502/img/cms/sub-banner-1.jpg'} link={'/'} />
                 </SwiperSlide>
             </Swiper>
-
         </div>
     )
 }
