@@ -2,7 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { FaArrowLeft, FaSave, FaTimes, FaUpload, FaPlus, FaTrash } from "react-icons/fa";
+import {
+  FaArrowLeft,
+  FaSave,
+  FaTimes,
+  FaUpload,
+  FaPlus,
+  FaTrash,
+} from "react-icons/fa";
 import productService from "../../services/productService";
 
 const AddProduct = () => {
@@ -48,11 +55,16 @@ const AddProduct = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Xử lý đặc biệt cho trường giá
-    if (name === 'price' || name === 'originalPrice' || name === 'stock' || name === 'weight') {
+    if (
+      name === "price" ||
+      name === "originalPrice" ||
+      name === "stock" ||
+      name === "weight"
+    ) {
       // Chỉ cho phép nhập số
-      if (value === '' || /^\d+$/.test(value)) {
+      if (value === "" || /^\d+$/.test(value)) {
         setProduct({ ...product, [name]: value });
       }
     } else {
@@ -80,7 +92,7 @@ const AddProduct = () => {
     const updatedSpecs = [...product.specifications];
     updatedSpecs[index] = {
       ...updatedSpecs[index],
-      [field]: value
+      [field]: value,
     };
     setProduct({ ...product, specifications: updatedSpecs });
   };
@@ -88,7 +100,7 @@ const AddProduct = () => {
   const addSpecification = () => {
     setProduct({
       ...product,
-      specifications: [...product.specifications, { name: "", value: "" }]
+      specifications: [...product.specifications, { name: "", value: "" }],
     });
   };
 
@@ -100,66 +112,73 @@ const AddProduct = () => {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    
+
     // Giới hạn số lượng file
     if (files.length + selectedFiles.length > 5) {
       toast.warning("Chỉ được phép tải lên tối đa 5 ảnh");
       return;
     }
-    
+
     // Kiểm tra kích thước và định dạng file
-    const validFiles = files.filter(file => {
+    const validFiles = files.filter((file) => {
       if (file.size > 5 * 1024 * 1024) {
         toast.warning(`File ${file.name} vượt quá kích thước tối đa (5MB)`);
         return false;
       }
-      if (!file.type.match('image.*')) {
+      if (!file.type.match("image.*")) {
         toast.warning(`File ${file.name} không phải là ảnh`);
         return false;
       }
       return true;
     });
-    
+
     // Thêm file mới vào danh sách
     setSelectedFiles([...selectedFiles, ...validFiles]);
-    
+
     // Tạo URL để xem trước ảnh
-    const newPreviews = validFiles.map(file => URL.createObjectURL(file));
+    const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
     setPreviewImages([...previewImages, ...newPreviews]);
   };
 
   const removeImage = (index) => {
     const updatedFiles = [...selectedFiles];
     const updatedPreviews = [...previewImages];
-    
+
     // Giải phóng URL để tránh rò rỉ bộ nhớ
     URL.revokeObjectURL(updatedPreviews[index]);
-    
+
     updatedFiles.splice(index, 1);
     updatedPreviews.splice(index, 1);
-    
+
     setSelectedFiles(updatedFiles);
     setPreviewImages(updatedPreviews);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Kiểm tra các trường bắt buộc
-    if (!product.name || !product.price || !product.stock || !product.categoryId) {
+    if (
+      !product.name ||
+      !product.price ||
+      !product.stock ||
+      !product.categoryId
+    ) {
       toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
       return;
     }
-    
+
     try {
       setLoading(true);
-      
+
       // Chuẩn bị dữ liệu sản phẩm
       const productData = {
         product_name: product.name,
         description: product.description,
         price: parseFloat(product.price),
-        original_price: product.originalPrice ? parseFloat(product.originalPrice) : null,
+        original_price: product.originalPrice
+          ? parseFloat(product.originalPrice)
+          : null,
         stock_quantity: parseInt(product.stock),
         sku: product.sku,
         category_id: parseInt(product.categoryId),
@@ -167,22 +186,23 @@ const AddProduct = () => {
         product_type: product.type,
         weight: product.weight ? parseInt(product.weight) : null,
         dimensions: product.dimensions,
-        specifications: product.specifications.length > 0 ? product.specifications : null
+        specifications:
+          product.specifications.length > 0 ? product.specifications : null,
       };
-      
+
       // Tạo sản phẩm mới
       const response = await productService.createProduct(productData);
-      
+
       if (response && response.product_id) {
         // Upload ảnh nếu có
         if (selectedFiles.length > 0) {
           await Promise.all(
-            selectedFiles.map(file => 
+            selectedFiles.map((file) =>
               productService.uploadProductImage(response.product_id, file)
             )
           );
         }
-        
+
         toast.success("Tạo sản phẩm mới thành công");
         navigate(`/vendor/product/${response.product_id}`);
       } else {
@@ -190,7 +210,10 @@ const AddProduct = () => {
       }
     } catch (error) {
       console.error("Lỗi khi tạo sản phẩm:", error);
-      toast.error("Lỗi khi tạo sản phẩm: " + (error.response?.data?.message || error.message));
+      toast.error(
+        "Lỗi khi tạo sản phẩm: " +
+          (error.response?.data?.message || error.message)
+      );
     } finally {
       setLoading(false);
     }
@@ -201,8 +224,8 @@ const AddProduct = () => {
       <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-md p-6">
         {/* Header */}
         <div className="flex items-center mb-6 border-b pb-4">
-          <button 
-            onClick={() => navigate('/vendor/products')}
+          <button
+            onClick={() => navigate("/vendor/products")}
             className="mr-4 p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition-colors"
           >
             <FaArrowLeft className="text-gray-700" />
@@ -228,7 +251,7 @@ const AddProduct = () => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Mô tả sản phẩm
@@ -241,7 +264,7 @@ const AddProduct = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                 ></textarea>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -255,14 +278,17 @@ const AddProduct = () => {
                     required
                   >
                     <option value="">-- Chọn danh mục --</option>
-                    {categories.map(category => (
-                      <option key={category.category_id} value={category.category_id}>
+                    {categories.map((category) => (
+                      <option
+                        key={category.category_id}
+                        value={category.category_id}
+                      >
                         {category.category_name}
                       </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Mã SKU
@@ -276,7 +302,7 @@ const AddProduct = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -293,7 +319,7 @@ const AddProduct = () => {
                     <option value="service">Dịch vụ</option>
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Trạng thái
@@ -321,7 +347,9 @@ const AddProduct = () => {
                   Giá bán <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₫</span>
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                    ₫
+                  </span>
                   <input
                     type="text"
                     name="price"
@@ -333,13 +361,15 @@ const AddProduct = () => {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Giá gốc
                 </label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₫</span>
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                    ₫
+                  </span>
                   <input
                     type="text"
                     name="originalPrice"
@@ -350,7 +380,7 @@ const AddProduct = () => {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Số lượng <span className="text-red-500">*</span>
@@ -369,9 +399,11 @@ const AddProduct = () => {
           </div>
 
           {/* Thông tin vận chuyển */}
-          {product.type === 'physical' && (
+          {product.type === "physical" && (
             <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-4">Thông tin vận chuyển</h2>
+              <h2 className="text-lg font-semibold mb-4">
+                Thông tin vận chuyển
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -386,7 +418,7 @@ const AddProduct = () => {
                     placeholder="0"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Kích thước (DxRxC, cm)
@@ -411,8 +443,11 @@ const AddProduct = () => {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                 {/* Hiển thị ảnh đã chọn */}
                 {previewImages.map((preview, index) => (
-                  <div key={index} className="relative border rounded-lg overflow-hidden h-32">
-                    <img 
+                  <div
+                    key={index}
+                    className="relative border rounded-lg overflow-hidden h-32"
+                  >
+                    <img
                       src={preview}
                       alt={`Preview ${index + 1}`}
                       className="w-full h-full object-cover"
@@ -426,7 +461,7 @@ const AddProduct = () => {
                     </button>
                   </div>
                 ))}
-                
+
                 {/* Nút thêm ảnh */}
                 {previewImages.length < 5 && (
                   <div className="border rounded-lg h-32 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
@@ -438,14 +473,19 @@ const AddProduct = () => {
                       onChange={handleFileChange}
                       className="hidden"
                     />
-                    <label htmlFor="product-images" className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
+                    <label
+                      htmlFor="product-images"
+                      className="cursor-pointer w-full h-full flex flex-col items-center justify-center"
+                    >
                       <FaUpload className="text-gray-400 text-2xl mb-2" />
                       <span className="text-sm text-gray-500">Thêm ảnh</span>
                     </label>
                   </div>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-2">* Tối đa 5 ảnh, kích thước tối đa 5MB/ảnh</p>
+              <p className="text-xs text-gray-500 mt-2">
+                * Tối đa 5 ảnh, kích thước tối đa 5MB/ảnh
+              </p>
             </div>
           </div>
 
@@ -461,7 +501,7 @@ const AddProduct = () => {
                 <FaPlus className="mr-1" size={12} /> Thêm thông số
               </button>
             </div>
-            
+
             {product.specifications.length > 0 ? (
               <div className="space-y-3">
                 {product.specifications.map((spec, index) => (
@@ -469,14 +509,22 @@ const AddProduct = () => {
                     <input
                       type="text"
                       value={spec.name}
-                      onChange={(e) => handleSpecificationChange(index, 'name', e.target.value)}
+                      onChange={(e) =>
+                        handleSpecificationChange(index, "name", e.target.value)
+                      }
                       placeholder="Tên thông số"
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     />
                     <input
                       type="text"
                       value={spec.value}
-                      onChange={(e) => handleSpecificationChange(index, 'value', e.target.value)}
+                      onChange={(e) =>
+                        handleSpecificationChange(
+                          index,
+                          "value",
+                          e.target.value
+                        )
+                      }
                       placeholder="Giá trị"
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     />
@@ -491,7 +539,9 @@ const AddProduct = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">Chưa có thông số kỹ thuật. Nhấn "Thêm thông số" để bắt đầu.</p>
+              <p className="text-sm text-gray-500">
+                Chưa có thông số kỹ thuật. Nhấn "Thêm thông số" để bắt đầu.
+              </p>
             )}
           </div>
 
@@ -499,7 +549,7 @@ const AddProduct = () => {
           <div className="flex justify-end space-x-4 mt-8 pt-4 border-t">
             <button
               type="button"
-              onClick={() => navigate('/vendor/products')}
+              onClick={() => navigate("/vendor/products")}
               className="px-6 py-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors flex items-center"
             >
               <FaTimes className="mr-2" /> Hủy bỏ
@@ -507,7 +557,9 @@ const AddProduct = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`px-6 py-3 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors flex items-center ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+              className={`px-6 py-3 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors flex items-center ${
+                loading ? "opacity-70 cursor-not-allowed" : ""
+              }`}
             >
               {loading ? (
                 <>
@@ -527,4 +579,4 @@ const AddProduct = () => {
   );
 };
 
-export default AddProduct; 
+export default AddProduct;

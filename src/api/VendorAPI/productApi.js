@@ -5,7 +5,7 @@ const productApi = {
   // Lấy danh sách sản phẩm của shop
   getProductsByShopId: (shopId) => {
     // Sửa để lấy sản phẩm của shop hiện tại (token đã có thông tin vendor)
-    return axiosClient.get("/vendor/products");
+    return axiosClient.get("/vendor/shop/products");
   },
 
   // Lấy thông tin chi tiết sản phẩm

@@ -2,37 +2,45 @@ import React from "react";
 
 const ProductTabs = ({ activeTab, onTabChange, productCounts }) => {
   const tabs = [
-    { id: "all", label: "Tất cả", count: productCounts.all },
-    { id: "active", label: "Đang bán", count: productCounts.active },
-    { id: "inactive", label: "Tạm ngưng", count: productCounts.inactive },
-    { id: "outOfStock", label: "Hết hàng", count: productCounts.outOfStock },
-    { id: "violation", label: "Vi phạm", count: productCounts.violation }
+    { id: "all", label: "All", count: productCounts.all },
+    { id: "active", label: "Active", count: productCounts.active },
+    { id: "inactive", label: "Inactive", count: productCounts.inactive },
+    {
+      id: "outOfStock",
+      label: "Out of Stock",
+      count: productCounts.outOfStock,
+    },
+    { id: "violation", label: "Violation", count: productCounts.violation },
   ];
 
   return (
     <div className="mb-6">
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-          {tabs.map(tab => (
+          {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`
                 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
-                ${activeTab === tab.id
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ${
+                  activeTab === tab.id
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }
               `}
             >
               {tab.label}
-              <span className={`
+              <span
+                className={`
                 ml-2 py-0.5 px-2 rounded-full text-xs
-                ${activeTab === tab.id
-                  ? "bg-blue-100 text-blue-600"
-                  : "bg-gray-100 text-gray-600"
+                ${
+                  activeTab === tab.id
+                    ? "bg-blue-100 text-blue-600"
+                    : "bg-gray-100 text-gray-600"
                 }
-              `}>
+              `}
+              >
                 {tab.count}
               </span>
             </button>
@@ -43,4 +51,4 @@ const ProductTabs = ({ activeTab, onTabChange, productCounts }) => {
   );
 };
 
-export default ProductTabs; 
+export default ProductTabs;
