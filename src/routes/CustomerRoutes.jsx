@@ -1,25 +1,25 @@
 import React, { useState, useContext, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { checkAuthStatus } from "../redux/authSlice";
 import CustomerLayout from "../layouts/CustomerLayout";
 import Home from "../Pages/Customer/Pages/Home";
 import ProductListing from "../Pages/Customer/Pages/ProductListing";
 import Login from "../Pages/Auth/Login";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import Register from "../Pages/Auth/Register";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Register from "../pages/Auth/Register";
 import ProductDetails from "../Pages/Customer/Pages/ProductDetails";
 import MyAccount from "../Pages/Customer/Pages/MyAccount";
 import Dashboard from "../Pages/Customer/Pages/MyAccount/Dashboard";
 import Profile from "../Pages/Customer/Pages/MyAccount/Profile";
 
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 import ProductZoom from "../components/customer/Components/ProductZoom";
 import { IoCloseSharp } from "react-icons/io5";
 import ProductDetailsComponent from "../components/customer/Components/ProductDetails";
@@ -28,84 +28,95 @@ import MyContext from "../context/MyContext";
 import CartPage from "../Pages/Customer/Pages/Cart";
 
 const CustomerRoutes = () => {
-    const dispatch = useDispatch();
-    const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
-    const [maxWidth, setMaxWidth] = useState('lg');
-    const [fullWidth, setFullWidth] = useState(true);
-    const [openCartPanel, setOpenCartPanel] = useState(false);
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+  const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
+  const [maxWidth, setMaxWidth] = useState("lg");
+  const [fullWidth, setFullWidth] = useState(true);
+  const [openCartPanel, setOpenCartPanel] = useState(false);
 
-    useEffect(() => {
-        // Kiểm tra trạng thái đăng nhập khi component mount
-        dispatch(checkAuthStatus());
-    }, [dispatch]);
+  useEffect(() => {
+    // Kiểm tra trạng thái đăng nhập khi component mount
+    dispatch(checkAuthStatus());
+  }, [dispatch]);
 
-    const handleCloseProductDetailsModal = () => {
-        setOpenProductDetailsModal(false);
-    };
+  const handleCloseProductDetailsModal = () => {
+    setOpenProductDetailsModal(false);
+  };
 
-    const toggleCartPanel = (newOpen) => {
-        setOpenCartPanel(newOpen);
-    };
+  const toggleCartPanel = (newOpen) => {
+    setOpenCartPanel(newOpen);
+  };
 
-    const values = {
-        setOpenProductDetailsModal,
-        setOpenCartPanel,
-        openCartPanel,
-        toggleCartPanel
-    }
+  const values = {
+    setOpenProductDetailsModal,
+    setOpenCartPanel,
+    openCartPanel,
+    toggleCartPanel,
+  };
 
-    return (
-        <>
-            <MyContext.Provider value={values}>
-                <Routes>
-                    {/* Bọc tất cả route con trong CustomerLayout */}
-                    <Route path="/" element={<CustomerLayout />}>
-                        <Route index element={<Home />} />
-                        <Route path="/productListing" exact={true} element={<ProductListing />} />
-                        <Route path="/login" exact={true} element={<Login />} />
-                        <Route path="register" exact={true} element={<Register />} />
-                        <Route path="/product/:id" exact={true} element={<ProductDetails />} />
-                        <Route path="/cart" exact={true} element={<CartPage />} />
+  return (
+    <>
+      <MyContext.Provider value={values}>
+        <Routes>
+          {/* Bọc tất cả route con trong CustomerLayout */}
+          <Route path="/" element={<CustomerLayout />}>
+            <Route index element={<Home />} />
+            <Route
+              path="/productListing"
+              exact={true}
+              element={<ProductListing />}
+            />
+            <Route path="/login" exact={true} element={<Login />} />
+            <Route path="register" exact={true} element={<Register />} />
+            <Route
+              path="/product/:id"
+              exact={true}
+              element={<ProductDetails />}
+            />
+            <Route path="/cart" exact={true} element={<CartPage />} />
 
-                        {/* Thêm routes cho My Account */}
-                        <Route path="/my-account" element={<MyAccount />}>
-                            <Route index element={<Dashboard />} />
-                            <Route path="profile" element={<Profile />} />
-                            {/* Bạn có thể thêm các routes con khác cho My Account ở đây */}
-                            {/* <Route path="orders" element={<Orders />} /> */}
-                            {/* <Route path="addresses" element={<Addresses />} /> */}
-                            {/* <Route path="wishlist" element={<Wishlist />} /> */}
-                        </Route>
-                    </Route>
-                </Routes>
-            </MyContext.Provider>
-            <ToastContainer />
+            {/* Thêm routes cho My Account */}
+            <Route path="/my-account" element={<MyAccount />}>
+              <Route index element={<Dashboard />} />
+              <Route path="profile/:user_id" element={<Profile />} />
+              {/* Bạn có thể thêm các routes con khác cho My Account ở đây */}
+              {/* <Route path="orders" element={<Orders />} /> */}
+              {/* <Route path="addresses" element={<Addresses />} /> */}
+              {/* <Route path="wishlist" element={<Wishlist />} /> */}
+            </Route>
+          </Route>
+        </Routes>
+      </MyContext.Provider>
+      <ToastContainer />
 
-            <Dialog
-                open={openProductDetailsModal}
-                fullWidth={fullWidth}
-                maxWidth={maxWidth}
-                onClose={handleCloseProductDetailsModal}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-                className="productDetailsModal"
+      <Dialog
+        open={openProductDetailsModal}
+        fullWidth={fullWidth}
+        maxWidth={maxWidth}
+        onClose={handleCloseProductDetailsModal}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        className="productDetailsModal"
+      >
+        <DialogContent>
+          <div className="flex items-center w-full productDetailsModalContainer relative">
+            <Button
+              className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] !absolute top-[15px] right-[15px] !bg-[#f1f1f1]"
+              onClick={handleCloseProductDetailsModal}
             >
-                <DialogContent>
-                    <div className="flex items-center w-full productDetailsModalContainer relative">
-                        <Button className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] !absolute top-[15px] right-[15px] !bg-[#f1f1f1]"
-                            onClick={handleCloseProductDetailsModal}>
-                            <IoCloseSharp className="text-[20px]" />
-                        </Button>
-                        <div className="col1 w-[40%]">
-                            <ProductZoom />
-                        </div>
-                        <div className="col2 w-[60%] py-8 px-16 pr-16 productContent">
-                            <ProductDetailsComponent />
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
-        </>
-    );
+              <IoCloseSharp className="text-[20px]" />
+            </Button>
+            <div className="col1 w-[40%]">
+              <ProductZoom />
+            </div>
+            <div className="col2 w-[60%] py-8 px-16 pr-16 productContent">
+              <ProductDetailsComponent />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 };
 export default CustomerRoutes;

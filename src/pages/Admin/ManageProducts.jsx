@@ -1,9 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchAllProducts } from "../../redux/productSilce";
+import {
+  fetchAllProducts,
+  updateProductStatus,
+  deleteProductById,
+} from "../../redux/productSilce";
 import { fetchAllShops } from "../../redux/shopSlice";
 import Swal from "sweetalert2";
-import { FaSearch, FaBoxes, FaTag, FaShoppingCart } from "react-icons/fa";
+import {
+  FaSearch,
+  FaTrash,
+  FaEye,
+  FaBoxes,
+  FaTag,
+  FaCheck,
+  FaShoppingCart,
+} from "react-icons/fa";
+
 import Table from "../../components/common/Table";
 
 const ManageProducts = () => {
@@ -33,6 +46,108 @@ const ManageProducts = () => {
   if (error) {
     return <p className="text-red-500 text-center">{error}</p>;
   }
+
+  const handleUpdateProductStatus = (product_id) => {
+    Swal.fire({
+      title: "Product Status",
+      html: `
+        <div class="mb-3">
+          <p class="text-gray-700 mb-2">Select the status for this product:</p>
+          <div class="flex flex-col gap-2">
+            <label class="inline-flex items-center">
+              <input type="radio" name="status" value="active" class="form-radio h-5 w-5 text-green-600" checked>
+              <span class="ml-2 text-gray-700">Active</span>
+            </label>
+            <label class="inline-flex items-center">
+              <input type="radio" name="status" value="inactive" class="form-radio h-5 w-5 text-red-600">
+              <span class="ml-2 text-gray-700">Inactive</span>
+            </label>
+          </div>
+        </div>
+      `,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Confirm Status",
+      cancelButtonText: "Cancel",
+      background: "#fff",
+      borderRadius: "10px",
+      focusConfirm: false,
+      preConfirm: () => {
+        return {
+          status: document.querySelector('input[name="status"]:checked').value,
+        };
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const selectedStatus = result.value.status;
+
+        // Gọi API Redux với chuỗi thay vì số
+        dispatch(
+          updateProductStatus({ productId: product_id, status: selectedStatus })
+        )
+          .unwrap()
+          .then(() => {
+            Swal.fire({
+              icon: "success",
+              title: "Status Updated!",
+              text: `Product status has been set to ${selectedStatus.toUpperCase()}.`,
+              confirmButtonColor: "#3085d6",
+              timer: 2000,
+              timerProgressBar: true,
+            });
+          })
+          .catch((error) => {
+            Swal.fire({
+              icon: "error",
+              title: "Update Failed!",
+              text: error || "Failed to update product status.",
+              confirmButtonColor: "#d33",
+            });
+          });
+      }
+    });
+  };
+
+  const handleDeleteProduct = (product_id) => {
+    Swal.fire({
+      title: "Delete Product",
+      text: "Are you sure you want to delete this product? This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+      background: "#fff",
+      borderRadius: "10px",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Gọi API Redux để xóa sản phẩm
+        dispatch(deleteProductById(product_id))
+          .unwrap()
+          .then(() => {
+            Swal.fire({
+              icon: "success",
+              title: "Deleted!",
+              text: "The product has been deleted successfully.",
+              confirmButtonColor: "#3085d6",
+              timer: 2000,
+              timerProgressBar: true,
+            });
+          })
+          .catch((error) => {
+            Swal.fire({
+              icon: "error",
+              title: "Delete Failed!",
+              text: error || "Failed to delete the product.",
+              confirmButtonColor: "#d33",
+            });
+          });
+      }
+    });
+  };
 
   const columns = [
     { header: "ID", field: "product_id" },
@@ -96,26 +211,31 @@ const ManageProducts = () => {
       render: (_, product) => (
         <div className="flex items-center justify-center space-x-2">
           <button
-            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg shadow-md transition duration-200 hover:scale-105"
-            title="Edit Product"
-            onClick={() =>
-              Swal.fire("Edit Product", `Edit ${product.product_name}`, "info")
-            }
+            className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg shadow-md transition duration-200 hover:scale-105"
+            title="Approve Product"
+            onClick={() => handleUpdateProductStatus(product?.product_id)}
           >
-            <FaTag />
+            <FaCheck />
           </button>
           <button
             className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg shadow-md transition duration-200 hover:scale-105"
             title="Delete Product"
+            onClick={() => handleDeleteProduct(product?.product_id)}
+          >
+            <FaTrash />
+          </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg shadow-md transition duration-200 hover:scale-105"
+            title="View Details"
             onClick={() =>
               Swal.fire(
-                "Delete Product",
-                `Delete ${product.product_name}?`,
-                "warning"
+                "Product Details",
+                `Details of ${product.product_name}`,
+                "info"
               )
             }
           >
-            <FaShoppingCart />
+            <FaEye />
           </button>
         </div>
       ),

@@ -42,7 +42,7 @@ export const updateUser = createAsyncThunk(
   async ({ user_id, ...userData }, { rejectWithValue }) => {
     try {
       const response = await adminService.updateUserById(user_id, userData);
-      return response.user; // API trả về user đã cập nhật
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Lỗi khi cập nhật user");
     }

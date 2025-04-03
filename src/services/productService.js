@@ -17,6 +17,14 @@ const productService = {
       throw error;
     }
   },
+  deleteProductById: async (productId) => {
+    try {
+      const response = await productApi.deleteProduct(productId);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default productService;
