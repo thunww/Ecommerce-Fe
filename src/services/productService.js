@@ -1,0 +1,22 @@
+import productApi from "../api/productApi";
+
+const productService = {
+  getAllProducts: async () => {
+    try {
+      const response = await productApi.getAllProducts();
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  updateProductStatus: async (productId, status) => {
+    try {
+      const response = await productApi.updateProductStatus(productId, status);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+};
+
+export default productService;
