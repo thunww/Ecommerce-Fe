@@ -5,23 +5,18 @@ import AccountSidebar from "../../../../components/customer/Components/AccountSi
 
 const MyAccount = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
-
-  const { user, isAuthenticated, isLoading } = useSelector(
-    (state) => state.auth.user
-  );
-  console.log(user);
+  const user = useSelector((state) => state.auth.user);
 
   useEffect(() => {
-    navigate(`my-account/profile/${user.user_id}`);
-  }, [isAuthenticated, user, navigate]);
+    if (user?.user_id && location.pathname === "/my-account") {
+      navigate(`/my-account/profile/${user.user_id}`);
+    }
+  }, [user, navigate, location]);
 
-  if (isLoading) {
-    return <div className="container py-10">Đang tải...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return null; // Sẽ chuyển hướng bởi useEffect
+  if (!user) {
+    return <div>Đang tải...</div>;
   }
 
   return (

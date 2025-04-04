@@ -11,7 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Register from "../pages/Auth/Register";
 import ProductDetails from "../Pages/Customer/Pages/ProductDetails";
 import MyAccount from "../Pages/Customer/Pages/MyAccount";
-import Dashboard from "../Pages/Customer/Pages/MyAccount/Dashboard";
+import Dashboard from "../pages/Customer/Pages/MyAccount/Dashboard";
 import Profile from "../Pages/Customer/Pages/MyAccount/Profile";
 
 import Button from "@mui/material/Button";
@@ -23,10 +23,10 @@ import DialogTitle from "@mui/material/DialogTitle";
 import ProductZoom from "../components/customer/Components/ProductZoom";
 import { IoCloseSharp } from "react-icons/io5";
 import ProductDetailsComponent from "../components/customer/Components/ProductDetails";
-
+import UserInfo from "../pages/Customer/Pages/MyAccount/test";
 import MyContext from "../context/MyContext";
 import CartPage from "../Pages/Customer/Pages/Cart";
-
+import AccountSidebar from "../components/customer/Components/AccountSidebar";
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -78,9 +78,11 @@ const CustomerRoutes = () => {
 
             {/* Thêm routes cho My Account */}
             <Route path="/my-account" element={<MyAccount />}>
+              {/* Thay Dashboard bằng trang khác bạn muốn, ví dụ Profile */}
               <Route index element={<Dashboard />} />
               <Route path="profile/:user_id" element={<Profile />} />
-              {/* Bạn có thể thêm các routes con khác cho My Account ở đây */}
+              <Route path="test" element={<UserInfo />} />
+              {/* Thêm các routes con khác như Orders, Addresses nếu cần */}
               {/* <Route path="orders" element={<Orders />} /> */}
               {/* <Route path="addresses" element={<Addresses />} /> */}
               {/* <Route path="wishlist" element={<Wishlist />} /> */}

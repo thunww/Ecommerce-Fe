@@ -125,7 +125,7 @@ const adminSlice = createSlice({
       })
       .addCase(fetchUserById.fulfilled, (state, action) => {
         state.loading = false;
-        state.selectedUser = action.payload; // Lưu user vào Redux store
+        state.selectedUser = action.payload;
       })
       .addCase(fetchUserById.rejected, (state, action) => {
         state.loading = false;
