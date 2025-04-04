@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { format, parseISO } from "date-fns";
 import { useSelector, useDispatch } from "react-redux";
 import { updateUser, fetchUserById } from "../../../../redux/adminSlice";
 import {
@@ -8,25 +9,60 @@ import {
   FaMapMarkerAlt,
   FaCalendarAlt,
   FaTransgender,
+  FaEdit,
+  FaSave,
+  FaTimes,
 } from "react-icons/fa";
 
 const ProfileField = ({ icon, label, value, isEditing, onChange, name }) => {
+  let formattedValue = value;
+
+  if (name === "date_of_birth" && value) {
+    try {
+      formattedValue = format(parseISO(value), "dd/MM/yyyy");
+    } catch (error) {
+      console.error("Ngày không hợp lệ:", value);
+    }
+  }
+
   return (
-    <div className="mb-3 sm:mb-4">
-      <div className="flex items-center gap-2 text-gray-500 mb-1">
-        {icon}
-        <span className="text-xs sm:text-sm">{label}</span>
+    <div className="mb-5 transition-all duration-300 transform hover:translate-y-[-2px]">
+      <div className="flex items-center gap-2 text-gray-600 mb-1.5">
+        <div className="text-blue-500">{icon}</div>
+        <span className="text-xs font-medium uppercase tracking-wide">
+          {label}
+        </span>
       </div>
       {isEditing ? (
-        <input
-          type="text"
-          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={value || ""}
-          onChange={(e) => onChange(name, e.target.value)}
-        />
+        name === "date_of_birth" ? (
+          <input
+            type="date"
+            className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200"
+            value={value ? value.split("T")[0] : ""}
+            onChange={(e) => onChange(name, e.target.value)}
+          />
+        ) : name === "gender" ? (
+          <select
+            className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm bg-white transition-all duration-200"
+            value={value}
+            onChange={(e) => onChange(name, e.target.value)}
+          >
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        ) : (
+          <input
+            type="text"
+            className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200"
+            value={value || ""}
+            onChange={(e) => onChange(name, e.target.value)}
+            placeholder={`Enter your ${label.toLowerCase()}`}
+          />
+        )
       ) : (
-        <p className="text-sm sm:text-base font-medium truncate">
-          {value || "Chưa cập nhật"}
+        <p className="text-base font-medium text-gray-800 py-2 px-3 bg-gray-50 rounded-lg truncate">
+          {formattedValue || "Chưa cập nhật"}
         </p>
       )}
     </div>
@@ -79,9 +115,7 @@ const Profile = () => {
     };
 
     dispatch(updateUser({ user_id: userId, ...updatedData }));
-
     console.log("Saving profile data:", updatedData);
-
     setIsEditing(false);
   };
 
@@ -100,27 +134,34 @@ const Profile = () => {
   };
 
   if (!profileData) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="profile-page">
-      <div className="flex flex-col md:flex-row">
-        <div className="w-full mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">
+    <div className="profile-page bg-gray-50 p-6 rounded-xl">
+      <div className="flex flex-col md:flex-row justify-between items-start mb-8">
+        <div className="w-full mb-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+            <span className="bg-blue-500 text-white p-1.5 rounded-lg">
+              <FaUser className="text-sm" />
+            </span>
             Thông tin cá nhân
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-sm text-gray-600 pl-1">
             Quản lý thông tin cá nhân để bảo mật tài khoản
           </p>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg overflow-hidden">
+      <div className="bg-white rounded-xl overflow-hidden shadow-lg border border-gray-100">
         <div className="flex flex-col md:flex-row">
-          <div className="w-full md:w-1/3 p-4 sm:p-6 flex flex-col items-center border-b md:border-b-0 md:border-r border-gray-200">
-            <div className="relative mb-4 sm:mb-6">
-              <div className="w-24 h-24 sm:w-32 sm:h-32 overflow-hidden rounded-full border-4 border-gray-100 shadow">
+          <div className="w-full md:w-1/3 p-6 flex flex-col items-center bg-gradient-to-b from-blue-50 to-white border-b md:border-b-0 md:border-r border-gray-200">
+            <div className="relative mb-6 group">
+              <div className="w-32 h-32 md:w-40 md:h-40 overflow-hidden rounded-full border-4 border-white shadow-lg group-hover:shadow-xl transition-all duration-300">
                 <img
                   src={profileData.profile_picture || "/avatar.jpg"}
                   alt="Avatar"
@@ -131,35 +172,45 @@ const Profile = () => {
                   }}
                 />
               </div>
+              {isEditing && (
+                <div className="absolute bottom-2 right-2 bg-blue-500 rounded-full p-2 text-white cursor-pointer shadow-md hover:bg-blue-600 transition-all">
+                  <FaEdit size={16} />
+                </div>
+              )}
             </div>
 
+            <h3 className="text-xl font-bold text-gray-800 mb-1">
+              {profileData.first_name} {profileData.last_name}
+            </h3>
+            <p className="text-gray-500 text-sm mb-6">User ID: {userId}</p>
+
             {isEditing ? (
-              <div className="flex gap-2 w-full">
+              <div className="flex gap-3 w-full mt-4">
                 <button
                   onClick={handleSave}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-1.5 sm:py-2 px-3 sm:px-4 rounded-md text-sm transition"
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                 >
-                  Lưu
+                  <FaSave /> Lưu
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-1.5 sm:py-2 px-3 sm:px-4 rounded-md text-sm transition"
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-gray-200"
                 >
-                  Hủy
+                  <FaTimes /> Hủy
                 </button>
               </div>
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="w-full bg-blue-50 hover:bg-blue-100 text-blue-500 border border-blue-200 py-1.5 sm:py-2 px-3 sm:px-4 rounded-md text-sm transition"
+                className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow"
               >
-                Chỉnh sửa
+                <FaEdit /> Chỉnh sửa
               </button>
             )}
           </div>
 
-          <div className="w-full md:w-2/3 p-4 sm:p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 sm:gap-x-6">
+          <div className="w-full md:w-2/3 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
               <ProfileField
                 icon={<FaUser className="flex-shrink-0" />}
                 label="First name"

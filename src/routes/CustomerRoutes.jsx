@@ -23,13 +23,10 @@ import DialogTitle from "@mui/material/DialogTitle";
 import ProductZoom from "../components/customer/Components/ProductZoom";
 import { IoCloseSharp } from "react-icons/io5";
 import ProductDetailsComponent from "../components/customer/Components/ProductDetails";
-import UserInfo from "../pages/Customer/Pages/MyAccount/test";
 import MyContext from "../context/MyContext";
 import CartPage from "../Pages/Customer/Pages/Cart";
-import AccountSidebar from "../components/customer/Components/AccountSidebar";
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
   const [maxWidth, setMaxWidth] = useState("lg");
   const [fullWidth, setFullWidth] = useState(true);
@@ -81,7 +78,6 @@ const CustomerRoutes = () => {
               {/* Thay Dashboard bằng trang khác bạn muốn, ví dụ Profile */}
               <Route index element={<Dashboard />} />
               <Route path="profile/:user_id" element={<Profile />} />
-              <Route path="test" element={<UserInfo />} />
               {/* Thêm các routes con khác như Orders, Addresses nếu cần */}
               {/* <Route path="orders" element={<Orders />} /> */}
               {/* <Route path="addresses" element={<Addresses />} /> */}
