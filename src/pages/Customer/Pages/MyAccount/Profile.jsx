@@ -42,7 +42,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (userId) {
-      dispatch(fetchUserById(userId)); // Gọi API để lấy user theo ID
+      dispatch(fetchUserById(userId));
     }
   }, [dispatch, userId]);
 
@@ -53,7 +53,7 @@ const Profile = () => {
         last_name: user.last_name || "",
         phone: user.phone || "",
         date_of_birth: user.date_of_birth || "",
-        gender: user.gender || "Nam",
+        gender: user.gender || "",
         profile_picture: user.profile_picture || "",
       });
     }
@@ -78,7 +78,8 @@ const Profile = () => {
       profile_picture: profileData.profile_picture,
     };
 
-    dispatch(updateUser(userId, updatedData)); // Gọi API cập nhật
+    dispatch(updateUser({ user_id: userId, ...updatedData }));
+
     console.log("Saving profile data:", updatedData);
 
     setIsEditing(false);

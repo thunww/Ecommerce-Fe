@@ -13,7 +13,6 @@ const AccountSidebar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
-  console.log("User ID:", user?.user_id);
 
   const handleLogout = () => {
     dispatch(logout());
