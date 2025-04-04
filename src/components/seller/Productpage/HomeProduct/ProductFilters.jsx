@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
-import { getAllCategory } from "../../../services/vendorService";
+import { getAllCategory } from "../../../../services/vendorService";
 
 const ProductFilters = ({ filters, onFilterChange }) => {
   const [categories, setCategories] = useState([]);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ProductPage from "../../components/seller/Productpage/ProductPage";
+import ProductPage from "../../components/seller/Productpage/HomeProduct/ProductPage";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import productService from "../../services/productService";

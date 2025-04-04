@@ -1,0 +1,11 @@
+import React from "react";
+
+const SalesInformation = () => {
+  return (
+    <div className="text-center py-8 text-gray-500">
+      Available only after you select a product category
+    </div>
+  );
+};
+
+export default SalesInformation;

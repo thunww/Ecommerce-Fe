@@ -12,8 +12,8 @@ const ProductHeader = () => {
 
         <div className="flex space-x-4">
           <button
-            onClick={() => navigate("/vendor/product/add")}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={() => navigate("/vendor/products/add")}
+            className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
           >
             <FaPlus className="mr-2" />
             Add Product

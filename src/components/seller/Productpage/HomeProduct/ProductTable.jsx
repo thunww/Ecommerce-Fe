@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import productService from "../../../services/productService";
+import productService from "../../../../services/productService";
 
 const ProductTable = ({ products, onProductChanged }) => {
   const [selectedProducts, setSelectedProducts] = useState([]);
