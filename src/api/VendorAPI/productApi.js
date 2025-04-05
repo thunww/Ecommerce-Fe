@@ -67,7 +67,7 @@ const productApi = {
 
   // Lấy danh sách danh mục sản phẩm
   getCategories: () => {
-    return axiosClient.get("/vendor/categories");
+    return axiosClient.get("/vendor/shop/category");
   },
 };
 

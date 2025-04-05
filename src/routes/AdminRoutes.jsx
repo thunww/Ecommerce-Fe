@@ -7,7 +7,7 @@ import ManageProducts from "../pages/Admin/ManageProducts";
 import ManageUsers from "../pages/Admin/ManageUsers";
 import AdminOverview from "../pages/Admin/AdminOverview";
 import ViewUserDetails from "../pages/Admin/ViewUserDetails";
-
+import ManageShops from "../pages/Admin/ManageShops";
 const AdminRoutes = () => {
   return (
     <Routes>
@@ -19,7 +19,8 @@ const AdminRoutes = () => {
         <Route path="products" element={<ManageProducts />} />
         <Route path="orders" element={<ManageOrders />} />
         <Route path="overview" element={<AdminOverview />} />
-        <Route path="edit-user/:user_id" element={<ViewUserDetails />} />
+        <Route path="view-user/:user_id" element={<ViewUserDetails />} />
+        <Route path="shops" element={<ManageShops />} />
       </Route>
     </Routes>
   );

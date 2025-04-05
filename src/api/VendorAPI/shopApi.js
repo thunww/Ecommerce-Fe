@@ -7,7 +7,7 @@ const shopApi = {
     return axiosClient.get("/vendor/my-shop");
   },
 
-  // Lấy thống kê chi tiết về shop
+  // Lấy thống kê chi tiết về shopokmbv
   getShopAnalytics: () => {
     return axiosClient.get("/vendor/shop-analytics");
   },

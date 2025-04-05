@@ -138,6 +138,16 @@ const productService = {
       throw error;
     }
   },
+  getAllProducts: async () => {
+    try {
+      const response = await productApi.getAllProducts();
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default productService;
+
+

@@ -7,6 +7,7 @@ import { FaRegSquarePlus } from "react-icons/fa6";
 import { FiMinusSquare } from "react-icons/fi";
 import Button from "@mui/material/Button";
 import { Link } from 'react-router-dom';
+
 const CategoryPanel = (props) => {
     const [submenuIndex, setSubmenuIndex] = useState(null);
     const [innerSubmenuIndex, setInnerSubmenuIndex] = useState(null);
@@ -24,23 +25,43 @@ const CategoryPanel = (props) => {
     };
 
     const DrawerList = (
-        <Box sx={{ width: 250 }} role="presentation" className="categoryPanel">
-            <h3 className="p-3 text-[20px] font-[500] flex items-center justify-between">
-                Shop By Category{" "}
-                <IoCloseSharp
-                    onClick={toggleDrawer(false)}
-                    className="cursor-pointer text-[20px]"
-                />
-            </h3>
+        <Box
+            sx={{
+                width: { xs: '85vw', sm: '300px', md: '320px' },
+                maxWidth: '100vw',
+                height: '100%',
+                overflow: 'auto'
+            }}
+            role="presentation"
+            className="categoryPanel"
+        >
+            <div className="sticky top-0 bg-white z-10 border-b border-gray-200 shadow-sm">
+                <h3 className="p-3 sm:p-4 text-[16px] sm:text-[20px] font-[500] flex items-center justify-between">
+                    <span className="truncate">Shop By Category</span>
+                    <IoCloseSharp
+                        onClick={toggleDrawer(false)}
+                        className="cursor-pointer text-[18px] sm:text-[20px] flex-shrink-0"
+                    />
+                </h3>
+            </div>
 
-            <CategoryCollapse />
-
+            <div className="p-2 sm:p-3">
+                <CategoryCollapse />
+            </div>
         </Box>
     );
 
     return (
         <>
-            <Drawer open={props.isOpenCatPanel} onClose={toggleDrawer(false)}>
+            <Drawer
+                open={props.isOpenCatPanel}
+                onClose={toggleDrawer(false)}
+                sx={{
+                    '& .MuiDrawer-paper': {
+                        boxSizing: 'border-box',
+                    },
+                }}
+            >
                 {DrawerList}
             </Drawer>
         </>

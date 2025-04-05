@@ -42,7 +42,7 @@ export const updateUser = createAsyncThunk(
   async ({ user_id, ...userData }, { rejectWithValue }) => {
     try {
       const response = await adminService.updateUserById(user_id, userData);
-      return response.user; // API trả về user đã cập nhật
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Lỗi khi cập nhật user");
     }
@@ -125,7 +125,7 @@ const adminSlice = createSlice({
       })
       .addCase(fetchUserById.fulfilled, (state, action) => {
         state.loading = false;
-        state.selectedUser = action.payload; // Lưu user vào Redux store
+        state.selectedUser = action.payload;
       })
       .addCase(fetchUserById.rejected, (state, action) => {
         state.loading = false;
@@ -184,10 +184,7 @@ const adminSlice = createSlice({
       .addCase(assignRoleToUser.fulfilled, (state, action) => {
         state.users = state.users.map((user) =>
           user.user_id === action.payload.userId
-            ? {
-                ...user,
-                roles: [...new Set([...user.roles, action.payload.role])],
-              }
+            ? { ...user, roles: [...user.roles, action.payload.role] }
             : user
         );
       });

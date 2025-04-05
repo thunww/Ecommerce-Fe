@@ -5,8 +5,6 @@ const authService = {
     try {
       const response = await authApi.login(userData);
       const { token, user, message } = response.data; // Lấy luôn message từ API
-
-      // Lưu token vào localStorage
       localStorage.setItem("accessToken", token);
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("roles", JSON.stringify(user.roles));
@@ -31,14 +29,11 @@ const authService = {
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
-      localStorage.removeItem("roles");
     }
   },
-
   getProfile: async () => {
     try {
-      const response = await authApi.getProfile();
-      return response;
+      return await authApi.getProfile();
     } catch (error) {
       throw new Error(
         error.response?.data?.message || "Failed to fetch profile"

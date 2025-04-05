@@ -1,5 +1,5 @@
 import axiosClient from "../api/axiosClient";
-import categoryApi from "../api/VendorAPI/categoryApi";
+import categoryApi from "../api/VendorAPI/productApi";
 
 export const getAllOrders = async (userId) => {
   try {
@@ -87,7 +87,7 @@ export const getShopInfo = async () => {
 };
 export const getAllCategory = async () => {
   try {
-    const response = await categoryApi.getAllCategories();
+    const response = await categoryApi.getCategories();
     if (!response.data) {
       throw new Error("Không nhận được dữ liệu từ server");
     }
