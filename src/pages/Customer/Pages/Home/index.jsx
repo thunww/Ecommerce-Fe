@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import HomeSlider from "../../../../components/customer/Components/HomeSlider";
 import HomeCatSlider from "../../../../components/customer/Components/HomeCatSlider";
 import { FaShippingFast } from "react-icons/fa";
@@ -15,8 +15,8 @@ import BannerBoxV2 from "../../../../components/customer/Components/BannerBoxV2"
 import Header from "../../../../components/customer/Components/Header";
 import { fetchUserById } from "../../../../redux/adminSlice";
 import { useDispatch, useSelector } from "react-redux";
+
 const Home = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const userId = useSelector((state) => state.auth.user?.user_id);
