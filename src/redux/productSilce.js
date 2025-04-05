@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import productService from "../services/productService";
 
-// Fetch all products from API
 export const fetchAllProducts = createAsyncThunk(
   "products/fetchAllProducts",
   async (_, { rejectWithValue }) => {
@@ -25,6 +24,20 @@ export const updateProductStatus = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Failed to update product status"
+      );
+    }
+  }
+);
+
+export const deleteProductById = createAsyncThunk(
+  "products/deleteProductById",
+  async (productId, { rejectWithValue }) => {
+    try {
+      await productService.deleteProductById(productId);
+      return productId;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to delete product"
       );
     }
   }
@@ -59,6 +72,12 @@ const productSlice = createSlice({
         if (product) {
           product.status = status;
         }
+      })
+
+      .addCase(deleteProductById.fulfilled, (state, action) => {
+        state.products = state.products.filter(
+          (p) => p.product_id !== action.payload
+        );
       });
   },
 });
