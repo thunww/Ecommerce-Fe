@@ -14,10 +14,10 @@ const AccountSidebar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const userId = useSelector((state) => state.auth.user?.user_id); // Lấy user_id từ auth state
+  const userId = useSelector((state) => state.auth.user?.user_id); // Get user_id from auth state
   const user = useSelector((state) => state.admin.selectedUser);
 
-  // Fetch user khi dashboard được load
+  // Fetch user when dashboard is loaded
   useEffect(() => {
     if (userId) {
       dispatch(fetchUserById(userId));
@@ -50,7 +50,7 @@ const AccountSidebar = () => {
           <h3 className="text-base sm:text-lg font-semibold truncate max-w-full">
             {user
               ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
-              : "Người dùng"}
+              : "User"}
           </h3>
           <p className="text-xs sm:text-sm text-blue-100 truncate max-w-full">
             {user?.email || "user@example.com"}
@@ -60,15 +60,15 @@ const AccountSidebar = () => {
           <div className="flex justify-between text-center text-xs">
             <div className="px-1">
               <p className="font-bold text-lg sm:text-xl">0</p>
-              <p className="text-xs">Đơn hàng</p>
+              <p className="text-xs">Orders</p>
             </div>
             <div className="px-1">
               <p className="font-bold text-lg sm:text-xl">0</p>
-              <p className="text-xs">Yêu thích</p>
+              <p className="text-xs">Favorites</p>
             </div>
             <div className="px-1">
               <p className="font-bold text-lg sm:text-xl">0</p>
-              <p className="text-xs">Đánh giá</p>
+              <p className="text-xs">Reviews</p>
             </div>
           </div>
         </div>
@@ -84,7 +84,7 @@ const AccountSidebar = () => {
                 className="flex items-center gap-2 p-2 rounded-md text-gray-700 hover:bg-gray-50 transition text-sm sm:text-base"
               >
                 <FaRegUser className="text-lg flex-shrink-0" />
-                <span className="truncate">Thông tin cá nhân</span>
+                <span className="truncate">Personal Information</span>
               </Link>
             )}
           </li>
@@ -94,7 +94,7 @@ const AccountSidebar = () => {
               className="flex items-center gap-2 p-2 rounded-md text-gray-700 hover:bg-gray-50 transition text-sm sm:text-base"
             >
               <MdOutlineShoppingCart className="text-lg flex-shrink-0" />
-              <span className="truncate">Đơn hàng của tôi</span>
+              <span className="truncate">My Orders</span>
             </Link>
           </li>
           <li className="mb-1 sm:mb-2">
@@ -103,7 +103,7 @@ const AccountSidebar = () => {
               className="flex items-center gap-2 p-2 rounded-md text-gray-700 hover:bg-gray-50 transition text-sm sm:text-base"
             >
               <IoLocationOutline className="text-lg flex-shrink-0" />
-              <span className="truncate">Địa chỉ</span>
+              <span className="truncate">Addresses</span>
             </Link>
           </li>
           <li className="mb-1 sm:mb-2">
@@ -112,7 +112,7 @@ const AccountSidebar = () => {
               className="flex items-center gap-2 p-2 rounded-md text-gray-700 hover:bg-gray-50 transition text-sm sm:text-base"
             >
               <CiHeart className="text-lg flex-shrink-0" />
-              <span className="truncate">Sản phẩm yêu thích</span>
+              <span className="truncate">Wishlist</span>
             </Link>
           </li>
           <li className="mt-4 sm:mt-6 border-t pt-3 sm:pt-4">
@@ -121,7 +121,7 @@ const AccountSidebar = () => {
               className="flex items-center gap-2 p-2 rounded-md text-red-500 hover:bg-red-50 transition w-full text-sm sm:text-base"
             >
               <MdOutlineLogout className="text-lg flex-shrink-0" />
-              <span className="truncate">Đăng xuất</span>
+              <span className="truncate">Logout</span>
             </button>
           </li>
         </ul>

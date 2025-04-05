@@ -98,7 +98,6 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(login.fulfilled, (state, action) => {
-        console.log("Login fulfilled! Payload:", action.payload);
         state.isLoading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
@@ -110,7 +109,6 @@ const authSlice = createSlice({
           "roles",
           JSON.stringify(action.payload.user.roles)
         );
-        console.log("Updated Redux State:", state.user);
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;

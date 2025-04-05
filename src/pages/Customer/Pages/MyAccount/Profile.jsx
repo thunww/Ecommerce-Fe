@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { useSelector, useDispatch } from "react-redux";
-import { updateUser, fetchUserById } from "../../../../redux/adminSlice";
+import {
+  updateUser,
+  fetchUserById,
+  uploadAvatar,
+} from "../../../../redux/adminSlice";
 import {
   FaUser,
   FaEnvelope,
@@ -21,7 +25,7 @@ const ProfileField = ({ icon, label, value, isEditing, onChange, name }) => {
     try {
       formattedValue = format(parseISO(value), "dd/MM/yyyy");
     } catch (error) {
-      console.error("Ngày không hợp lệ:", value);
+      console.error("Invalid date:", value);
     }
   }
 
@@ -62,7 +66,7 @@ const ProfileField = ({ icon, label, value, isEditing, onChange, name }) => {
         )
       ) : (
         <p className="text-base font-medium text-gray-800 py-2 px-3 bg-gray-50 rounded-lg truncate">
-          {formattedValue || "Chưa cập nhật"}
+          {formattedValue || "Not updated yet"}
         </p>
       )}
     </div>
@@ -75,6 +79,8 @@ const Profile = () => {
   const user = useSelector((state) => state.admin.selectedUser);
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
 
   useEffect(() => {
     if (userId) {
@@ -102,20 +108,56 @@ const Profile = () => {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!profileData) return;
 
-    const updatedData = {
-      first_name: profileData.first_name,
-      last_name: profileData.last_name,
-      phone: profileData.phone,
-      date_of_birth: profileData.date_of_birth,
-      gender: profileData.gender,
-      profile_picture: profileData.profile_picture,
-    };
+    const formData = new FormData();
+    formData.append("user_id", userId);
 
-    dispatch(updateUser({ user_id: userId, ...updatedData }));
-    console.log("Saving profile data:", updatedData);
+    if (selectedImage) {
+      formData.append("image", selectedImage);
+    }
+
+    let uploadedImageUrl = profileData.profile_picture;
+
+    if (selectedImage) {
+      try {
+        const resultAction = await dispatch(uploadAvatar(formData));
+        if (uploadAvatar.fulfilled.match(resultAction)) {
+          uploadedImageUrl = resultAction.payload;
+        } else {
+          console.error("Failed to upload avatar:", resultAction.error.message);
+          return;
+        }
+      } catch (error) {
+        console.error("Image upload error:", error);
+        return;
+      }
+    }
+
+    const updatedData = {
+      first_name:
+        profileData.first_name !== user.first_name
+          ? profileData.first_name
+          : undefined,
+      last_name:
+        profileData.last_name !== user.last_name
+          ? profileData.last_name
+          : undefined,
+      phone: profileData.phone !== user.phone ? profileData.phone : undefined,
+      date_of_birth:
+        profileData.date_of_birth !== user.date_of_birth
+          ? profileData.date_of_birth
+          : undefined,
+      gender:
+        profileData.gender !== user.gender ? profileData.gender : undefined,
+      profile_picture: uploadedImageUrl,
+    };
+    const filteredData = Object.fromEntries(
+      Object.entries(updatedData).filter(([_, value]) => value !== undefined)
+    );
+
+    dispatch(updateUser({ user_id: userId, ...filteredData }));
     setIsEditing(false);
   };
 
@@ -126,7 +168,7 @@ const Profile = () => {
         last_name: user.last_name || "",
         phone: user.phone || "",
         date_of_birth: user.date_of_birth || "",
-        gender: user.gender || "Nam",
+        gender: user.gender || " ",
         profile_picture: user.profile_picture || "",
       });
     }
@@ -149,10 +191,10 @@ const Profile = () => {
             <span className="bg-blue-500 text-white p-1.5 rounded-lg">
               <FaUser className="text-sm" />
             </span>
-            Thông tin cá nhân
+            Personal Information
           </h1>
           <p className="text-sm text-gray-600 pl-1">
-            Quản lý thông tin cá nhân để bảo mật tài khoản
+            Manage your personal information for account security
           </p>
         </div>
       </div>
@@ -163,7 +205,11 @@ const Profile = () => {
             <div className="relative mb-6 group">
               <div className="w-32 h-32 md:w-40 md:h-40 overflow-hidden rounded-full border-4 border-white shadow-lg group-hover:shadow-xl transition-all duration-300">
                 <img
-                  src={profileData.profile_picture || "/avatar.jpg"}
+                  src={
+                    selectedImage
+                      ? URL.createObjectURL(selectedImage)
+                      : profileData.profile_picture || "/avatar.jpg"
+                  }
                   alt="Avatar"
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -173,9 +219,25 @@ const Profile = () => {
                 />
               </div>
               {isEditing && (
-                <div className="absolute bottom-2 right-2 bg-blue-500 rounded-full p-2 text-white cursor-pointer shadow-md hover:bg-blue-600 transition-all">
-                  <FaEdit size={16} />
-                </div>
+                <>
+                  <label
+                    htmlFor="image-upload"
+                    className="absolute bottom-2 right-2 bg-blue-500 rounded-full p-2 text-white cursor-pointer shadow-md hover:bg-blue-600 transition-all"
+                  >
+                    <FaEdit size={16} />
+                  </label>
+                  <input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files.length > 0) {
+                        setSelectedImage(e.target.files[0]);
+                      }
+                    }}
+                  />
+                </>
               )}
             </div>
 
@@ -190,13 +252,13 @@ const Profile = () => {
                   onClick={handleSave}
                   className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                 >
-                  <FaSave /> Lưu
+                  <FaSave /> Save
                 </button>
                 <button
                   onClick={handleCancel}
                   className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-gray-200"
                 >
-                  <FaTimes /> Hủy
+                  <FaTimes /> Cancel
                 </button>
               </div>
             ) : (
@@ -204,7 +266,7 @@ const Profile = () => {
                 onClick={() => setIsEditing(true)}
                 className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow"
               >
-                <FaEdit /> Chỉnh sửa
+                <FaEdit /> Edit
               </button>
             )}
           </div>
@@ -236,20 +298,20 @@ const Profile = () => {
                 name="phone"
               />
               <ProfileField
+                icon={<FaCalendarAlt className="flex-shrink-0" />}
+                label="Date of Birth"
+                value={profileData.date_of_birth}
+                isEditing={isEditing}
+                onChange={handleChange}
+                name="date_of_birth"
+              />
+              <ProfileField
                 icon={<FaTransgender className="flex-shrink-0" />}
                 label="Gender"
                 value={profileData.gender}
                 isEditing={isEditing}
                 onChange={handleChange}
                 name="gender"
-              />
-              <ProfileField
-                icon={<FaCalendarAlt className="flex-shrink-0" />}
-                label="Date of birth"
-                value={profileData.date_of_birth}
-                isEditing={isEditing}
-                onChange={handleChange}
-                name="date_of_birth"
               />
             </div>
           </div>

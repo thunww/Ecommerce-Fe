@@ -49,6 +49,14 @@ const adminService = {
       throw error;
     }
   },
+  uploadAvatar: async (formData) => {
+    try {
+      const response = await adminApi.uploadAvatar(formData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default adminService;
