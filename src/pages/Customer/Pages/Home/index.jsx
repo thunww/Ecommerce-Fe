@@ -113,7 +113,7 @@ const Home = () => {
           </div>
 
           <div className="mt-4 sm:mt-6">
-            <ProductsSlider items={6} />
+            {/*<ProductsSlider items={6} /> */}
           </div>
         </div>
       </section>
@@ -147,7 +147,8 @@ const Home = () => {
           <h2 className="text-[18px] sm:text-[20px] md:text-[22px] font-[600] mb-4">
             Latest Products
           </h2>
-          <ProductsSlider items={6} />
+          {/*<ProductsSlider items={6} />
+           */}
 
           <div className="mt-4 sm:mt-6">
             <AdsbannerSlider items={4} />

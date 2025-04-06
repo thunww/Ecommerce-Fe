@@ -1,78 +1,107 @@
-import React, { useContext } from 'react'
-import "../ProductItem/style.css"
-import { Link } from 'react-router-dom'
-import Rating from '@mui/material/Rating';
-import Button from '@mui/material/Button';
-import { FaRegHeart } from "react-icons/fa";
-import { GoGitCompare } from "react-icons/go";
-import { MdOutlineZoomOutMap } from "react-icons/md";
-import MyContext from "../../../../context/MyContext";
-const ProductItem = () => {
+import React from "react";
+import "../ProductItem/style.css";
+import { Link } from "react-router-dom";
+import { FaStar, FaRegStar } from "react-icons/fa"; // Thêm các icon sao từ react-icons
 
-    const context = useContext(MyContext);
-    return (
-        <div className='productItem  shadow-lg py-5 rounded-md overflow-hidden border-1 border-[rgba(0,0,0,0.1)]'>
-            <div className='group imgWrapper w-[100%]  overflow-hidden rounded-md relative'>
-                <Link to='/'>
-                    <div className='img h-[200px] overflow-hidden'>
+const ProductItem = ({ product }) => {
+  // Định dạng giá sản phẩm
+  const formattedPrice = new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(parseFloat(product.price));
 
-                        <img src="https://img.lazcdn.com/g/p/69b28ff2c70a97b0b0078facbdb35ad7.jpg_400x400q80.jpg_.avif"
-                            className=' w-full' />
-                        {/* w-full */}
+  const discount = parseFloat(product.discount);
+  const priceAfterDiscount = discount
+    ? parseFloat(product.price) * (1 - discount / 100)
+    : parseFloat(product.price);
 
-                        <img src="https://img.lazcdn.com/g/p/ec25d123320dcd986c5323a2ac3e4dd8.jpg_400x400q80.jpg_.avif"
-                            className=' w-full transition-all duration-700 absolute top-0 left-0 opacity-0 group-hover:opacity-100 group-hover:scale-150' />
-                        {/* w-full */}
+  const formattedPriceAfterDiscount = new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(priceAfterDiscount);
 
-                    </div>
-                </Link>
-                <span className='discount flex items-center absolute top-[10px] left-[10px] z-50 bg-red-400
-                 text-white rounded-lg p-1 text-[12px] font-[500]'>10%</span>
+  const renderRatingStars = (rating) => {
+    const totalStars = 5;
+    let stars = [];
 
-                <div className='actions absolute top-[-200px] right-[5px] z-50 flex items-center gap-2 flex-col w-[50px]
-                  transition-all duration-300 group-hover:top-[15px] opacity-0 group-hover:opacity-100'>
-                    <Button className='!w-[35px] !h-[35px] !min-w-[35px] !rounded-full !bg-white group text-black
-                    hover:!bg-red-300 hover:text-white'>
-                        <FaRegHeart className='text-[18px] !text-black group-hover:text-white hover:!text-white' />
-                    </Button>
+    // Render sao đầy đủ
+    for (let i = 0; i < Math.floor(rating); i++) {
+      stars.push(<FaStar key={`filled-${i}`} className="text-amber-400" />);
+    }
 
-                    <Button className='!w-[35px] !h-[35px] !min-w-[35px] !rounded-full !bg-white group text-black
-                    hover:!bg-red-300 hover:text-white group'
-                        onClick={() => context.setOpenProductDetailsModal(true)}>
-                        <MdOutlineZoomOutMap className='text-[18px] !text-black group-hover:text-white hover:!text-white' />
-                    </Button>
+    // Render sao trống
+    for (let i = Math.floor(rating); i < totalStars; i++) {
+      stars.push(<FaRegStar key={`empty-${i}`} className="text-amber-400" />);
+    }
 
-                    <Button className='!w-[35px] !h-[35px] !min-w-[35px] !rounded-full !bg-white group text-black
-                    hover:!bg-red-300 hover:text-white'>
-                        <GoGitCompare className='text-[18px] !text-black group-hover:text-white hover:!text-white' />
-                    </Button>
+    return stars;
+  };
 
+  const averageRating = product.reviews?.length
+    ? product.reviews.reduce((sum, review) => sum + review.rating, 0) /
+      product.reviews.length
+    : 0;
 
-                </div>
-
-            </div>
-
-            <div className='info p-3 py-5 '>
-                <h6 className='text-[13px] !font-[400]'>
-                    <Link to='/' className='link transition-all'>
-                        T-Shirt
-                    </Link>
-                </h6>
-                <h3 className='text-[14px] title mt-2 font-[500] mb-1 text-[#000]'>
-                    <Link to='/' className='link transition-all'>
-                        Ao ngan tay co tron cho nam mau den
-                    </Link>
-                </h3>
-
-                <Rating name="size-small" defaultValue={2} size="small" readOnly />
-
-                <div className='flex items-center gap-4'>
-                    <span className='oldPrice line-through text-gray-500 text-[15px] font-[500]'>$75.00</span>
-                    <span className='price text-red-500 text-[15px] font-[600]'>$75.00</span>
-                </div>
-            </div>
+  return (
+    <div className="group relative overflow-hidden rounded-xl bg-white shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 border border-gray-100">
+      {/* Badge giảm giá */}
+      {product.discount && (
+        <div className="absolute top-3 left-3 z-10">
+          <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg">
+            -{discount.toFixed(0)}%
+          </span>
         </div>
-    )
-}
+      )}
+
+      {/* Hình ảnh sản phẩm */}
+      <div className="relative overflow-hidden aspect-square">
+        <Link to={`/product/${product.product_id}`}>
+          <img
+            src={product.images?.[0]?.image_url}
+            className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
+            alt={product.product_name}
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+        </Link>
+      </div>
+
+      <div className="p-4">
+        <h3 className="font-medium text-gray-800 text-base mb-2 line-clamp-2 h-12 group-hover:text-indigo-600 transition-colors duration-200">
+          <Link to={`/product/${product.product_id}`}>
+            {product.product_name}
+          </Link>
+        </h3>
+
+        <div className="flex flex-col mb-4">
+          <span className="text-lg font-bold bg-gradient-to-r from-pink-500 to-red-500 bg-clip-text text-transparent">
+            {formattedPriceAfterDiscount}
+          </span>
+
+          {product.discount && (
+            <span className="text-gray-500 line-through text-xs mt-1">
+              {formattedPrice}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex text-amber-400 text-xs">
+            {averageRating > 0
+              ? renderRatingStars(averageRating)
+              : // Nếu không có đánh giá, chỉ hiển thị sao trống
+                Array(5).fill(<FaRegStar className="text-amber-400" />)}
+          </div>
+
+          <div className="bg-gray-100 rounded-full px-2 py-1">
+            <span className="text-xs text-gray-600 font-medium">
+              {product.sold} sold
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default ProductItem;

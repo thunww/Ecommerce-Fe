@@ -30,7 +30,7 @@ const Login = () => {
 
       setTimeout(() => {
         navigate("/");
-      }, 2000);
+      }, 500);
     } catch (error) {
       toast.error(error || "Đăng nhập thất bại!", { position: "top-right" });
     }
