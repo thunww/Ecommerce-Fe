@@ -61,14 +61,9 @@ const ProductDetails = () => {
           </Breadcrumbs>
         </div>
       </div>
-
       <section className="bg-white py-5">
-        <div className="container flex gap-8 ">
-          <div className="productZoomContainer w-[40%]">
-            <ProductZoom />
-          </div>
-
-          <div className="productContent w-[60%] pr-10 pl-10">
+        <div className="container">
+          <div className="productContent px-10">
             <ProductDetailsComponent />
           </div>
         </div>

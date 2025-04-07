@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -6,8 +6,8 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Navigation, Pagination, EffectFade } from "swiper/modules";
-import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
+import { useSelector } from "react-redux";
 import {
   FaFacebookF,
   FaInstagram,
@@ -15,61 +15,32 @@ import {
   FaFacebookMessenger,
 } from "react-icons/fa";
 
-const ProductZoom = () => {
+const ProductZoom = ({ images }) => {
+  const { product, loading, error } = useSelector((state) => state.products);
   const [slideIndex, setSlideIndex] = useState(0);
   const zoomSliderBig = useRef(null);
   const thumbnailsRef = useRef(null);
-  const { product, loading, error } = useSelector((state) => state.products);
+
+  // Cập nhật slide khi images thay đổi
+  useEffect(() => {
+    if (zoomSliderBig.current && zoomSliderBig.current.swiper) {
+      zoomSliderBig.current.swiper.slideTo(0);
+      setSlideIndex(0);
+    }
+  }, [images]);
 
   const goto = (index) => {
     setSlideIndex(index);
-    zoomSliderBig.current.swiper.slideTo(index);
+    if (zoomSliderBig.current && zoomSliderBig.current.swiper) {
+      zoomSliderBig.current.swiper.slideTo(index);
+    }
   };
 
   const handleShare = (platform) => {
-    // Code chia sẻ mạng xã hội
+    // console.log(`Chia sẻ lên ${platform}`);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-[400px] bg-gray-50 rounded-lg">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-gray-600 font-medium">Đang tải hình ảnh...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-[400px] bg-red-50 rounded-lg">
-        <div className="text-center px-6 py-4">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mb-4">
-            <svg
-              className="w-6 h-6 text-red-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              ></path>
-            </svg>
-          </div>
-          <p className="text-red-600 font-medium">
-            Lỗi khi tải hình ảnh: {error}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!product || !product.variants || product.variants.length === 0) {
+  if (!images || images.length === 0) {
     return (
       <div className="flex justify-center items-center h-[400px] bg-gray-50 rounded-lg">
         <div className="text-center px-6 py-4">
@@ -118,8 +89,8 @@ const ProductZoom = () => {
           className="h-full"
           onSlideChange={(swiper) => setSlideIndex(swiper.activeIndex)}
         >
-          {product.variants.map((image, index) => (
-            <SwiperSlide key={image.image_id}>
+          {images.map((imageUrl, index) => (
+            <SwiperSlide key={index}>
               <div className="flex items-center justify-center h-full p-4">
                 <Zoom
                   zoomMargin={50}
@@ -127,7 +98,7 @@ const ProductZoom = () => {
                   wrapStyle={{ width: "100%", height: "100%" }}
                 >
                   <img
-                    src={image.image_url}
+                    src={imageUrl}
                     alt={`Sản phẩm ${index + 1}`}
                     className="w-full h-full object-contain transition-all duration-300"
                   />
@@ -145,7 +116,7 @@ const ProductZoom = () => {
         {/* Thumbnail Images */}
         <div ref={thumbnailsRef} className="max-w-4xl mx-auto w-full">
           <div className="thumbnails flex justify-center gap-3 px-4 overflow-x-auto scrollbar-hide snap-x">
-            {product.variants.map((image, index) => (
+            {product?.variants?.map((image, index) => (
               <motion.div
                 key={image.image_id}
                 initial={{ opacity: 0, y: 20 }}
@@ -180,47 +151,41 @@ const ProductZoom = () => {
           </div>
         </div>
 
-        <div className="flex flex-col h-full">
-          {/* Social media share buttons at the bottom */}
-          <div className="flex items-center justify-center gap-4 border-t pt-4 mt-auto">
-            <p className="text-gray-500 font-medium mr-2">Share:</p>
+        {/* Social media share buttons */}
+        <div className="flex items-center justify-center gap-4 border-t pt-4 mt-auto">
+          <p className="text-gray-500 font-medium mr-2">Share:</p>
 
-            {/* Facebook */}
-            <button
-              onClick={() => handleShare("facebook")}
-              className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-              aria-label="Chia sẻ lên Facebook"
-            >
-              <FaFacebookF className="w-4 h-4" />
-            </button>
+          <button
+            onClick={() => handleShare("facebook")}
+            className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            aria-label="Chia sẻ lên Facebook"
+          >
+            <FaFacebookF className="w-4 h-4" />
+          </button>
 
-            {/* Messenger */}
-            <button
-              onClick={() => handleShare("messenger")}
-              className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-400 text-white hover:bg-blue-500 transition-colors"
-              aria-label="Chia sẻ qua Messenger"
-            >
-              <FaFacebookMessenger className="w-4 h-4" />
-            </button>
+          <button
+            onClick={() => handleShare("messenger")}
+            className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-400 text-white hover:bg-blue-500 transition-colors"
+            aria-label="Chia sẻ qua Messenger"
+          >
+            <FaFacebookMessenger className="w-4 h-4" />
+          </button>
 
-            {/* Pinterest */}
-            <button
-              onClick={() => handleShare("pinterest")}
-              className="flex items-center justify-center w-7 h-7 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors"
-              aria-label="Ghim lên Pinterest"
-            >
-              <FaPinterestP className="w-4 h-4" />
-            </button>
+          <button
+            onClick={() => handleShare("pinterest")}
+            className="flex items-center justify-center w-7 h-7 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors"
+            aria-label="Ghim lên Pinterest"
+          >
+            <FaPinterestP className="w-4 h-4" />
+          </button>
 
-            {/* Instagram */}
-            <button
-              onClick={() => handleShare("instagram")}
-              className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 text-white hover:opacity-90 transition-opacity"
-              aria-label="Chia sẻ lên Instagram"
-            >
-              <FaInstagram className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={() => handleShare("instagram")}
+            className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 text-white hover:opacity-90 transition-opacity"
+            aria-label="Chia sẻ lên Instagram"
+          >
+            <FaInstagram className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
