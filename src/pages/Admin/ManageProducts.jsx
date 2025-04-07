@@ -155,12 +155,12 @@ const ManageProducts = () => {
     { header: "ID", field: "product_id" },
     {
       header: "Product Image",
-      field: "images",
+      field: "variants",
       render: (_, product) => (
         <div className="flex justify-center">
           <img
             src={
-              product.images?.[0]?.image_url ||
+              product.variants?.[0]?.image_url ||
               "https://th.bing.com/th/id/OIP.G_W3gQt1J0wtOMWzPkhH4QHaHa?rs=1&pid=ImgDetMain"
             }
             alt="Product"

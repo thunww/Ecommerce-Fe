@@ -51,7 +51,7 @@ const ProductDetailsComponent = () => {
   };
   const isActiveProduct = isProductActive(product);
   if (!isActiveProduct) {
-    return <div>Product does not exist</div>;
+    return <div>This product or variant is not active</div>;
   }
 
   const selected = product?.variants?.[selectedVariant];
@@ -78,7 +78,7 @@ const ProductDetailsComponent = () => {
           {product?.product_name}
         </h1>
 
-        {/* Product meta info with improved styling */}
+        {/* Product meta info */}
         <div className="flex flex-wrap items-center gap-3 text-xs">
           <div className="flex items-center bg-white px-3 py-1 rounded-full shadow-sm">
             <span className="font-medium text-indigo-600 mr-1">
@@ -110,7 +110,7 @@ const ProductDetailsComponent = () => {
 
       {/* Main content */}
       <div className="p-4">
-        {/* Price & Stock with improved visibility */}
+        {/* Price & Stock */}
         <div className="flex flex-wrap items-center justify-between mb-4">
           <div className="flex items-baseline gap-2">
             {selected && (
@@ -181,7 +181,7 @@ const ProductDetailsComponent = () => {
           </div>
         </div>
 
-        {/* Variants with better visual hierarchy */}
+        {/* Variants with Color Display */}
         {hasValidVariant && (
           <div className="my-4">
             <h2 className="text-md font-medium text-gray-800 mb-2">
@@ -194,28 +194,27 @@ const ProductDetailsComponent = () => {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => handleSelectVariant(index)}
-                  className={`p-2 rounded-lg border-2 transition-all ${
+                  className={`p-2 rounded-lg border-2 transition-all flex items-center gap-2 ${
                     selectedVariant === index
                       ? "border-indigo-600 bg-indigo-50 text-indigo-700"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium">
-                      {variant.size}
-                      {variant.ram && ` / ${variant.ram}GB`}
-                      {variant.storage && ` / ${variant.storage}GB`}
+                  <img
+                    src={variant.image_url}
+                    alt={variant.color}
+                    className="w-10 h-10 rounded object-cover border"
+                  />
+                  <div className="flex flex-col text-left">
+                    <span className="text-sm font-medium">{variant.color}</span>
+                    <span className="text-xs text-gray-500">
+                      {variant.size && `${variant.size} / `}
+                      {variant.ram && `${variant.ram}GB RAM / `}
+                      {variant.storage && `${variant.storage}GB Storage`}
                     </span>
-                    {selectedVariant === index && (
-                      <FaCheck className="text-indigo-600" size={14} />
-                    )}
                   </div>
-
-                  {/* Chỉ hiển thị phần storage nếu có giá trị */}
-                  {variant.storage && (
-                    <div className="text-xs text-gray-500">
-                      {variant.storage}GB
-                    </div>
+                  {selectedVariant === index && (
+                    <FaCheck className="text-indigo-600 ml-auto" size={14} />
                   )}
                 </motion.button>
               ))}
@@ -223,7 +222,7 @@ const ProductDetailsComponent = () => {
           </div>
         )}
 
-        {/* Quantity selector with modern styling */}
+        {/* Quantity selector */}
         <div className="my-4">
           <h2 className="text-md font-medium text-gray-800 mb-2">Quantity</h2>
           <div className="flex items-center">
@@ -301,12 +300,6 @@ const ProductDetailsComponent = () => {
             Add to Cart
           </motion.button>
         </div>
-
-        {/* Wishlist button */}
-        <button className="flex items-center justify-center gap-2 w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-xl mt-3 hover:bg-gray-50 transition-all">
-          <FaRegHeart size={18} />
-          <span className="font-medium">Add to Wishlist</span>
-        </button>
       </div>
     </div>
   );

@@ -50,7 +50,7 @@ const ProductItem = ({ product }) => {
       <div className="relative overflow-hidden aspect-square">
         <Link to={`/product/${product.product_id}`}>
           <img
-            src={product.images?.[0]?.image_url}
+            src={product.variants?.[0]?.image_url}
             className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
             alt={product.product_name}
             loading="lazy"

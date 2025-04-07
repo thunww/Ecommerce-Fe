@@ -24,7 +24,7 @@ const ProductItemImages = ({ product }) => {
         <Link to={`/product/${product?.id}`}>
           <div className="img h-[200px] overflow-hidden relative">
             <img
-              src={product.images?.[0]?.image_url || "default_image_url"}
+              src={product.variants?.[0]?.image_url || "default_image_url"}
               className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-110"
               alt={product?.product_name}
             />

@@ -69,7 +69,7 @@ const ProductZoom = () => {
     );
   }
 
-  if (!product || !product.images || product.images.length === 0) {
+  if (!product || !product.variants || product.variants.length === 0) {
     return (
       <div className="flex justify-center items-center h-[400px] bg-gray-50 rounded-lg">
         <div className="text-center px-6 py-4">
@@ -118,7 +118,7 @@ const ProductZoom = () => {
           className="h-full"
           onSlideChange={(swiper) => setSlideIndex(swiper.activeIndex)}
         >
-          {product.images.map((image, index) => (
+          {product.variants.map((image, index) => (
             <SwiperSlide key={image.image_id}>
               <div className="flex items-center justify-center h-full p-4">
                 <Zoom
@@ -145,7 +145,7 @@ const ProductZoom = () => {
         {/* Thumbnail Images */}
         <div ref={thumbnailsRef} className="max-w-4xl mx-auto w-full">
           <div className="thumbnails flex justify-center gap-3 px-4 overflow-x-auto scrollbar-hide snap-x">
-            {product.images.map((image, index) => (
+            {product.variants.map((image, index) => (
               <motion.div
                 key={image.image_id}
                 initial={{ opacity: 0, y: 20 }}
