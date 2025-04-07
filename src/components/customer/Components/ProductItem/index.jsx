@@ -1,51 +1,44 @@
 import React from "react";
 import "../ProductItem/style.css";
 import { Link } from "react-router-dom";
-import { FaStar, FaRegStar } from "react-icons/fa"; // Thêm các icon sao từ react-icons
+import { FaStar, FaRegStar } from "react-icons/fa";
 
 const ProductItem = ({ product }) => {
-  // Định dạng giá sản phẩm
+  // Lấy giá thấp nhất từ mảng variants
+  const variantPrices = product.variants.map(
+    (variant) => parseFloat(variant.price) || 0
+  );
+  const price = variantPrices.length > 0 ? Math.min(...variantPrices) : 0;
+  const discount = parseFloat(product.discount) || 0;
+  const priceAfterDiscount = price * (1 - discount / 100);
+
   const formattedPrice = new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
-  }).format(parseFloat(product.price));
-
-  const discount = parseFloat(product.discount);
-  const priceAfterDiscount = discount
-    ? parseFloat(product.price) * (1 - discount / 100)
-    : parseFloat(product.price);
+  }).format(price);
 
   const formattedPriceAfterDiscount = new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
   }).format(priceAfterDiscount);
 
+  const averageRating = parseFloat(product.average_rating || 0);
+
   const renderRatingStars = (rating) => {
     const totalStars = 5;
-    let stars = [];
-
-    // Render sao đầy đủ
-    for (let i = 0; i < Math.floor(rating); i++) {
-      stars.push(<FaStar key={`filled-${i}`} className="text-amber-400" />);
-    }
-
-    // Render sao trống
-    for (let i = Math.floor(rating); i < totalStars; i++) {
-      stars.push(<FaRegStar key={`empty-${i}`} className="text-amber-400" />);
-    }
-
-    return stars;
+    return Array.from({ length: totalStars }, (_, i) =>
+      i < Math.floor(rating) ? (
+        <FaStar key={`star-${i}`} className="text-amber-400" />
+      ) : (
+        <FaRegStar key={`star-${i}`} className="text-amber-400" />
+      )
+    );
   };
-
-  const averageRating = product.reviews?.length
-    ? product.reviews.reduce((sum, review) => sum + review.rating, 0) /
-      product.reviews.length
-    : 0;
 
   return (
     <div className="group relative overflow-hidden rounded-xl bg-white shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 border border-gray-100">
       {/* Badge giảm giá */}
-      {product.discount && (
+      {discount > 0 && (
         <div className="absolute top-3 left-3 z-10">
           <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg">
             -{discount.toFixed(0)}%
@@ -78,7 +71,7 @@ const ProductItem = ({ product }) => {
             {formattedPriceAfterDiscount}
           </span>
 
-          {product.discount && (
+          {discount > 0 && price > 0 && (
             <span className="text-gray-500 line-through text-xs mt-1">
               {formattedPrice}
             </span>
@@ -87,15 +80,12 @@ const ProductItem = ({ product }) => {
 
         <div className="flex items-center justify-between">
           <div className="flex text-amber-400 text-xs">
-            {averageRating > 0
-              ? renderRatingStars(averageRating)
-              : // Nếu không có đánh giá, chỉ hiển thị sao trống
-                Array(5).fill(<FaRegStar className="text-amber-400" />)}
+            {renderRatingStars(averageRating)}
           </div>
 
           <div className="bg-gray-100 rounded-full px-2 py-1">
             <span className="text-xs text-gray-600 font-medium">
-              {product.sold} sold
+              {product.sold || 0} sold
             </span>
           </div>
         </div>
