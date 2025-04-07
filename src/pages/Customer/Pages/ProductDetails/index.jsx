@@ -2,10 +2,6 @@ import React, { useEffect, useState } from "react";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import { Link, useParams } from "react-router-dom";
 import ProductZoom from "../../../../components/customer/Components/ProductZoom";
-import Rating from "@mui/material/Rating";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import ProductsSlider from "../../../../components/customer/Components/ProductsSlider";
 import ProductDetailsComponent from "../../../../components/customer/Components/ProductDetails";
 import { useDispatch, useSelector } from "react-redux";
 import { getProductById } from "../../../../redux/productSilce";
@@ -63,7 +59,7 @@ const ProductDetails = () => {
       </div>
       <section className="bg-white py-5">
         <div className="container">
-          <div className="productContent px-10">
+          <div className="productContent px-5">
             <ProductDetailsComponent />
           </div>
         </div>
