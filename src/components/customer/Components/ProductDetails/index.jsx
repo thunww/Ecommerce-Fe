@@ -11,6 +11,9 @@ const formatVND = (price) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
     price
   );
+const isProductActive = (product) => {
+  return product?.status === "active";
+};
 
 const ProductDetailsComponent = () => {
   const dispatch = useDispatch();
@@ -46,6 +49,10 @@ const ProductDetailsComponent = () => {
       setQty(qty - 1);
     }
   };
+  const isActiveProduct = isProductActive(product);
+  if (!isActiveProduct) {
+    return <div>Product does not exist</div>;
+  }
 
   const selected = product?.variants?.[selectedVariant];
   const stock = selected ? selected.stock : 0;
@@ -59,16 +66,20 @@ const ProductDetailsComponent = () => {
   const shortDescription = product?.description?.substring(0, 150);
   const hasLongDescription = product?.description?.length > 150;
 
+  const hasValidVariant = product?.variants?.some(
+    (variant) => variant.size || variant.ram || variant.storage
+  );
+
   return (
     <div className="product-details bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Header with gradient background */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-3">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
+        <h1 className="text-2xl font-semibold text-gray-800 mb-2">
           {product?.product_name}
         </h1>
 
         {/* Product meta info with improved styling */}
-        <div className="flex flex-wrap items-center gap-4 text-sm">
+        <div className="flex flex-wrap items-center gap-3 text-xs">
           <div className="flex items-center bg-white px-3 py-1 rounded-full shadow-sm">
             <span className="font-medium text-indigo-600 mr-1">
               {parseFloat(product?.average_rating || 0).toFixed(1)}
@@ -98,13 +109,13 @@ const ProductDetailsComponent = () => {
       </div>
 
       {/* Main content */}
-      <div className="p-6">
+      <div className="p-4">
         {/* Price & Stock with improved visibility */}
-        <div className="flex flex-wrap items-center justify-between mb-6">
+        <div className="flex flex-wrap items-center justify-between mb-4">
           <div className="flex items-baseline gap-2">
             {selected && (
               <>
-                <span className="text-3xl font-bold text-red-600">
+                <span className="text-2xl font-semibold text-red-600">
                   {formatVND(discountedPrice)}
                 </span>
                 <span className="text-gray-400 line-through text-sm">
@@ -151,8 +162,8 @@ const ProductDetailsComponent = () => {
         </div>
 
         {/* Product Description with toggle */}
-        <div className="mb-6">
-          <h2 className="text-lg font-medium text-gray-800 mb-2">
+        <div className="mb-4">
+          <h2 className="text-md font-medium text-gray-800 mb-2">
             Product Description
           </h2>
           <div className="text-gray-600 leading-relaxed">
@@ -171,45 +182,55 @@ const ProductDetailsComponent = () => {
         </div>
 
         {/* Variants with better visual hierarchy */}
-        <div className="my-6">
-          <h2 className="text-lg font-medium text-gray-800 mb-3">
-            Choose Variant
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {product?.variants?.map((variant, index) => (
-              <motion.button
-                key={variant.variant_id}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => handleSelectVariant(index)}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  selectedVariant === index
-                    ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm font-medium">
-                    {variant.size} / {variant.ram}GB
-                  </span>
-                  {selectedVariant === index && (
-                    <FaCheck className="text-indigo-600" size={14} />
+        {hasValidVariant && (
+          <div className="my-4">
+            <h2 className="text-md font-medium text-gray-800 mb-2">
+              Choose Variant
+            </h2>
+            <div className="grid grid-cols-2 gap-2">
+              {product?.variants?.map((variant, index) => (
+                <motion.button
+                  key={variant.variant_id}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => handleSelectVariant(index)}
+                  className={`p-2 rounded-lg border-2 transition-all ${
+                    selectedVariant === index
+                      ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-medium">
+                      {variant.size}
+                      {variant.ram && ` / ${variant.ram}GB`}
+                      {variant.storage && ` / ${variant.storage}GB`}
+                    </span>
+                    {selectedVariant === index && (
+                      <FaCheck className="text-indigo-600" size={14} />
+                    )}
+                  </div>
+
+                  {/* Chỉ hiển thị phần storage nếu có giá trị */}
+                  {variant.storage && (
+                    <div className="text-xs text-gray-500">
+                      {variant.storage}GB
+                    </div>
                   )}
-                </div>
-                <div className="text-xs text-gray-500">{variant.storage}GB</div>
-              </motion.button>
-            ))}
+                </motion.button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Quantity selector with modern styling */}
-        <div className="my-6">
-          <h2 className="text-lg font-medium text-gray-800 mb-3">Quantity</h2>
+        <div className="my-4">
+          <h2 className="text-md font-medium text-gray-800 mb-2">Quantity</h2>
           <div className="flex items-center">
             <button
               onClick={decrementQty}
               disabled={qty <= 1}
-              className={`w-10 h-10 flex items-center justify-center rounded-l-lg border border-r-0 ${
+              className={`w-8 h-8 flex items-center justify-center rounded-l-lg border border-r-0 ${
                 qty <= 1
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                   : "bg-gray-50 text-gray-700 hover:bg-gray-100"
@@ -223,12 +244,12 @@ const ProductDetailsComponent = () => {
               max={stock}
               value={qty}
               onChange={(e) => handleQtyChange(parseInt(e.target.value) || 1)}
-              className="w-16 h-10 text-center border-y outline-none"
+              className="w-12 h-8 text-center border-y outline-none"
             />
             <button
               onClick={incrementQty}
               disabled={qty >= stock}
-              className={`w-10 h-10 flex items-center justify-center rounded-r-lg border border-l-0 ${
+              className={`w-8 h-8 flex items-center justify-center rounded-r-lg border border-l-0 ${
                 qty >= stock
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                   : "bg-gray-50 text-gray-700 hover:bg-gray-100"
@@ -240,32 +261,32 @@ const ProductDetailsComponent = () => {
         </div>
 
         {/* Product highlights */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
-            <BsShieldCheck className="text-indigo-600" size={18} />
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
+            <BsShieldCheck className="text-indigo-600" size={16} />
             <span className="text-sm text-gray-700">12 Months Warranty</span>
           </div>
-          <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
-            <MdLocalShipping className="text-indigo-600" size={18} />
+          <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
+            <MdLocalShipping className="text-indigo-600" size={16} />
             <span className="text-sm text-gray-700">Free Shipping</span>
           </div>
-          <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
-            <FaExchangeAlt className="text-indigo-600" size={18} />
+          <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
+            <FaExchangeAlt className="text-indigo-600" size={16} />
             <span className="text-sm text-gray-700">7-Day Returns</span>
           </div>
-          <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
-            <FaCheck className="text-indigo-600" size={18} />
+          <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
+            <FaCheck className="text-indigo-600" size={16} />
             <span className="text-sm text-gray-700">100% Authentic</span>
           </div>
         </div>
 
-        {/* Action buttons with improved styling */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        {/* Action buttons */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             disabled={!selected}
-            className="flex items-center justify-center gap-2 py-3 px-6 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
           >
             Buy Now
           </motion.button>
@@ -274,7 +295,7 @@ const ProductDetailsComponent = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             disabled={!selected}
-            className="flex items-center justify-center gap-2 py-3 px-6 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <MdOutlineShoppingCart size={20} />
             Add to Cart
@@ -282,7 +303,7 @@ const ProductDetailsComponent = () => {
         </div>
 
         {/* Wishlist button */}
-        <button className="flex items-center justify-center gap-2 w-full py-3 px-6 border border-gray-300 text-gray-700 rounded-xl mt-3 hover:bg-gray-50 transition-all">
+        <button className="flex items-center justify-center gap-2 w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-xl mt-3 hover:bg-gray-50 transition-all">
           <FaRegHeart size={18} />
           <span className="font-medium">Add to Wishlist</span>
         </button>
