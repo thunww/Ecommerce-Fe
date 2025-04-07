@@ -17,6 +17,9 @@ import { useDispatch, useSelector } from "react-redux";
 const ProductListing = () => {
   const [itemView, setItemView] = useState("grid");
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPageGrid] = useState(12);
+  const [productsPerPageList] = useState(5);
   const open = Boolean(anchorEl);
   const dispatch = useDispatch();
 
@@ -42,6 +45,24 @@ const ProductListing = () => {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  // Calculate products to display for the current page based on itemView
+  const indexOfLastProduct =
+    itemView === "grid"
+      ? currentPage * productsPerPageGrid
+      : currentPage * productsPerPageList;
+  const indexOfFirstProduct =
+    indexOfLastProduct -
+    (itemView === "grid" ? productsPerPageGrid : productsPerPageList);
+  const currentProducts = activeProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
+
+  // Handle page change
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
   };
 
   return (
@@ -174,11 +195,11 @@ const ProductListing = () => {
                   {error}
                 </Typography>
               ) : itemView === "grid" ? (
-                activeProducts.map((product) => (
+                currentProducts.map((product) => (
                   <ProductItem key={product.id} product={product} />
                 ))
               ) : (
-                activeProducts.map((product) => (
+                currentProducts.map((product) => (
                   <ProductItemListView key={product.id} product={product} />
                 ))
               )}
@@ -186,7 +207,14 @@ const ProductListing = () => {
 
             <div className="flex items-center justify-center mt-10">
               <Pagination
-                count={Math.ceil(activeProducts.length / 10)}
+                count={Math.ceil(
+                  activeProducts.length /
+                    (itemView === "grid"
+                      ? productsPerPageGrid
+                      : productsPerPageList)
+                )}
+                page={currentPage}
+                onChange={handlePageChange}
                 showFirstButton
                 showLastButton
               />

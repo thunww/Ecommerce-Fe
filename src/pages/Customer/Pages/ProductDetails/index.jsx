@@ -69,7 +69,7 @@ const ProductDetails = () => {
           </div>
 
           <div className="productContent w-[60%] pr-10 pl-10">
-            <ProductDetailsComponent product={product} />
+            <ProductDetailsComponent />
           </div>
         </div>
       </section>

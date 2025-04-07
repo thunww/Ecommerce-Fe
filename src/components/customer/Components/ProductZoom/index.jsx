@@ -1,118 +1,230 @@
-import React from 'react';
-import { useRef, useState } from 'react';
-import Zoom from 'react-medium-image-zoom';
-import 'react-medium-image-zoom/dist/styles.css';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import { Navigation } from 'swiper/modules';
-import { Link } from 'react-router-dom';
+import React, { useState, useRef } from "react";
+import Zoom from "react-medium-image-zoom";
+import "react-medium-image-zoom/dist/styles.css";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { Navigation, Pagination, EffectFade } from "swiper/modules";
+import { useSelector } from "react-redux";
+import { motion } from "framer-motion";
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaPinterestP,
+  FaFacebookMessenger,
+} from "react-icons/fa";
 
 const ProductZoom = () => {
-    const [slideIndex, setSlideIndex] = useState(0);
-    const zoomSliderBig = useRef();
-    const zoomSliderSml = useRef();
-    const goto = (index) => {
-        setSlideIndex(index);
-        zoomSliderBig.current.swiper.slideTo(index);
-        zoomSliderSml.current.swiper.slideTo(index);
-    }
+  const [slideIndex, setSlideIndex] = useState(0);
+  const zoomSliderBig = useRef(null);
+  const thumbnailsRef = useRef(null);
+  const { product, loading, error } = useSelector((state) => state.products);
+
+  const goto = (index) => {
+    setSlideIndex(index);
+    zoomSliderBig.current.swiper.slideTo(index);
+  };
+
+  const handleShare = (platform) => {
+    // Code chia sẻ mạng xã hội
+  };
+
+  if (loading) {
     return (
-        <>
-            <div className='flex gap-3'>
-                <div className='slider w-[15%]'>
-                    <Swiper
-                        ref={zoomSliderSml}
-                        direction={'vertical'}
-                        slidesPerView={4}
-                        spaceBetween={0}
-                        navigation={true}
-                        modules={[Navigation]}
-                        className='zoomProductSliderThumbs h-[500px] overflow-hidden'
-                    >
-                        <SwiperSlide>
-                            <div className={`item rounded-md overflow-hidden cursor-pointer group ${slideIndex == 0 ? 'opacity-1' : 'opacity-30'}`}
-                                onClick={() => goto(0)}>
-                                <img src='https://img.lazcdn.com/g/p/4e991e25c92b980b56aed006ec7e8a2d.jpg_720x720q80.jpg_.webp'
-                                    className='w-full transition-all group-hover:scale-105' />
-                            </div>
-                        </SwiperSlide>
+      <div className="flex justify-center items-center h-[400px] bg-gray-50 rounded-lg">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-600 font-medium">Đang tải hình ảnh...</p>
+        </div>
+      </div>
+    );
+  }
 
-                        <SwiperSlide>
-                            <div className={`item rounded-md overflow-hidden cursor-pointer group ${slideIndex == 1 ? 'opacity-1' : 'opacity-30'}`}
-                                onClick={() => goto(1)}>
-                                <img src='https://img.lazcdn.com/g/p/2c889567bef0266709b53d05244d8809.jpg_720x720q80.jpg_.webp'
-                                    className='w-full transition-all group-hover:scale-105' />
-                            </div>
-                        </SwiperSlide>
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-[400px] bg-red-50 rounded-lg">
+        <div className="text-center px-6 py-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mb-4">
+            <svg
+              className="w-6 h-6 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </div>
+          <p className="text-red-600 font-medium">
+            Lỗi khi tải hình ảnh: {error}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-                        <SwiperSlide>
-                            <div className={`item rounded-md overflow-hidden cursor-pointer group ${slideIndex == 2 ? 'opacity-1' : 'opacity-30'}`}
-                                onClick={() => goto(2)}>
-                                <img src='/productimg2.webp'
-                                    className='w-full transition-all group-hover:scale-105' />
-                            </div>
-                        </SwiperSlide>
+  if (!product || !product.images || product.images.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-[400px] bg-gray-50 rounded-lg">
+        <div className="text-center px-6 py-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
+            <svg
+              className="w-6 h-6 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              ></path>
+            </svg>
+          </div>
+          <p className="text-gray-600 font-medium">
+            Không có hình ảnh để hiển thị.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-                        <SwiperSlide>
-                            <div className={`item rounded-md overflow-hidden cursor-pointer group ${slideIndex == 3 ? 'opacity-1' : 'opacity-30'}`}
-                                onClick={() => goto(3)}>
-                                <img src='/productimg1.jpg'
-                                    className='w-full transition-all group-hover:scale-105' />
-                            </div>
-                        </SwiperSlide>
+  return (
+    <div className="flex flex-col gap-4 max-w-5xl mx-auto">
+      {/* Main Zoomable Image Slider */}
+      <div className="zoomContainer w-full h-[400px] overflow-hidden rounded-xl shadow-lg bg-white">
+        <Swiper
+          ref={zoomSliderBig}
+          slidesPerView={1}
+          effect="fade"
+          spaceBetween={0}
+          navigation={{
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+          }}
+          pagination={{
+            clickable: true,
+            dynamicBullets: true,
+          }}
+          modules={[Navigation, Pagination, EffectFade]}
+          className="h-full"
+          onSlideChange={(swiper) => setSlideIndex(swiper.activeIndex)}
+        >
+          {product.images.map((image, index) => (
+            <SwiperSlide key={image.image_id}>
+              <div className="flex items-center justify-center h-full p-4">
+                <Zoom
+                  zoomMargin={50}
+                  overlayBgColor="rgba(15, 23, 42, 0.85)"
+                  wrapStyle={{ width: "100%", height: "100%" }}
+                >
+                  <img
+                    src={image.image_url}
+                    alt={`Sản phẩm ${index + 1}`}
+                    className="w-full h-full object-contain transition-all duration-300"
+                  />
+                </Zoom>
+              </div>
+            </SwiperSlide>
+          ))}
+          <div className="swiper-button-next !text-white !bg-black/50 !w-8 !h-8 !rounded-full !right-4"></div>
+          <div className="swiper-button-prev !text-white !bg-black/50 !w-8 !h-8 !rounded-full !left-4"></div>
+        </Swiper>
+      </div>
 
-                        <SwiperSlide>
-                            <div className={`item rounded-md overflow-hidden cursor-pointer group ${slideIndex == 4 ? 'opacity-1' : 'opacity-30'}`}
-                                onClick={() => goto(4)}>
-                                <img src='/productimg1.jpg'
-                                    className='w-full transition-all group-hover:scale-105' />
-                            </div>
-                        </SwiperSlide>
-
-                        <SwiperSlide></SwiperSlide>
-                    </Swiper>
+      {/* Wrapper for thumbnails and social sharing */}
+      <div className="flex flex-col gap-4">
+        {/* Thumbnail Images */}
+        <div ref={thumbnailsRef} className="max-w-4xl mx-auto w-full">
+          <div className="thumbnails flex justify-center gap-3 px-4 overflow-x-auto scrollbar-hide snap-x">
+            {product.images.map((image, index) => (
+              <motion.div
+                key={image.image_id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+                className={`flex-shrink-0 cursor-pointer snap-start rounded-lg overflow-hidden 
+                    ${
+                      slideIndex === index
+                        ? "ring-2 ring-blue-500 shadow-md shadow-blue-200"
+                        : "ring-1 ring-gray-200 hover:ring-blue-300"
+                    }
+                    transform transition-all duration-200`}
+                onClick={() => goto(index)}
+              >
+                <div className="relative w-14 h-14 sm:w-16 sm:h-16">
+                  <img
+                    src={image.image_url}
+                    alt={`Thumbnail ${index + 1}`}
+                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-300
+                        ${
+                          slideIndex === index
+                            ? "opacity-100"
+                            : "opacity-70 hover:opacity-100"
+                        }`}
+                  />
+                  {slideIndex === index && (
+                    <div className="absolute inset-0 bg-blue-500/10"></div>
+                  )}
                 </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
 
-                <div className='zoomContainer w-[85%] h-[500px] overflow-hidden rounded-md'>
-                    <Swiper
-                        ref={zoomSliderBig}
-                        slidesPerView={1}
-                        spaceBetween={0}
-                        navigation={false}
-                    >
-                        <SwiperSlide>
-                            <Zoom>
-                                <img src="https://img.lazcdn.com/g/p/4e991e25c92b980b56aed006ec7e8a2d.jpg_720x720q80.jpg_.webp" 
-                                    className="w-full h-full object-contain" />
-                            </Zoom>
-                        </SwiperSlide>
+        <div className="flex flex-col h-full">
+          {/* Social media share buttons at the bottom */}
+          <div className="flex items-center justify-center gap-4 border-t pt-4 mt-auto">
+            <p className="text-gray-500 font-medium mr-2">Share:</p>
 
-                        <SwiperSlide>
-                            <Zoom>
-                                <img src="https://img.lazcdn.com/g/p/2c889567bef0266709b53d05244d8809.jpg_720x720q80.jpg_.webp" 
-                                    className="w-full h-full object-contain" />
-                            </Zoom>
-                        </SwiperSlide>
+            {/* Facebook */}
+            <button
+              onClick={() => handleShare("facebook")}
+              className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              aria-label="Chia sẻ lên Facebook"
+            >
+              <FaFacebookF className="w-4 h-4" />
+            </button>
 
-                        <SwiperSlide>
-                            <Zoom>
-                                <img src="/productimg2.webp" 
-                                    className="w-full h-full object-contain" />
-                            </Zoom>
-                        </SwiperSlide>
+            {/* Messenger */}
+            <button
+              onClick={() => handleShare("messenger")}
+              className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-400 text-white hover:bg-blue-500 transition-colors"
+              aria-label="Chia sẻ qua Messenger"
+            >
+              <FaFacebookMessenger className="w-4 h-4" />
+            </button>
 
-                        <SwiperSlide>
-                            <Zoom>
-                                <img src="/productimg1.jpg" 
-                                    className="w-full h-full object-contain" />
-                            </Zoom>
-                        </SwiperSlide>
-                    </Swiper>
-                </div>
-            </div>
-        </>
-    )
-}
+            {/* Pinterest */}
+            <button
+              onClick={() => handleShare("pinterest")}
+              className="flex items-center justify-center w-7 h-7 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors"
+              aria-label="Ghim lên Pinterest"
+            >
+              <FaPinterestP className="w-4 h-4" />
+            </button>
 
-export default ProductZoom
+            {/* Instagram */}
+            <button
+              onClick={() => handleShare("instagram")}
+              className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 text-white hover:opacity-90 transition-opacity"
+              aria-label="Chia sẻ lên Instagram"
+            >
+              <FaInstagram className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductZoom;
