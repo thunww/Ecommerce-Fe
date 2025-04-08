@@ -28,18 +28,17 @@ const ProductDetailsComponent = () => {
   useEffect(() => {
     if (product?.variants?.length > 0) {
       setSelectedVariant(0);
-      // Khi product thay đổi, mặc định chọn hình ảnh của variant đầu tiên
-      setCurrentImages([product.variants[0].image_url]);
+
+      const variantImages = product.variants.map((v) => v.image_url);
+      setCurrentImages(variantImages); // All variant images
     }
   }, [product]);
-
   const handleSelectVariant = (index) => {
     setSelectedVariant(index);
     setQty(1);
-    // Cập nhật hình ảnh cho ProductZoom khi chọn variant
     const selectedVariantImage = product?.variants[index]?.image_url;
     if (selectedVariantImage) {
-      setCurrentImages([selectedVariantImage]);
+      setCurrentImages([selectedVariantImage]); // Nếu bạn muốn chỉ 1 ảnh => OK
     }
   };
 

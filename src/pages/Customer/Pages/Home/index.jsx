@@ -15,12 +15,43 @@ import BannerBoxV2 from "../../../../components/customer/Components/BannerBoxV2"
 import Header from "../../../../components/customer/Components/Header";
 import { fetchUserById } from "../../../../redux/adminSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { fetchAllProducts } from "../../../../redux/productSilce";
+import ProductItem from "../../../../components/customer/Components/ProductItem";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
 const Home = () => {
   const dispatch = useDispatch();
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const productsPerPage = 24;
+  const {
+    products = [],
+    loading,
+    error,
+  } = useSelector((state) => state.products);
+  const activeProducts = products.filter(
+    (product) => product.status === "active"
+  );
+
+  const totalPages = Math.ceil(activeProducts.length / productsPerPage);
+
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = activeProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const userId = useSelector((state) => state.auth.user?.user_id);
 
+  useEffect(() => {
+    if (products.length === 0) {
+      dispatch(fetchAllProducts());
+    }
+  }, [dispatch, products.length]);
   useEffect(() => {
     if (userId) {
       dispatch(fetchUserById(userId));
@@ -147,11 +178,41 @@ const Home = () => {
           <h2 className="text-[18px] sm:text-[20px] md:text-[22px] font-[600] mb-4">
             Latest Products
           </h2>
-          {/*<ProductsSlider items={6} />
-           */}
+          <div className="product-list grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
+            {currentProducts.map((product) => (
+              <ProductItem key={product.id} product={product} />
+            ))}
+          </div>
+          <div className="flex justify-center mt-8 gap-2 flex-wrap">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="w-9 h-9 flex items-center justify-center border rounded-full text-gray-600 hover:bg-gray-200 disabled:opacity-40"
+            >
+              <FaArrowLeft />
+            </button>
 
-          <div className="mt-4 sm:mt-6">
-            <AdsbannerSlider items={4} />
+            {Array.from({ length: totalPages }, (_, index) => (
+              <button
+                key={index + 1}
+                onClick={() => handlePageChange(index + 1)}
+                className={`w-9 h-9 flex items-center justify-center rounded-full border ${
+                  currentPage === index + 1
+                    ? "bg-blue-500 text-white font-bold"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                {index + 1}
+              </button>
+            ))}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="w-9 h-9 flex items-center justify-center border rounded-full text-gray-600 hover:bg-gray-200 disabled:opacity-40"
+            >
+              <FaArrowRight />
+            </button>
           </div>
         </div>
       </section>
