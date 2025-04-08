@@ -4,7 +4,8 @@ import { Link, useParams } from "react-router-dom";
 import ProductDetailsComponent from "../../../../components/customer/Components/ProductDetails";
 import { useDispatch, useSelector } from "react-redux";
 import { getProductById } from "../../../../redux/productSilce";
-import ShopInfo from "./ShopInfo";
+import ShopInfoOfProduct from "./ShopInfoOfProduct";
+import RelatedProducts from "../../../../components/customer/Components/ProductRelated";
 
 const ProductDetails = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -61,8 +62,13 @@ const ProductDetails = () => {
         <div className="container">
           <div className="productContent px-5">
             <ProductDetailsComponent />
-            {/* Add ShopInfo component below ProductDetailsComponent */}
-            <ShopInfo />
+            <ShopInfoOfProduct />
+
+            {/* ✅ Related Products */}
+            <RelatedProducts
+              categoryId={product?.category_id}
+              currentProductId={product?.product_id}
+            />
           </div>
         </div>
       </section>

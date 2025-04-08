@@ -12,7 +12,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { getShopById } from "../../../../redux/shopSlice";
 
-const ShopInfo = () => {
+const ShopInfoOfProduct = () => {
   const dispatch = useDispatch();
   const { product } = useSelector((state) => state.products);
   const { selectedShop, loading, error } = useSelector((state) => state.shops);
@@ -137,4 +137,4 @@ const StatItem = ({ icon, label, value, color }) => (
   </div>
 );
 
-export default ShopInfo;
+export default ShopInfoOfProduct;

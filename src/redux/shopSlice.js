@@ -21,7 +21,7 @@ export const getShopById = createAsyncThunk(
   async (shopId, { rejectWithValue }) => {
     try {
       const response = await shopService.getShopById(shopId);
-      return response.data; // return the shop object
+      return response.data; 
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Error fetching shop details"

@@ -33,6 +33,14 @@ const productService = {
       throw error;
     }
   },
+  getProductRelated: async (categoryId) => {
+    try {
+      const response = await productApi.getProductRelated(categoryId);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default productService;
