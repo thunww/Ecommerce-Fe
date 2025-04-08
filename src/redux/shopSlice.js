@@ -16,6 +16,20 @@ export const fetchAllShops = createAsyncThunk(
   }
 );
 
+export const getShopById = createAsyncThunk(
+  "shops/getShopById",
+  async (shopId, { rejectWithValue }) => {
+    try {
+      const response = await shopService.getShopById(shopId);
+      return response.data; // return the shop object
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Error fetching shop details"
+      );
+    }
+  }
+);
+
 export const assignStatusToShop = createAsyncThunk(
   "shops/assignStatusToShop",
   async ({ shopId, status }, { rejectWithValue }) => {
@@ -47,12 +61,25 @@ const shopSlice = createSlice({
       })
       .addCase(fetchAllShops.fulfilled, (state, action) => {
         state.loading = false;
-        state.shops = action.payload; // Gán danh sách cửa hàng từ payload
+        state.shops = action.payload;
       })
       .addCase(fetchAllShops.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(getShopById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getShopById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedShop = action.payload;
+      })
+      .addCase(getShopById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       .addCase(assignStatusToShop.pending, (state) => {
         state.loading = true;
       })
