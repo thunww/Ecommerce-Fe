@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import { Link, useParams } from "react-router-dom";
-import ProductZoom from "../../../../components/customer/Components/ProductZoom";
 import ProductDetailsComponent from "../../../../components/customer/Components/ProductDetails";
 import { useDispatch, useSelector } from "react-redux";
 import { getProductById } from "../../../../redux/productSilce";
+import ShopInfoOfProduct from "./ShopInfoOfProduct";
+import RelatedProducts from "../../../../components/customer/Components/ProductRelated";
 
 const ProductDetails = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -27,7 +28,7 @@ const ProductDetails = () => {
 
   return (
     <>
-      <div className="py-5 ">
+      <div className="py-5">
         <div className="container">
           <Breadcrumbs aria-label="breadcrumb">
             <Link
@@ -49,7 +50,7 @@ const ProductDetails = () => {
             <Link
               underline="hover"
               color="inherit"
-              to={`/product/${id}`} // Assuming product has an id
+              to={`/product/${id}`}
               className="link transition !text-[14px]"
             >
               {product?.product_name}
@@ -61,6 +62,13 @@ const ProductDetails = () => {
         <div className="container">
           <div className="productContent px-5">
             <ProductDetailsComponent />
+            <ShopInfoOfProduct />
+
+            {/* ✅ Related Products */}
+            <RelatedProducts
+              categoryId={product?.category_id}
+              currentProductId={product?.product_id}
+            />
           </div>
         </div>
       </section>

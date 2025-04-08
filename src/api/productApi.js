@@ -10,7 +10,11 @@ const productApi = {
     }),
 
   deleteProduct: (productId) => axiosClient.delete(`/products/${productId}`),
+
   getProductById: (productId) => axiosClient.get(`/products/${productId}`),
+
+  getProductRelated: (categoryId) =>
+    axiosClient.get(`/products/related/${categoryId}`),
 };
 
 export default productApi;
