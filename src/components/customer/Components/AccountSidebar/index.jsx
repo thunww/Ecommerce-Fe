@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../../../redux/authSlice";
@@ -8,11 +8,21 @@ import { MdOutlineShoppingCart } from "react-icons/md";
 import { IoLocationOutline } from "react-icons/io5";
 import { CiHeart } from "react-icons/ci";
 import { MdOutlineLogout } from "react-icons/md";
+import { fetchUserById } from "../../../../redux/adminSlice";
 
 const AccountSidebar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.auth.user);
+
+  const userId = useSelector((state) => state.auth.user?.user_id); // Get user_id from auth state
+  const user = useSelector((state) => state.admin.selectedUser);
+
+  // Fetch user when dashboard is loaded
+  useEffect(() => {
+    if (userId) {
+      dispatch(fetchUserById(userId));
+    }
+  }, [dispatch, userId]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -27,7 +37,7 @@ const AccountSidebar = () => {
           <div className="avatar mb-2 sm:mb-3 relative">
             <div className="w-16 h-16 sm:w-20 sm:h-20 overflow-hidden rounded-full border-4 border-white">
               <img
-                src={user?.avatar || "/avatar.jpg"}
+                src={user?.profile_picture || "/avatar.jpg"}
                 alt="Avatar"
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -38,7 +48,9 @@ const AccountSidebar = () => {
             </div>
           </div>
           <h3 className="text-base sm:text-lg font-semibold truncate max-w-full">
-            {user?.user_id || "Người dùng"}
+            {user
+              ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
+              : "User"}
           </h3>
           <p className="text-xs sm:text-sm text-blue-100 truncate max-w-full">
             {user?.email || "user@example.com"}
@@ -48,15 +60,15 @@ const AccountSidebar = () => {
           <div className="flex justify-between text-center text-xs">
             <div className="px-1">
               <p className="font-bold text-lg sm:text-xl">0</p>
-              <p className="text-xs">Đơn hàng</p>
+              <p className="text-xs">Orders</p>
             </div>
             <div className="px-1">
               <p className="font-bold text-lg sm:text-xl">0</p>
-              <p className="text-xs">Yêu thích</p>
+              <p className="text-xs">Favorites</p>
             </div>
             <div className="px-1">
               <p className="font-bold text-lg sm:text-xl">0</p>
-              <p className="text-xs">Đánh giá</p>
+              <p className="text-xs">Reviews</p>
             </div>
           </div>
         </div>
@@ -66,14 +78,13 @@ const AccountSidebar = () => {
       <div className="p-3 sm:p-4">
         <ul className="sidebar-menu">
           <li className="mb-1 sm:mb-2">
-            {/* Check if user_id exists and only then render the Link */}
-            {user?.user_id && (
+            {user && (
               <Link
                 to={`/my-account/profile/${user.user_id}`}
                 className="flex items-center gap-2 p-2 rounded-md text-gray-700 hover:bg-gray-50 transition text-sm sm:text-base"
               >
                 <FaRegUser className="text-lg flex-shrink-0" />
-                <span className="truncate">Thông tin cá nhân</span>
+                <span className="truncate">Personal Information</span>
               </Link>
             )}
           </li>
@@ -83,7 +94,7 @@ const AccountSidebar = () => {
               className="flex items-center gap-2 p-2 rounded-md text-gray-700 hover:bg-gray-50 transition text-sm sm:text-base"
             >
               <MdOutlineShoppingCart className="text-lg flex-shrink-0" />
-              <span className="truncate">Đơn hàng của tôi</span>
+              <span className="truncate">My Orders</span>
             </Link>
           </li>
           <li className="mb-1 sm:mb-2">
@@ -92,7 +103,7 @@ const AccountSidebar = () => {
               className="flex items-center gap-2 p-2 rounded-md text-gray-700 hover:bg-gray-50 transition text-sm sm:text-base"
             >
               <IoLocationOutline className="text-lg flex-shrink-0" />
-              <span className="truncate">Địa chỉ</span>
+              <span className="truncate">Addresses</span>
             </Link>
           </li>
           <li className="mb-1 sm:mb-2">
@@ -101,7 +112,7 @@ const AccountSidebar = () => {
               className="flex items-center gap-2 p-2 rounded-md text-gray-700 hover:bg-gray-50 transition text-sm sm:text-base"
             >
               <CiHeart className="text-lg flex-shrink-0" />
-              <span className="truncate">Sản phẩm yêu thích</span>
+              <span className="truncate">Wishlist</span>
             </Link>
           </li>
           <li className="mt-4 sm:mt-6 border-t pt-3 sm:pt-4">
@@ -110,7 +121,7 @@ const AccountSidebar = () => {
               className="flex items-center gap-2 p-2 rounded-md text-red-500 hover:bg-red-50 transition w-full text-sm sm:text-base"
             >
               <MdOutlineLogout className="text-lg flex-shrink-0" />
-              <span className="truncate">Đăng xuất</span>
+              <span className="truncate">Logout</span>
             </button>
           </li>
         </ul>
