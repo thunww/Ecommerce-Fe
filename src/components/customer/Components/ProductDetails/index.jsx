@@ -83,7 +83,11 @@ const ProductDetailsComponent = () => {
     <div className="product-details bg-white rounded-xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
       {/* Left Column: Product Zoom */}
       <div className="product-zoom-section">
-        <ProductZoom images={currentImages} /> {/* Truyền danh sách hình ảnh */}
+        <ProductZoom
+          images={product.variants.map((v) => v.image_url)} // danh sách tất cả ảnh
+          currentImage={product.variants[selectedVariant]?.image_url} // ảnh đang chọn
+        />
+        {/* Truyền danh sách hình ảnh */}
       </div>
 
       {/* Right Column: Product Details */}

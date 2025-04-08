@@ -7,7 +7,6 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Navigation, Pagination, EffectFade } from "swiper/modules";
 import { motion } from "framer-motion";
-import { useSelector } from "react-redux";
 import {
   FaFacebookF,
   FaInstagram,
@@ -15,19 +14,23 @@ import {
   FaFacebookMessenger,
 } from "react-icons/fa";
 
-const ProductZoom = ({ images }) => {
-  const { product, loading, error } = useSelector((state) => state.products);
+const ProductZoom = ({ images, currentImage }) => {
   const [slideIndex, setSlideIndex] = useState(0);
   const zoomSliderBig = useRef(null);
   const thumbnailsRef = useRef(null);
 
-  // Cập nhật slide khi images thay đổi
+  // Đồng bộ slideIndex với currentImage khi nó thay đổi
   useEffect(() => {
-    if (zoomSliderBig.current && zoomSliderBig.current.swiper) {
-      zoomSliderBig.current.swiper.slideTo(0);
-      setSlideIndex(0);
+    if (currentImage && images) {
+      const newIndex = images.indexOf(currentImage);
+      if (newIndex !== -1 && newIndex !== slideIndex) {
+        setSlideIndex(newIndex);
+        if (zoomSliderBig.current && zoomSliderBig.current.swiper) {
+          zoomSliderBig.current.swiper.slideTo(newIndex);
+        }
+      }
     }
-  }, [images]);
+  }, [currentImage, images]);
 
   const goto = (index) => {
     setSlideIndex(index);
@@ -37,7 +40,8 @@ const ProductZoom = ({ images }) => {
   };
 
   const handleShare = (platform) => {
-    // console.log(`Chia sẻ lên ${platform}`);
+    // Logic chia sẻ (có thể thêm URL thực tế sau)
+    console.log(`Chia sẻ lên ${platform}`);
   };
 
   if (!images || images.length === 0) {
@@ -116,31 +120,31 @@ const ProductZoom = ({ images }) => {
         {/* Thumbnail Images */}
         <div ref={thumbnailsRef} className="max-w-4xl mx-auto w-full">
           <div className="thumbnails flex justify-center gap-3 px-4 overflow-x-auto scrollbar-hide snap-x">
-            {product?.variants?.map((image, index) => (
+            {images.map((imageUrl, index) => (
               <motion.div
-                key={image.image_id}
+                key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
                 className={`flex-shrink-0 cursor-pointer snap-start rounded-lg overflow-hidden 
-                    ${
-                      slideIndex === index
-                        ? "ring-2 ring-blue-500 shadow-md shadow-blue-200"
-                        : "ring-1 ring-gray-200 hover:ring-blue-300"
-                    }
-                    transform transition-all duration-200`}
+                  ${
+                    slideIndex === index
+                      ? "ring-2 ring-blue-500 shadow-md shadow-blue-200"
+                      : "ring-1 ring-gray-200 hover:ring-blue-300"
+                  }
+                  transform transition-all duration-200`}
                 onClick={() => goto(index)}
               >
                 <div className="relative w-14 h-14 sm:w-16 sm:h-16">
                   <img
-                    src={image.image_url}
+                    src={imageUrl}
                     alt={`Thumbnail ${index + 1}`}
                     className={`absolute inset-0 w-full h-full object-cover transition-all duration-300
-                        ${
-                          slideIndex === index
-                            ? "opacity-100"
-                            : "opacity-70 hover:opacity-100"
-                        }`}
+                      ${
+                        slideIndex === index
+                          ? "opacity-100"
+                          : "opacity-70 hover:opacity-100"
+                      }`}
                   />
                   {slideIndex === index && (
                     <div className="absolute inset-0 bg-blue-500/10"></div>
@@ -154,7 +158,6 @@ const ProductZoom = ({ images }) => {
         {/* Social media share buttons */}
         <div className="flex items-center justify-center gap-4 border-t pt-4 mt-auto">
           <p className="text-gray-500 font-medium mr-2">Share:</p>
-
           <button
             onClick={() => handleShare("facebook")}
             className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
@@ -162,7 +165,6 @@ const ProductZoom = ({ images }) => {
           >
             <FaFacebookF className="w-4 h-4" />
           </button>
-
           <button
             onClick={() => handleShare("messenger")}
             className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-400 text-white hover:bg-blue-500 transition-colors"
@@ -170,7 +172,6 @@ const ProductZoom = ({ images }) => {
           >
             <FaFacebookMessenger className="w-4 h-4" />
           </button>
-
           <button
             onClick={() => handleShare("pinterest")}
             className="flex items-center justify-center w-7 h-7 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors"
@@ -178,7 +179,6 @@ const ProductZoom = ({ images }) => {
           >
             <FaPinterestP className="w-4 h-4" />
           </button>
-
           <button
             onClick={() => handleShare("instagram")}
             className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 text-white hover:opacity-90 transition-opacity"
