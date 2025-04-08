@@ -197,8 +197,8 @@ const Home = () => {
                 key={index + 1}
                 onClick={() => handlePageChange(index + 1)}
                 className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === index + 1
-                    ? "bg-blue-500 text-white font-bold"
-                    : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-blue-500 text-white font-bold"
+                  : "text-gray-700 hover:bg-gray-100"
                   }`}
               >
                 {index + 1}
