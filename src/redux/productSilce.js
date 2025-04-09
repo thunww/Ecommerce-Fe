@@ -57,10 +57,25 @@ export const getProductById = createAsyncThunk(
   }
 );
 
+export const getProductRelated = createAsyncThunk(
+  "products/getProductRelated",
+  async (categoryId, { rejectWithValue }) => {
+    try {
+      const response = await productService.getProductRelated(categoryId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to fetch related products"
+      );
+    }
+  }
+);
+
 const productSlice = createSlice({
   name: "products",
   initialState: {
     products: [],
+    relatedProducts: [],
     product: null,
     loading: false,
     error: null,
@@ -100,6 +115,18 @@ const productSlice = createSlice({
         if (product) {
           product.status = status;
         }
+      })
+      .addCase(getProductRelated.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getProductRelated.fulfilled, (state, action) => {
+        state.loading = false;
+        state.relatedProducts = action.payload;
+      })
+      .addCase(getProductRelated.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
 
       .addCase(deleteProductById.fulfilled, (state, action) => {

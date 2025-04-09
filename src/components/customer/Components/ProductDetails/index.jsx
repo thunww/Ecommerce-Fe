@@ -33,6 +33,7 @@ const ProductDetailsComponent = () => {
       setCurrentImages(variantImages); // All variant images
     }
   }, [product]);
+  
   const handleSelectVariant = (index) => {
     setSelectedVariant(index);
     setQty(1);
@@ -87,7 +88,6 @@ const ProductDetailsComponent = () => {
           images={product.variants.map((v) => v.image_url)} // danh sách tất cả ảnh
           currentImage={product.variants[selectedVariant]?.image_url} // ảnh đang chọn
         />
-        {/* Truyền danh sách hình ảnh */}
       </div>
 
       {/* Right Column: Product Details */}
