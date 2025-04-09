@@ -11,19 +11,17 @@ import ShipperIncome from "../pages/Shipper/ShipperIncome";
 import ShipperRegister from '../pages/Shipper/ShipperRegister';
 import NotFound from "../pages/NotFound";
 
-
 const ShipperRoutes = () => {
   return (
     <UserProvider>
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<ShipperLanding />} />
-       
+        <Route path="/register" element={<ShipperRegister />} />
         {/* <Route path="/login" element={<ShipperLogin />} /> */}
 
         {/* Protected routes with layout */}
         <Route element={<ShipperLayout />}>
-        <Route path="/register" element={<ShipperRegister />} />
           <Route path="/dashboard" element={<ShipperDashboard />} />
           <Route path="/orders" element={<ShipperOrders />} />
           <Route path="/orders/:id" element={<ShipperOrderDetail />} />
