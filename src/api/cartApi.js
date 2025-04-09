@@ -1,5 +1,6 @@
 import axiosClient from "./axiosClient";
 
+
 // Helper để log API calls
 const logApiCall = (name, ...args) => {
     console.log(`CartAPI: Calling ${name} with args:`, ...args);
@@ -23,8 +24,17 @@ const hasValidToken = () => {
 };
 
 const cartApi = {
+    // ===== CART OPERATIONS =====
     getCart: () => {
         console.log("CartAPI: Fetching cart");
+        const token = localStorage.getItem("accessToken");
+
+        // Ghi log thông tin token để debug (chỉ hiển thị vài ký tự đầu và cuối)
+        if (token) {
+            const tokenStart = token.substring(0, 10);
+            const tokenEnd = token.substring(token.length - 5);
+            console.log(`CartAPI: Using token (masked): ${tokenStart}...${tokenEnd}`);
+        }
 
         // Kiểm tra token trước khi gọi API
         if (!hasValidToken()) {
@@ -41,13 +51,31 @@ const cartApi = {
             });
         }
 
-        return axiosClient.get("/cart")
+        // Thêm options để debug network request
+        const requestOptions = {
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+        };
+
+        return axiosClient.get("/cart", requestOptions)
             .then(response => {
                 console.log("CartAPI: getCart response:", response);
                 return response;
             })
             .catch(error => {
                 console.error(`CartAPI: Error in getCart:`, error);
+
+                // Kiểm tra lỗi liên quan đến xác thực
+                if (error.message?.includes('Unauthorized') ||
+                    error.message?.includes('token') ||
+                    error.status === 400 ||
+                    error.status === 401) {
+                    console.warn("CartAPI: Lỗi xác thực, xóa token và đăng nhập lại");
+                    // Đề xuất refresh trang hoặc đăng nhập lại
+                }
+
                 // Trả về giỏ hàng trống nếu có lỗi
                 return {
                     data: {
@@ -122,6 +150,7 @@ const cartApi = {
             .catch(error => handleApiError(error, "clearCart"));
     },
 
+    // ===== COUPON OPERATIONS =====
     applyCoupon: (code) => {
         logApiCall("applyCoupon", code);
 
@@ -135,6 +164,52 @@ const cartApi = {
                 return response;
             })
             .catch(error => handleApiError(error, "applyCoupon"));
+    },
+
+    removeCoupon: () => {
+        console.log("CartAPI: Removing coupon");
+
+        if (!hasValidToken()) {
+            return Promise.reject({ message: "Vui lòng đăng nhập để xóa mã giảm giá" });
+        }
+
+        return axiosClient.delete("/cart/coupons")
+            .then(response => {
+                console.log("CartAPI: removeCoupon response:", response);
+                return response;
+            })
+            .catch(error => handleApiError(error, "removeCoupon"));
+    },
+
+    validateCoupon: (code) => {
+        logApiCall("validateCoupon", code);
+
+        if (!hasValidToken()) {
+            return Promise.reject({ message: "Vui lòng đăng nhập để kiểm tra mã giảm giá" });
+        }
+
+        return axiosClient.get(`/coupons/validate?code=${code}`)
+            .then(response => {
+                console.log("CartAPI: validateCoupon response:", response);
+                return response;
+            })
+            .catch(error => handleApiError(error, "validateCoupon"));
+    },
+
+    // ===== CHECKOUT OPERATIONS =====
+    getCartSummary: () => {
+        console.log("CartAPI: Fetching cart summary");
+
+        if (!hasValidToken()) {
+            return Promise.reject({ message: "Vui lòng đăng nhập để xem tổng giỏ hàng" });
+        }
+
+        return axiosClient.get("/cart/summary")
+            .then(response => {
+                console.log("CartAPI: getCartSummary response:", response);
+                return response;
+            })
+            .catch(error => handleApiError(error, "getCartSummary"));
     },
 
     calculateShipping: (address) => {
@@ -152,6 +227,83 @@ const cartApi = {
             .catch(error => handleApiError(error, "calculateShipping"));
     },
 
+    // ===== ADDRESS OPERATIONS =====
+    getUserAddresses: () => {
+        console.log("CartAPI: Fetching user addresses");
+
+        if (!hasValidToken()) {
+            return Promise.reject({ message: "Vui lòng đăng nhập để xem địa chỉ" });
+        }
+
+        return axiosClient.get("/addresses")
+            .then(response => {
+                console.log("CartAPI: getUserAddresses response:", response);
+                return response;
+            })
+            .catch(error => handleApiError(error, "getUserAddresses"));
+    },
+
+    addAddress: (addressData) => {
+        logApiCall("addAddress", addressData);
+
+        if (!hasValidToken()) {
+            return Promise.reject({ message: "Vui lòng đăng nhập để thêm địa chỉ" });
+        }
+
+        return axiosClient.post("/addresses", addressData)
+            .then(response => {
+                console.log("CartAPI: addAddress response:", response);
+                return response;
+            })
+            .catch(error => handleApiError(error, "addAddress"));
+    },
+
+    updateAddress: (addressId, addressData) => {
+        logApiCall("updateAddress", addressId, addressData);
+
+        if (!hasValidToken()) {
+            return Promise.reject({ message: "Vui lòng đăng nhập để cập nhật địa chỉ" });
+        }
+
+        return axiosClient.put(`/addresses/${addressId}`, addressData)
+            .then(response => {
+                console.log("CartAPI: updateAddress response:", response);
+                return response;
+            })
+            .catch(error => handleApiError(error, "updateAddress"));
+    },
+
+    deleteAddress: (addressId) => {
+        logApiCall("deleteAddress", addressId);
+
+        if (!hasValidToken()) {
+            return Promise.reject({ message: "Vui lòng đăng nhập để xóa địa chỉ" });
+        }
+
+        return axiosClient.delete(`/addresses/${addressId}`)
+            .then(response => {
+                console.log("CartAPI: deleteAddress response:", response);
+                return response;
+            })
+            .catch(error => handleApiError(error, "deleteAddress"));
+    },
+
+    setDefaultAddress: (addressId) => {
+        logApiCall("setDefaultAddress", addressId);
+
+        if (!hasValidToken()) {
+            return Promise.reject({ message: "Vui lòng đăng nhập để đặt địa chỉ mặc định" });
+        }
+
+        return axiosClient.put(`/addresses/${addressId}/default`)
+            .then(response => {
+                console.log("CartAPI: setDefaultAddress response:", response);
+                return response;
+            })
+            .catch(error => handleApiError(error, "setDefaultAddress"));
+    },
+
+    // ===== ORDER OPERATIONS =====
     checkout: (data) => {
         logApiCall("checkout", data);
 
@@ -219,6 +371,7 @@ const cartApi = {
             .catch(error => handleApiError(error, "trackOrder"));
     },
 
+    // ===== PAYMENT OPERATIONS =====
     getPaymentMethods: () => {
         return axiosClient.get("/payments/methods")
             .then(response => {
@@ -254,6 +407,7 @@ const cartApi = {
             .catch(error => handleApiError(error, "verifyPayment"));
     },
 
+    // ===== SHIPPING OPERATIONS =====
     getShippingMethods: () => {
         return axiosClient.get("/shipping/methods")
             .then(response => {
