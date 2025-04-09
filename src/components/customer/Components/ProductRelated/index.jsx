@@ -38,9 +38,12 @@ const RelatedProducts = ({ categoryId, currentProductId }) => {
         <Typography>No related products found.</Typography>
       ) : (
         <div className="product-list grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
-          {filteredRelated.slice(0, 6).map((product) => (
-            <ProductItem key={product.product_id} product={product} />
-          ))}
+          {filteredRelated
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 6)
+            .map((product) => (
+              <ProductItem key={product.product_id} product={product} />
+            ))}
         </div>
       )}
     </div>
