@@ -1,0 +1,25 @@
+// File cấu hình cho ứng dụng
+
+// API URL - sử dụng URL mặc định khi không có biến môi trường
+export const API_BASE_URL = "http://localhost:5000/api/v1";
+
+// Upload URL
+export const UPLOAD_URL = `${API_BASE_URL}/products/images/upload`;
+
+// Cloudinary config
+export const CLOUDINARY_CLOUD_NAME = "your-cloud-name";
+
+// Các cấu hình khác
+export const IMAGE_PLACEHOLDER = "https://via.placeholder.com/150";
+export const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB
+
+// URL ảnh mặc định cho sản phẩm
+export const DEFAULT_PRODUCT_IMAGE =
+  "https://cdn.tgdd.vn/Products/Images/1942/279935/TimerThumb/smart-samsung-4k-43-inch-ua43au7002-(40).jpg";
+
+// Cấu hình định dạng tiền tệ
+export const CURRENCY_FORMAT = {
+  style: "currency",
+  currency: "VND",
+  maximumFractionDigits: 0,
+};

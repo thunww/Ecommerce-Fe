@@ -6,6 +6,7 @@ const ProductTabs = ({ activeTab, onTabChange, productCounts }) => {
     { id: "active", label: "Active", count: productCounts.active },
     { id: "inactive", label: "Inactive", count: productCounts.inactive },
     { id: "outOfStock", label: "Out of Stock", count: productCounts.outOfStock },
+    { id: "pending", label: "Pending", count: productCounts.pending },
   ];
 
   return (
@@ -35,7 +36,7 @@ const ProductTabs = ({ activeTab, onTabChange, productCounts }) => {
                   activeTab === tab.id
                     ? tab.id === "outOfStock"
                       ? "bg-red-100 text-red-600"
-                      : "bg-blue-100 text-blue-600"
+                      : "bg-gray-100 text-gray-600"
                     : "bg-gray-100 text-gray-600"
                 }
               `}

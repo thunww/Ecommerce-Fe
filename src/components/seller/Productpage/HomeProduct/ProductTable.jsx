@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaInfoCircle,
   FaSort,
@@ -12,10 +12,30 @@ import {
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import productService from "../../../../services/productService";
+import ConfirmDialog from "../../../ui/ConfirmDialog";
+import ImageViewer from "../../../ui/ImageViewer";
+import axios from "axios";
+import { API_BASE_URL } from "../../../../config/config";
+import useProductImages from "../../../../hooks/useProductImages";
 
 const ProductTable = ({ products, onProductChanged }) => {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [actionDropdowns, setActionDropdowns] = useState({});
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    isOpen: false,
+    productId: null,
+    productName: "",
+  });
+  const [imageViewer, setImageViewer] = useState({
+    isOpen: false,
+    imageUrl: "",
+    productName: "",
+    images: [],
+    productId: null,
+  });
+
+  // Sử dụng hook useProductImages thay vì quản lý state thủ công
+  const productImagesHook = useProductImages();
   const navigate = useNavigate();
 
   const handleSelectAll = (e) => {
@@ -60,9 +80,79 @@ const ProductTable = ({ products, onProductChanged }) => {
     };
   }, []);
 
-  const handleViewProduct = (productId) => {
-    navigate(`/vendor/product/${productId}`);
+  const handleViewProduct = async (product) => {
+    try {
+      console.log("View product clicked:", product);
+
+      // Đảm bảo product ID được xác định chính xác
+      const productId = product.id || product.product_id;
+
+      if (!productId) {
+        console.error("Product ID is missing:", product);
+        toast.error("Không thể mở ảnh: Thiếu thông tin sản phẩm");
+        return;
+      }
+
+      // Kiểm tra xem sản phẩm đã có ảnh trong danh sách chưa
+      if (product.image) {
+        console.log("Product already has image:", product.image);
+      }
+
+      // Sử dụng hook để lấy tất cả ảnh cho sản phẩm
+      const images = await productImagesHook.fetchProductImages(productId);
+      console.log("Retrieved images for product ID", productId, ":", images);
+
+      if (!images || images.length === 0) {
+        console.error("No images found for product:", product);
+        toast.error("Không tìm thấy ảnh sản phẩm");
+        return;
+      }
+
+      // Tìm ảnh chính hoặc dùng ảnh đầu tiên
+      const primaryImage = images.find((img) => img.isPrimary) || images[0];
+      const mainImageUrl = primaryImage.url || "";
+
+      if (!mainImageUrl) {
+        console.error("Main image URL not found:", primaryImage);
+        toast.error("Không tìm thấy URL ảnh sản phẩm");
+        return;
+      }
+
+      // Đảm bảo tên sản phẩm được xác định
+      const productName = product.name || product.product_name || "Sản phẩm";
+
+      // Mở ImageViewer với ảnh sản phẩm
+      setImageViewer({
+        isOpen: true,
+        imageUrl: mainImageUrl,
+        productName: productName,
+        images: images,
+        productId: productId,
+      });
+
+      console.log("Image viewer opened with:", {
+        isOpen: true,
+        imageUrl: mainImageUrl,
+        productName: productName,
+        imagesCount: images.length,
+        productId: productId,
+      });
+    } catch (error) {
+      console.error("Error in handleViewProduct:", error);
+      toast.error("Đã xảy ra lỗi khi mở ảnh sản phẩm");
+    }
+
     closeAllDropdowns();
+  };
+
+  const closeImageViewer = () => {
+    setImageViewer({
+      isOpen: false,
+      imageUrl: "",
+      productName: "",
+      images: [],
+      productId: null,
+    });
   };
 
   const handleEditProduct = (productId) => {
@@ -70,28 +160,47 @@ const ProductTable = ({ products, onProductChanged }) => {
     closeAllDropdowns();
   };
 
-  const handleDeleteProduct = async (productId, productName) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete the product "${productName}"?`
-      )
-    ) {
-      try {
-        await productService.deleteProduct(productId);
-        toast.success("Product deleted successfully");
-
-        // Call callback to update product list
-        if (onProductChanged) {
-          onProductChanged();
-        }
-      } catch (error) {
-        toast.error(
-          "Error deleting product: " +
-            (error.response?.data?.message || error.message)
-        );
-      }
-    }
+  const showDeleteConfirm = (productId, productName) => {
+    setDeleteConfirm({
+      isOpen: true,
+      productId,
+      productName,
+    });
     closeAllDropdowns();
+  };
+
+  const handleDeleteProduct = async () => {
+    const { productId, productName } = deleteConfirm;
+
+    try {
+      await productService.deleteProduct(productId);
+      toast.success(`Đã xóa sản phẩm "${productName}" thành công`);
+
+      // Call callback to update product list
+      if (onProductChanged) {
+        onProductChanged();
+      }
+    } catch (error) {
+      toast.error(
+        "Lỗi khi xóa sản phẩm: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
+
+    // Đóng dialog xác nhận
+    setDeleteConfirm({
+      isOpen: false,
+      productId: null,
+      productName: "",
+    });
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirm({
+      isOpen: false,
+      productId: null,
+      productName: "",
+    });
   };
 
   const handleUpdateStatus = async (productId, status, productName) => {
@@ -127,10 +236,8 @@ const ProductTable = ({ products, onProductChanged }) => {
         return "bg-green-100 text-green-800";
       case "inactive":
         return "bg-yellow-100 text-yellow-800";
-      case "outOfStock":
-        return "bg-red-100 text-red-800";
-      case "violation":
-        return "bg-purple-100 text-purple-800";
+      case "pending":
+        return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -142,10 +249,8 @@ const ProductTable = ({ products, onProductChanged }) => {
         return "Active";
       case "inactive":
         return "Inactive";
-      case "outOfStock":
-        return "Out of Stock";
-      case "violation":
-        return "Violation";
+      case "pending":
+        return "Pending";
       default:
         return "Unknown";
     }
@@ -219,11 +324,25 @@ const ProductTable = ({ products, onProductChanged }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <div className="flex-shrink-0 h-10 w-10">
+                    <div
+                      className="flex-shrink-0 h-10 w-10 cursor-pointer"
+                      onClick={() => handleViewProduct(product)}
+                    >
                       <img
                         className="h-10 w-10 rounded-full object-cover"
-                        src={product.image}
+                        src={
+                          product.image ||
+                          "https://via.placeholder.com/400x400?text=No+Image"
+                        }
                         alt={product.name}
+                        onError={(e) => {
+                          console.error(
+                            "Failed to load thumbnail:",
+                            e.target.src
+                          );
+                          e.target.src =
+                            "https://via.placeholder.com/400x400?text=No+Image";
+                        }}
                       />
                     </div>
                     <div className="ml-4">
@@ -270,7 +389,7 @@ const ProductTable = ({ products, onProductChanged }) => {
                           aria-orientation="vertical"
                         >
                           <button
-                            onClick={() => handleViewProduct(product.id)}
+                            onClick={() => handleViewProduct(product)}
                             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             role="menuitem"
                           >
@@ -285,7 +404,7 @@ const ProductTable = ({ products, onProductChanged }) => {
                           </button>
                           <button
                             onClick={() =>
-                              handleDeleteProduct(product.id, product.name)
+                              showDeleteConfirm(product.id, product.name)
                             }
                             className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
                             role="menuitem"
@@ -302,6 +421,26 @@ const ProductTable = ({ products, onProductChanged }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        title="Xác nhận xóa sản phẩm"
+        message={`Bạn có chắc chắn muốn xóa sản phẩm "${deleteConfirm.productName}" không? Hành động này không thể hoàn tác.`}
+        onConfirm={handleDeleteProduct}
+        onCancel={cancelDelete}
+      />
+
+      {/* Image Viewer */}
+      {imageViewer.isOpen && (
+        <ImageViewer
+          isOpen={imageViewer.isOpen}
+          imageUrl={imageViewer.imageUrl}
+          productName={imageViewer.productName}
+          images={imageViewer.images}
+          onClose={closeImageViewer}
+        />
+      )}
     </div>
   );
 };

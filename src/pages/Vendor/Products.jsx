@@ -41,15 +41,15 @@ const Products = () => {
             id: product.product_id,
             name: product.product_name,
             image:
-              product.images && product.images.length > 0
+              product.main_image && product.main_image.length > 0
                 ? product.main_image
                 : "https://via.placeholder.com/150",
-            price: product.price,
+            price: product.variants.price,
             stock: product.stock || 0,
             sales: product.sold || 0,
             sku: product.sku || "N/A",
             contentQuality: product.content_score || "N/A",
-            status: product.is_active ? "active" : "inactive",
+            status: product.status,
             category_id: product.category_id,
             category: product.Category.category_name,
             type: product.product_type || "physical",
@@ -83,15 +83,15 @@ const Products = () => {
           id: product.product_id,
           name: product.product_name,
           image:
-            product.images && product.images.length > 0
-              ? product.images[0].image_url
+            product.main_image && product.main_image.length > 0
+              ? product.main_image
               : "https://via.placeholder.com/150",
-          price: product.price,
+          price: product.variants.price,
           stock: product.stock || 0,
           sales: product.sold || 0,
           sku: product.sku || "N/A",
           contentQuality: product.content_score || "N/A",
-          status: product.is_active ? "active" : "inactive",
+          status: product.status,
           category_id: product.category_id,
           category: product.Category.category_name,
           type: product.product_type || "physical",

@@ -36,6 +36,8 @@ const ProductPage = ({
       filtered = filtered.filter((product) => product.status === "active");
     } else if (activeTab === "inactive") {
       filtered = filtered.filter((product) => product.status === "inactive");
+    } else if (activeTab === "pending") {
+      filtered = filtered.filter((product) => product.status === "pending");
     }
 
     // Lọc theo từ khóa tìm kiếm
@@ -89,6 +91,7 @@ const ProductPage = ({
     inactive: products.filter((p) => p.status === "inactive").length,
     outOfStock: products.filter((p) => parseInt(p.stock) === parseInt(p.sales))
       .length,
+    pending: products.filter((p) => p.status === "pending").length,
   };
 
   return (

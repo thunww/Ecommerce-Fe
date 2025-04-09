@@ -10,7 +10,9 @@ const axiosClient = axios.create({
 // Thêm Interceptor nếu cần
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
+    // Kiểm tra cả hai trường hợp tên token
+    const token =
+      localStorage.getItem("accessToken") || localStorage.getItem("token");
 
     if (token) {
       console.log(

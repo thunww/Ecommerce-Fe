@@ -1,6 +1,6 @@
 import React from "react";
 
-const FooterButtons = ({ onCancel, onSaveAndPublish }) => {
+const FooterButtons = ({ onCancel, onSaveAndPublish, onSaveAndDelist }) => {
   return (
     <div className="p-4 border-t flex justify-end space-x-4">
       <button
@@ -9,7 +9,10 @@ const FooterButtons = ({ onCancel, onSaveAndPublish }) => {
       >
         Cancel
       </button>
-      <button className="px-4 py-2 text-gray-600 hover:text-gray-800">
+      <button
+        className="px-4 py-2 text-gray-600 hover:text-gray-800"
+        onClick={onSaveAndDelist}
+      >
         Save and Delist
       </button>
       <button

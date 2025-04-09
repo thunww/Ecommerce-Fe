@@ -15,7 +15,11 @@ const productApi = {
 
   // Tạo sản phẩm mới
   createProduct: (productData) => {
-    return axiosClient.post("/vendor/product", productData);
+    return axiosClient.post("/products", productData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
   },
 
   // Cập nhật sản phẩm
@@ -25,7 +29,7 @@ const productApi = {
 
   // Xóa sản phẩm
   deleteProduct: (productId) => {
-    return axiosClient.delete(`/vendor/product/${productId}`);
+    return axiosClient.delete(`/products/${productId}`);
   },
 
   // Upload ảnh sản phẩm

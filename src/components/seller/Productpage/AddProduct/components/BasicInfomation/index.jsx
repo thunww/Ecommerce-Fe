@@ -5,7 +5,6 @@ const BasicInformation = ({ productData, onInputChange }) => {
   const [imageRatio, setImageRatio] = useState("1:1"); // Mặc định là 1:1
   const [productImages, setProductImages] = useState([]); // Quản lý danh sách ảnh sản phẩm
   const [promotionImage, setPromotionImage] = useState(null); // Quản lý ảnh khuyến mãi
-  const [productVideo, setProductVideo] = useState(null); // Quản lý video sản phẩm
   const [categories, setCategories] = useState([]); // Danh sách danh mục
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false); // Hiển thị dropdown danh mục
   const [isLoadingCategories, setIsLoadingCategories] = useState(false); // Trạng thái đang tải danh mục
@@ -13,7 +12,6 @@ const BasicInformation = ({ productData, onInputChange }) => {
   // Refs cho input file
   const productImagesInputRef = useRef(null);
   const promotionImageInputRef = useRef(null);
-  const productVideoInputRef = useRef(null);
   const categoryDropdownRef = useRef(null);
 
   // Fetch danh sách danh mục khi component được mount
@@ -57,8 +55,10 @@ const BasicInformation = ({ productData, onInputChange }) => {
 
   // Hàm xử lý khi chọn danh mục
   const handleCategorySelect = (category) => {
-    onInputChange("category", category.category_name);
-    onInputChange("categoryId", category.category_id);
+    // Chỉ lưu category_id và hiển thị category_name
+    onInputChange("category", category.category_id);
+    // Lưu category_name chỉ để hiển thị
+    onInputChange("selectedCategoryName", category.category_name);
     setShowCategoryDropdown(false);
   };
 
@@ -107,45 +107,6 @@ const BasicInformation = ({ productData, onInputChange }) => {
     onInputChange("promotionImage", file);
   };
 
-  // Hàm xử lý upload video sản phẩm
-  const handleProductVideoUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Kiểm tra định dạng video
-    const isValidType = file.type.startsWith("video/");
-    if (!isValidType) {
-      alert("File không hợp lệ. Vui lòng tải lên video có định dạng hợp lệ.");
-      return;
-    }
-
-    // Kiểm tra kích thước video (tối đa 30MB)
-    const isValidSize = file.size <= 30 * 1024 * 1024;
-    if (!isValidSize) {
-      alert("Video quá lớn. Vui lòng tải lên video có kích thước dưới 30MB.");
-      return;
-    }
-
-    // Kiểm tra độ dài video (10s-60s)
-    const video = document.createElement("video");
-    video.preload = "metadata";
-
-    video.onloadedmetadata = function () {
-      window.URL.revokeObjectURL(video.src);
-      const duration = video.duration;
-
-      if (duration < 10 || duration > 60) {
-        alert("Video phải có độ dài từ 10 đến 60 giây.");
-        return;
-      }
-
-      setProductVideo(file);
-      onInputChange("video", file);
-    };
-
-    video.src = URL.createObjectURL(file);
-  };
-
   // Hàm xóa ảnh sản phẩm
   const removeProductImage = (index) => {
     const newImages = [...productImages];
@@ -158,12 +119,6 @@ const BasicInformation = ({ productData, onInputChange }) => {
   const removePromotionImage = () => {
     setPromotionImage(null);
     onInputChange("promotionImage", null);
-  };
-
-  // Hàm xóa video sản phẩm
-  const removeProductVideo = () => {
-    setProductVideo(null);
-    onInputChange("video", null);
   };
 
   // Tính toán kích thước khung addImage dựa trên tỷ lệ
@@ -276,7 +231,6 @@ const BasicInformation = ({ productData, onInputChange }) => {
           )}
         </div>
       </div>
-
       {/* Promotion Image */}
       <div className="grid grid-cols-[180px,1fr] gap-2">
         <div className="flex items-start">
@@ -335,69 +289,6 @@ const BasicInformation = ({ productData, onInputChange }) => {
           )}
         </div>
       </div>
-
-      {/* Product Video */}
-      <div className="grid grid-cols-[180px,1fr] gap-2">
-        <div className="flex items-start">
-          <span className="text-sm">Product Video</span>
-        </div>
-        <div>
-          <div className="text-xs text-gray-500 mb-2">
-            <div>
-              • Size: Max 30MB, resolution should not exceed 1280×1280px
-            </div>
-            <div>• Duration: 10s-60s</div>
-            <div>• Format: MP4</div>
-            <div>
-              • Note: You can publish this listing while the video is being
-              processed. Video will be shown in listing once successfully
-              processed.
-            </div>
-          </div>
-
-          {/* Hiển thị video đã tải lên */}
-          {productVideo ? (
-            <div className="relative w-[240px] h-[135px]">
-              <video
-                src={URL.createObjectURL(productVideo)}
-                controls
-                className="w-full h-full object-cover rounded border"
-              />
-              <button
-                onClick={removeProductVideo}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
-              >
-                ×
-              </button>
-            </div>
-          ) : (
-            <div
-              className="border border-dashed border-gray-300 rounded p-2 w-[120px] h-[120px] flex flex-col items-center justify-center cursor-pointer hover:border-gray-400"
-              onClick={() => productVideoInputRef.current.click()}
-            >
-              <input
-                type="file"
-                ref={productVideoInputRef}
-                onChange={handleProductVideoUpload}
-                accept="video/mp4"
-                className="hidden"
-              />
-              <div className="w-6 h-6 mb-1">
-                <svg viewBox="0 0 24 24" fill="none" className="text-red-500">
-                  <path
-                    d="M12 4v16m8-8H4"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-              <span className="text-xs text-gray-500">Add Video</span>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Product Name */}
       <div className="grid grid-cols-[180px,1fr] gap-2">
         <div className="flex items-start">
@@ -418,7 +309,6 @@ const BasicInformation = ({ productData, onInputChange }) => {
           </span>
         </div>
       </div>
-
       {/* Category */}
       <div className="grid grid-cols-[180px,1fr] gap-2">
         <div className="flex items-start">
@@ -428,11 +318,11 @@ const BasicInformation = ({ productData, onInputChange }) => {
         <div className="relative" ref={categoryDropdownRef}>
           <input
             type="text"
-            value={productData.category}
+            value={productData.selectedCategoryName || ""}
             readOnly
             placeholder="Please set category"
+            onClick={() => setShowCategoryDropdown(true)}
             className="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-gray-50 cursor-pointer"
-            onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
           />
           <button
             className="absolute right-3 top-1/2 -translate-y-1/2"
@@ -483,7 +373,6 @@ const BasicInformation = ({ productData, onInputChange }) => {
           )}
         </div>
       </div>
-
       {/* Product Description */}
       <div className="grid grid-cols-[180px,1fr] gap-2">
         <div className="flex items-start">

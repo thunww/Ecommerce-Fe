@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import axios from "axios";
 import FillingSuggestion from "./components/FillingSuggestion";
 import ProductTabs from "./components/ProductTabs";
 import BasicInformation from "./components/BasicInfomation";
@@ -7,6 +9,7 @@ import SalesInformation from "./components/SalesInformation";
 import Shipping from "./components/Shipping";
 import Others from "./components/Others";
 import FooterButtons from "./components/FooterButtons";
+import productService from "../../../../services/productService";
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -22,9 +25,9 @@ const AddProduct = () => {
   const [productData, setProductData] = useState({
     images: [],
     promotionImage: null,
-    video: null,
     productName: "",
     category: "",
+    selectedCategoryName: "",
     description: "",
     // Sales Information
     variations: [],
@@ -142,8 +145,181 @@ const AddProduct = () => {
     };
   }, []);
 
-  const handleSaveAndPublish = () => {
-    navigate("/vendor/products");
+  // Xử lý khi submit form
+  const handleSubmit = async (action) => {
+    console.log("Thực hiện hành động:", action);
+    console.log("Dữ liệu sản phẩm:", productData);
+
+    try {
+      // Validate dữ liệu
+      const errors = [];
+
+      if (!productData.productName) {
+        errors.push("Tên sản phẩm là bắt buộc");
+      }
+
+      if (!productData.category) {
+        errors.push("Danh mục sản phẩm là bắt buộc");
+      }
+
+      if (!productData.price || isNaN(parseFloat(productData.price))) {
+        errors.push("Giá sản phẩm không hợp lệ");
+      }
+
+      if (!productData.stock || isNaN(parseInt(productData.stock))) {
+        errors.push("Số lượng sản phẩm không hợp lệ");
+      }
+
+      // Kiểm tra biến thể
+      if (productData.variations && productData.variations.length > 0) {
+        const invalidVariations = productData.variations.filter(
+          (variant) =>
+            !variant.price ||
+            isNaN(parseFloat(variant.price)) ||
+            !variant.stock ||
+            isNaN(parseInt(variant.stock))
+        );
+
+        if (invalidVariations.length > 0) {
+          errors.push("Một số biến thể có giá hoặc số lượng không hợp lệ");
+        }
+      }
+
+      // Nếu có lỗi, hiển thị và dừng việc submit
+      if (errors.length > 0) {
+        errors.forEach((error) => toast.error(error));
+        console.error("Lỗi khi xác thực dữ liệu:", errors);
+        return;
+      }
+
+      // Chuẩn bị formData
+      const formData = new FormData();
+
+      // Thêm thông tin cơ bản
+      formData.append("productName", productData.productName);
+      formData.append("category", productData.category);
+      formData.append("description", productData.description || "");
+      formData.append("price", productData.price);
+      formData.append("stock", productData.stock);
+      formData.append("weight", productData.weight || "0.3");
+
+      // Thêm thông tin parcelSize nếu có
+      if (productData.parcelSize) {
+        // Đảm bảo các giá trị là số
+        const parsedParcelSize = {
+          width: parseFloat(productData.parcelSize.width) || 0,
+          length: parseFloat(productData.parcelSize.length) || 0,
+          height: parseFloat(productData.parcelSize.height) || 0,
+        };
+
+        // Chuyển đổi thành chuỗi JSON ngắn gọn
+        formData.append("parcelSize", JSON.stringify(parsedParcelSize));
+      }
+
+      // Thêm thông tin shippingOptions
+      if (productData.shippingOptions) {
+        formData.append(
+          "shippingOptions",
+          JSON.stringify(productData.shippingOptions)
+        );
+      }
+
+      // Thêm thông tin khác
+      formData.append("preOrder", productData.preOrder || "No");
+      formData.append("condition", productData.condition || "New");
+      formData.append("parentSKU", productData.parentSKU || "");
+
+      // Thêm trạng thái dựa trên action
+      const status = action === "save" ? "pending" : "active";
+      formData.append("status", status);
+
+      // Thêm hình ảnh nếu có
+      if (productData.images && productData.images.length > 0) {
+        productData.images.forEach((image) => {
+          formData.append("images", image);
+        });
+      }
+
+      // Thêm URLs ảnh nếu có
+      if (productData.imageUrls && productData.imageUrls.length > 0) {
+        formData.append("imageUrls", JSON.stringify(productData.imageUrls));
+      }
+
+      // Xử lý variations
+      if (productData.variations && productData.variations.length > 0) {
+        // Đảm bảo mỗi biến thể có đầy đủ thông tin
+        const processedVariations = productData.variations.map(
+          (variant, index) => {
+            // Ưu tiên lấy từ option trước, sau đó mới đến color
+            // QUAN TRỌNG: Đảm bảo option không bị "null" hoặc undefined
+            const color = (
+              variant.option ||
+              variant.color ||
+              "Default"
+            ).toString();
+
+            // Ưu tiên lấy material từ tên variation hoặc từ material đã có
+            const material = (
+              variant.material || `Variation${index + 1}`
+            ).toString();
+
+            // Lấy weight từ variant hoặc từ phần Shipping
+            const weight = variant.weight || productData.weight || null;
+
+            // Đảm bảo lấy đúng đường dẫn ảnh đã upload nếu có
+            const image_url = variant.image_url || null;
+
+            const processedVariant = {
+              ...variant,
+              option: color, // Đảm bảo option cũng được gán
+              color: color, // Đổi tên option thành color để phù hợp với DB
+              material: material,
+              weight: weight,
+              image_url: image_url, // Lưu đường dẫn ảnh đã upload
+            };
+
+            console.log(
+              `Biến thể ${index + 1} trước khi gửi (FINAL):`,
+              processedVariant
+            );
+            return processedVariant;
+          }
+        );
+
+        console.log(
+          "FINAL - Tất cả biến thể trước khi gửi:",
+          processedVariations
+        );
+        formData.append("variations", JSON.stringify(processedVariations));
+      }
+
+      // Log formData để debug
+      for (let [key, value] of formData.entries()) {
+        console.log(`FormData: ${key} = ${value}`);
+      }
+
+      // Gọi API để tạo sản phẩm
+      console.log("Gửi request tạo sản phẩm");
+      const response = await productService.createProduct(formData);
+      console.log("Kết quả tạo sản phẩm:", response);
+
+      // Hiển thị thông báo thành công
+      toast.success("Sản phẩm đã được tạo thành công!");
+
+      // Chuyển hướng về trang hiển thị sản phẩm sau khi thêm thành công
+      console.log("Chuyển hướng sau 1.5 giây");
+
+      // Đảm bảo chuyển hướng sẽ xảy ra
+      setTimeout(() => {
+        console.log("Thực hiện chuyển hướng...");
+        window.location.href = "/vendor/products";
+      }, 1500);
+    } catch (error) {
+      console.error("Lỗi khi tạo sản phẩm:", error);
+      toast.error(
+        error.message || "Đã xảy ra lỗi khi tạo sản phẩm. Vui lòng thử lại!"
+      );
+    }
   };
 
   // Kiểm tra xem category đã được chọn chưa
@@ -217,10 +393,13 @@ const AddProduct = () => {
 
             {/* Footer */}
             <div className="px-6 py-4 border-t">
-              <FooterButtons
-                onCancel={() => navigate("/vendor/products")}
-                onSaveAndPublish={handleSaveAndPublish}
-              />
+              <div className="mt-8">
+                <FooterButtons
+                  onCancel={() => navigate("/vendor/products")}
+                  onSaveAndPublish={() => handleSubmit("publish")}
+                  onSaveAndDelist={() => handleSubmit("save")}
+                />
+              </div>
             </div>
           </div>
         </div>
