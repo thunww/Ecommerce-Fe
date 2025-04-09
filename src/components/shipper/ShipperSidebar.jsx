@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { 
   Home, 
   Package, 
@@ -9,6 +9,7 @@ import {
   ChevronRight,
   LineChart
 } from "lucide-react";
+import { FaHome, FaClipboardList, FaUser, FaMoneyBillWave, FaSignOutAlt } from 'react-icons/fa';
 
 const SidebarItem = ({ to, icon: Icon, label, isActive, onClick, isCollapsed }) => {
   return (
@@ -26,12 +27,34 @@ const SidebarItem = ({ to, icon: Icon, label, isActive, onClick, isCollapsed }) 
   );
 };
 
+const MenuItem = ({ to, icon: Icon, label, isActive, isCollapsed }) => (
+  <Link
+    to={to}
+    className={`relative flex items-center ${isCollapsed ? 'justify-center' : 'space-x-2'} px-4 py-3 text-sm hover:bg-red-50 hover:text-red-500 transition-colors group ${
+      isActive ? 'bg-red-50 text-red-500 border-r-4 border-red-500' : 'text-gray-600'
+    }`}
+  >
+    <Icon className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : ''}`} />
+    {!isCollapsed && <span>{label}</span>}
+    
+    {/* Tooltip khi hover */}
+    {isCollapsed && (
+      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap">
+        {label}
+      </div>
+    )}
+  </Link>
+);
+
 const ShipperSidebar = ({ isOpen, toggleSidebar, currentPath, isCollapsed, toggleCollapse }) => {
+  const location = useLocation();
+  const isActive = (path) => location.pathname === path;
+
   const menuItems = [
-    { to: "/shipper/dashboard", icon: Home, label: "Dashboard" },
-    { to: "/shipper/orders", icon: Package, label: "Đơn hàng" },
-    { to: "/shipper/income", icon: LineChart, label: "Thu nhập" },
-    { to: "/shipper/profile", icon: User, label: "Thông tin" }
+    { to: "/shipper/dashboard", icon: FaHome, label: "Trang chủ" },
+    { to: "/shipper/orders", icon: FaClipboardList, label: "Đơn hàng" },
+    { to: "/shipper/income", icon: FaMoneyBillWave, label: "Thu nhập" },
+    { to: "/shipper/profile", icon: FaUser, label: "Hồ sơ" }
   ];
 
   return (
@@ -41,7 +64,7 @@ const ShipperSidebar = ({ isOpen, toggleSidebar, currentPath, isCollapsed, toggl
       } md:translate-x-0 ${isCollapsed ? "w-16" : "w-64"}`}
     >
       {/* Logo */}
-      <div className="flex items-center justify-between h-16 bg-red-500 text-white px-4">
+      <div className="flex items-center justify-between h-[4.5rem] bg-red-500 text-white px-4">
         {!isCollapsed && <h1 className="text-xl font-bold">ShipPro</h1>}
         <button
           onClick={toggleCollapse}
@@ -54,13 +77,12 @@ const ShipperSidebar = ({ isOpen, toggleSidebar, currentPath, isCollapsed, toggl
       {/* Menu Items */}
       <nav className="mt-4">
         {menuItems.map((item) => (
-          <SidebarItem
+          <MenuItem
             key={item.to}
             to={item.to}
             icon={item.icon}
             label={item.label}
-            isActive={currentPath === item.to}
-            onClick={toggleSidebar}
+            isActive={isActive(item.to)}
             isCollapsed={isCollapsed}
           />
         ))}
@@ -74,13 +96,19 @@ const ShipperSidebar = ({ isOpen, toggleSidebar, currentPath, isCollapsed, toggl
             console.log("Logout clicked");
             toggleSidebar();
           }}
-          className={`flex items-center text-red-600 hover:bg-red-50 transition-colors duration-200 px-4 py-3 w-full ${
-            isCollapsed ? "justify-center" : ""
+          className={`relative flex items-center text-red-600 hover:bg-red-50 transition-colors duration-200 px-4 py-3 w-full group ${
+            isCollapsed ? "justify-center" : "space-x-2"
           }`}
-          title={isCollapsed ? "Đăng xuất" : ""}
         >
-          <LogOut className={isCollapsed ? "" : "mr-3"} size={20} />
+          <FaSignOutAlt className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : ''}`} />
           {!isCollapsed && <span>Đăng xuất</span>}
+          
+          {/* Tooltip cho nút đăng xuất */}
+          {isCollapsed && (
+            <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap">
+              Đăng xuất
+            </div>
+          )}
         </button>
       </div>
     </div>
