@@ -46,7 +46,6 @@ const Header = () => {
     setShowAccountMenu(false);
   };
 
-  // Close the menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -114,7 +113,7 @@ const Header = () => {
 
             {/* Icons */}
             <div className="flex items-center gap-1 sm:gap-3 order-2 sm:order-3">
-              <ul className="flex items-center gap-1 sm:gap-3">
+              <ul className="flex items-center gap-3 sm:gap-6">
                 <li>
                   <Tooltip title="Cart">
                     <IconButton
