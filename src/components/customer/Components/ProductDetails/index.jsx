@@ -23,23 +23,31 @@ const ProductDetailsComponent = () => {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [qty, setQty] = useState(1);
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const [currentImages, setCurrentImages] = useState([]); // State để lưu hình ảnh hiện tại cho ProductZoom
+  const [currentImages, setCurrentImages] = useState([]);
+  const [selectedSize, setSelectedSize] = useState(null);
+
+  const allSizes = Array.from(
+    new Set(
+      product?.variants
+        ?.flatMap((variant) => variant.size?.split(",").map((s) => s.trim()))
+        .filter(Boolean)
+    )
+  );
 
   useEffect(() => {
     if (product?.variants?.length > 0) {
       setSelectedVariant(0);
-
       const variantImages = product.variants.map((v) => v.image_url);
-      setCurrentImages(variantImages); // All variant images
+      setCurrentImages(variantImages);
     }
   }, [product]);
-  
+
   const handleSelectVariant = (index) => {
     setSelectedVariant(index);
     setQty(1);
     const selectedVariantImage = product?.variants[index]?.image_url;
     if (selectedVariantImage) {
-      setCurrentImages([selectedVariantImage]); // Nếu bạn muốn chỉ 1 ảnh => OK
+      setCurrentImages([selectedVariantImage]);
     }
   };
 
@@ -67,38 +75,31 @@ const ProductDetailsComponent = () => {
   const selected = product?.variants?.[selectedVariant];
   const stock = selected ? selected.stock : 0;
 
-  // Calculate the discounted price
   const discount = product?.discount ? parseFloat(product?.discount) : 0;
   const originalPrice = selected ? parseFloat(selected.price) : 0;
   const discountedPrice = originalPrice * (1 - discount / 100);
 
-  // Truncate description for initial view
   const shortDescription = product?.description?.substring(0, 150);
   const hasLongDescription = product?.description?.length > 150;
 
   const hasValidVariant = product?.variants?.some(
-    (variant) => variant.size || variant.ram || variant.storage
+    (variant) => variant.size || variant.color || variant.ram || variant.storage
   );
 
   return (
     <div className="product-details bg-white rounded-xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
-      {/* Left Column: Product Zoom */}
       <div className="product-zoom-section">
         <ProductZoom
-          images={product.variants.map((v) => v.image_url)} // danh sách tất cả ảnh
-          currentImage={product.variants[selectedVariant]?.image_url} // ảnh đang chọn
+          images={product.variants.map((v) => v.image_url)}
+          currentImage={product.variants[selectedVariant]?.image_url}
         />
       </div>
 
-      {/* Right Column: Product Details */}
       <div className="product-info-section">
-        {/* Header with gradient background */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
           <h1 className="text-2xl font-semibold text-gray-800 mb-2">
             {product?.product_name}
           </h1>
-
-          {/* Product meta info */}
           <div className="flex flex-wrap items-center gap-3 text-xs">
             <div className="flex items-center bg-white px-3 py-1 rounded-full shadow-sm">
               <span className="font-medium text-indigo-600 mr-1">
@@ -115,7 +116,6 @@ const ProductDetailsComponent = () => {
                 ({product?.review_count?.toLocaleString() || 0})
               </span>
             </div>
-
             {product?.sold && (
               <div className="bg-white px-3 py-1 rounded-full shadow-sm">
                 <span className="text-gray-600">
@@ -128,9 +128,7 @@ const ProductDetailsComponent = () => {
           </div>
         </div>
 
-        {/* Main content */}
         <div className="p-4">
-          {/* Price & Stock */}
           <div className="flex flex-wrap items-center justify-between mb-4">
             <div className="flex items-baseline gap-2">
               {selected && (
@@ -149,7 +147,6 @@ const ProductDetailsComponent = () => {
                 </>
               )}
             </div>
-
             {selected && (
               <div className="flex items-center">
                 <div className={`h-2 w-32 bg-gray-200 rounded-full mr-2`}>
@@ -181,7 +178,6 @@ const ProductDetailsComponent = () => {
             )}
           </div>
 
-          {/* Product Description with toggle */}
           <div className="mb-4">
             <h2 className="text-md font-medium text-gray-800 mb-2">
               Product Description
@@ -201,12 +197,39 @@ const ProductDetailsComponent = () => {
             </div>
           </div>
 
-          {/* Variants with Color Display */}
+          {/* Variants Section */}
           {hasValidVariant && (
             <div className="my-4">
-              <h2 className="text-md font-medium text-gray-800 mb-2">
-                Choose Variant
-              </h2>
+              {allSizes.length > 0 && (
+                <div className="my-4">
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <h2 className="text-md font-medium text-gray-800 mb-0 whitespace-nowrap">
+                      Sizes:
+                    </h2>
+                    <div className="flex flex-wrap gap-2">
+                      {allSizes.map((size) => {
+                        const isSelected = selectedSize === size;
+                        return (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() => setSelectedSize(size)}
+                            className={`px-4 py-2 rounded-full text-sm border transition 
+                ${
+                  isSelected
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50"
+                }`}
+                          >
+                            {size}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-2">
                 {product?.variants?.map((variant, index) => (
                   <motion.button
@@ -220,23 +243,23 @@ const ProductDetailsComponent = () => {
                         : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
+                    {/* Thu nhỏ kích thước ảnh */}
                     <img
                       src={variant.image_url}
                       alt={variant.color}
-                      className="w-10 h-10 rounded object-cover border"
+                      className="w-8 h-8 rounded object-cover border" // Giảm từ w-10 h-10 xuống w-8 h-8
                     />
                     <div className="flex flex-col text-left">
                       <span className="text-sm font-medium">
                         {variant.color}
                       </span>
                       <span className="text-xs text-gray-500">
-                        {variant.size && `${variant.size} / `}
                         {variant.ram && `${variant.ram}GB RAM / `}
                         {variant.storage && `${variant.storage}GB Storage`}
                       </span>
                     </div>
                     {selectedVariant === index && (
-                      <FaCheck className="text-indigo-600 ml-auto" size={14} />
+                      <FaCheck className="text-indigo-600 ml-auto" size={12} /> // Giảm size icon từ 14 xuống 12
                     )}
                   </motion.button>
                 ))}
@@ -244,7 +267,6 @@ const ProductDetailsComponent = () => {
             </div>
           )}
 
-          {/* Quantity selector */}
           <div className="my-4">
             <h2 className="text-md font-medium text-gray-800 mb-2">Quantity</h2>
             <div className="flex items-center">
@@ -281,7 +303,6 @@ const ProductDetailsComponent = () => {
             </div>
           </div>
 
-          {/* Product highlights */}
           <div className="grid grid-cols-2 gap-2 mb-4">
             <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
               <BsShieldCheck className="text-indigo-600" size={16} />
@@ -301,7 +322,6 @@ const ProductDetailsComponent = () => {
             </div>
           </div>
 
-          {/* Action buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -311,7 +331,6 @@ const ProductDetailsComponent = () => {
             >
               Buy Now
             </motion.button>
-
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
