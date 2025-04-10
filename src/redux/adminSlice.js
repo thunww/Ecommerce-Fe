@@ -42,7 +42,7 @@ export const updateUser = createAsyncThunk(
   async ({ user_id, ...userData }, { rejectWithValue }) => {
     try {
       const response = await adminService.updateUserById(user_id, userData);
-      return response.user; // API trả về user đã cập nhật
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Lỗi khi cập nhật user");
     }
@@ -73,11 +73,37 @@ export const unbanUser = createAsyncThunk(
   }
 );
 
+export const assignRoleToUser = createAsyncThunk(
+  "admin/assign-role",
+  async ({ userId, roleId }, { rejectWithValue }) => {
+    try {
+      const response = await adminService.assignRoleToUser(userId, roleId);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Lỗi khi assign-role user"
+      );
+    }
+  }
+);
+
+export const uploadAvatar = createAsyncThunk(
+  "admin/uploadAvatar",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await adminService.uploadAvatar(formData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Lỗi khi upload avatar");
+    }
+  }
+);
 const adminSlice = createSlice({
   name: "admin",
   initialState: {
     users: [],
     selectedUser: null,
+    avatar: null,
     loading: false,
     error: null,
   },
@@ -112,7 +138,7 @@ const adminSlice = createSlice({
       })
       .addCase(fetchUserById.fulfilled, (state, action) => {
         state.loading = false;
-        state.selectedUser = action.payload; // Lưu user vào Redux store
+        state.selectedUser = action.payload;
       })
       .addCase(fetchUserById.rejected, (state, action) => {
         state.loading = false;
@@ -164,6 +190,29 @@ const adminSlice = createSlice({
         );
       })
       .addCase(unbanUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(assignRoleToUser.fulfilled, (state, action) => {
+        state.users = state.users.map((user) =>
+          user.user_id === action.payload.userId
+            ? { ...user, roles: [...user.roles, action.payload.role] }
+            : user
+        );
+      })
+
+      // Handle upload avatar
+      .addCase(uploadAvatar.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(uploadAvatar.fulfilled, (state, action) => {
+        state.loading = false;
+        // You can store the uploaded avatar URL or path if needed
+        state.avatar = action.payload.avatar;
+      })
+      .addCase(uploadAvatar.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

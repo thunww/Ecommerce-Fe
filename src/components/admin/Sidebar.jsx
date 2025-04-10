@@ -66,7 +66,7 @@ const Sidebar = ({ isOpen }) => {
         <SidebarItem to="/admin/users" label="Users" icon={<Users size={20} />} isOpen={isOpen} />
         <SidebarItem to="/admin/orders" icon={<ShoppingCart size={20} />} label="Orders" isOpen={isOpen} />
         <SidebarItem to="/admin/products" icon={<Package size={20} />} label="Products" isOpen={isOpen} />
-        <SidebarItem to="/admin/vendors" icon={<Store size={20} />} label="Vendors" isOpen={isOpen} />
+        <SidebarItem to="/admin/shops" icon={<Store size={20} />} label="Shops" isOpen={isOpen} />
         <SidebarItem to="/admin/shipping" icon={<Truck size={20} />} label="Shipping" isOpen={isOpen} />
         <SidebarItem to="/admin/transactions" icon={<DollarSign size={20} />} label="Transactions" isOpen={isOpen} />
       </SidebarSection>

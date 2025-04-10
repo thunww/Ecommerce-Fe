@@ -5,6 +5,7 @@ import {
   banUser,
   updateUserStatus,
   unbanUser,
+  assignRoleToUser,
 } from "../../redux/adminSlice";
 import Table from "../../components/common/Table";
 import {
@@ -125,8 +126,8 @@ const ManageUsers = () => {
               <span class="ml-2 text-gray-700">Customer</span>
             </label>
             <label class="inline-flex items-center">
-              <input type="radio" name="role" value="seller" class="form-radio h-5 w-5 text-green-600">
-              <span class="ml-2 text-gray-700">Seller</span>
+              <input type="radio" name="role" value="admin" class="form-radio h-5 w-5 text-green-600">
+              <span class="ml-2 text-gray-700">Admin</span>
             </label>
             <label class="inline-flex items-center">
               <input type="radio" name="role" value="vendor" class="form-radio h-5 w-5 text-purple-600">
@@ -156,22 +157,35 @@ const ManageUsers = () => {
       },
     }).then((result) => {
       if (result.isConfirmed) {
+        const roleMapping = {
+          admin: 1,
+          customer: 2,
+          shipper: 3,
+          vendor: 4,
+        };
         const selectedRole = result.value.role;
-        console.log(
-          `Granting ${selectedRole} role to user with ID: ${user_id}`
-        );
-
-        // Implement API call to grant permission here
-        // api.grantPermission(user_id, selectedRole)
-
-        Swal.fire({
-          icon: "success",
-          title: "Authorization successful!",
-          text: `User has been granted permission ${selectedRole.toUpperCase()}.`,
-          confirmButtonColor: "#3085d6",
-          timer: 2000,
-          timerProgressBar: true,
-        });
+        const roleId = roleMapping[selectedRole];
+        // Gọi API Redux để gán role
+        dispatch(assignRoleToUser({ userId: user_id, roleId: roleId }))
+          .unwrap()
+          .then(() => {
+            Swal.fire({
+              icon: "success",
+              title: "Authorization successful!",
+              text: `User has been granted permission ${selectedRole.toUpperCase()}.`,
+              confirmButtonColor: "#3085d6",
+              timer: 2000,
+              timerProgressBar: true,
+            });
+          })
+          .catch((error) => {
+            Swal.fire({
+              icon: "error",
+              title: "Failed!",
+              text: error || "Failed to grant user permission.",
+              confirmButtonColor: "#d33",
+            });
+          });
       }
     });
   };
