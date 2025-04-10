@@ -1,17 +1,44 @@
 import React, { useState } from "react";
 import { IoSearchSharp } from "react-icons/io5";
+import { IoCloseOutline } from "react-icons/io5";
+
 const Search = () => {
-    return (
-        <div className='searchBox w-[100%] h-[50px] bg-[#e5e5e5] rounded-[20px] relative p-2' >
+  const [searchValue, setSearchValue] = useState("");
+
+  const handleClearSearch = () => {
+    setSearchValue("");
+  };
+
+  return (
+    <div className="flex justify-center w-full py-1">
+      <div className="w-full max-w-lg relative">
+        <div className="flex items-center bg-white border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+          <div className="flex-grow">
             <input
-                type='text'
-                placeholder='Search for products, brands and more'
-                className='w-full h-[35px] focus:outline-none  bg-inherit p-2 text-[15px]' />
-            <Button
-                className='!absolute top-[8px] right-[5px] z-50 !w-[37px] !min-w[37px] h-[37px] !rounded-full !text-black'>
-                <IoSearchSharp className='text-black text-[22px]' />
-            </Button>
+              type="text"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder="Search for products, brands and more"
+              className="w-full py-2 px-4 text-gray-700 focus:outline-none text-sm"
+            />
+          </div>
+
+          {searchValue && (
+            <button
+              onClick={handleClearSearch}
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+            >
+              <IoCloseOutline className="text-lg" />
+            </button>
+          )}
+
+          <button className="bg-blue-600 hover:bg-blue-700 transition-colors text-white flex items-center justify-center h-8 w-8 rounded-full m-1">
+            <IoSearchSharp className="text-base" />
+          </button>
         </div>
-    )
-}
+      </div>
+    </div>
+  );
+};
+
 export default Search;
