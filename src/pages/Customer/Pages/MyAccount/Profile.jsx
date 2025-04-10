@@ -151,8 +151,9 @@ const Profile = () => {
           : undefined,
       gender:
         profileData.gender !== user.gender ? profileData.gender : undefined,
-      profile_picture: uploadedImageUrl,
+      profile_picture: selectedImage ? uploadedImageUrl : undefined,
     };
+
     const filteredData = Object.fromEntries(
       Object.entries(updatedData).filter(([_, value]) => value !== undefined)
     );

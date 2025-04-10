@@ -8,7 +8,7 @@ import AddressSelector from '../../components/AddressSelector';
 const ShipperRegister = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, error, success } = useSelector((state) => state.shipper);
+  const { error } = useSelector((state) => state.shipper || {});
   const { user } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
@@ -53,7 +53,7 @@ const ShipperRegister = () => {
       toast.error('Vui lòng nhập số điện thoại');
       return false;
     }
-    if (!/^\d{10,15}$/.test(formData.phone)) {
+    if (!/^(0[3|5|7|8|9])+([0-9]{8})\b/.test(formData.phone)) {
       toast.error('Số điện thoại không hợp lệ');
       return false;
     }
@@ -77,11 +77,21 @@ const ShipperRegister = () => {
     if (!validateForm()) return;
 
     try {
-      await dispatch(registerShipper(formData)).unwrap();
+      const shipperData = {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        delivery_address: formData.delivery_address,
+        vehicle_type: formData.vehicle_type,
+        license_plate: formData.license_plate,
+        driver_license: formData.driver_license,
+      };
+
+      await dispatch(registerShipper(shipperData));
       toast.success('Đăng ký thành công! Vui lòng đợi xét duyệt');
       navigate('/shipper/dashboard');
     } catch (error) {
-      toast.error(error || 'Đăng ký thất bại');
+      toast.error(error?.message || 'Đăng ký thất bại. Vui lòng thử lại!');
     }
   };
 
@@ -247,20 +257,9 @@ const ShipperRegister = () => {
             <div>
               <button
                 type="submit"
-                disabled={loading}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition duration-150 ease-in-out"
               >
-                {loading ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Đang xử lý...
-                  </span>
-                ) : (
-                  'Đăng ký'
-                )}
+                Đăng ký
               </button>
             </div>
           </form>

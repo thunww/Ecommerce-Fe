@@ -98,66 +98,56 @@ const Home = () => {
 
       <HomeCatSlider />
 
-      <section className="bg-white py-4 sm:py-8">
-        <div className="container px-4 sm:px-6">
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-0 items-start lg:items-center justify-between">
-            <div className="leftSec w-full lg:w-auto">
-              <h2 className="text-[18px] sm:text-[20px] md:text-[22px] font-[600]">
-                Popular ProDuct
-              </h2>
-              <p className="text-[12px] sm:text-[13px] md:text-[14px] font-[500]">
-                Do not mis the current offers until the end of March
-              </p>
-            </div>
-            <div className="rightSec w-full lg:w-[70%] overflow-x-auto">
-              <Tabs
-                value={value}
-                onChange={handleChange}
-                variant="scrollable"
-                scrollButtons="auto"
-                aria-label="scrollable auto tabs example"
-                sx={{
-                  minHeight: "42px",
-                  "& .MuiTab-root": {
-                    fontSize: { xs: "12px", sm: "14px" },
-                    minHeight: "42px",
-                    padding: { xs: "6px 10px", sm: "8px 16px" },
-                  },
-                }}
-              >
-                <Tab label="Fashion" />
-                <Tab label="Electronics" />
-                <Tab label="Bags" />
-                <Tab label="Beauty" />
-                <Tab label="Wealness" />
-                <Tab label="Item Six" />
-                <Tab label="Item Seven" />
-                <Tab label="Item One" />
-                <Tab label="Item Two" />
-                <Tab label="Item Three" />
-                <Tab label="Item Four" />
-                <Tab label="Item Five" />
-                <Tab label="Item Six" />
-                <Tab label="Item Seven" />
-              </Tabs>
-            </div>
-          </div>
+            <section className="bg-white py-8">
+                <div className="container">
+                    <div className="flex place-items-center justify-between">
+                        <div className="leftSec">
+                            <h2 className="text-[22px] font-[600]">
+                                Popular ProDuct
+                            </h2>
+                            <p className="text-[14px] font-[500]">
+                                Do not mis the current offers until the end of March</p>
+                        </div>
+                        <div className="rightSec w-[70%]">
+                            <Tabs
+                                value={value}
+                                onChange={handleChange}
+                                variant="scrollable"
+                                scrollButtons="auto"
+                                aria-label="scrollable auto tabs example"
+                            >
+                                <Tab label="Fashion" />
+                                <Tab label="Electronics" />
+                                <Tab label="Bags" />
+                                <Tab label="Beauty" />
+                                <Tab label="Wealness" />
+                                <Tab label="Item Six" />
+                                <Tab label="Item Seven" />
+                                <Tab label="Item One" />
+                                <Tab label="Item Two" />
+                                <Tab label="Item Three" />
+                                <Tab label="Item Four" />
+                                <Tab label="Item Five" />
+                                <Tab label="Item Six" />
+                                <Tab label="Item Seven" />
+                            </Tabs>
 
-          <div className="mt-4 sm:mt-6">
-            {/*<ProductsSlider items={6} /> */}
-          </div>
-        </div>
-      </section>
+                        </div>
+                    </div>
 
-      <section className="py-3 sm:py-4 pt-1 sm:pt-2 bg-white">
-        <div className="container px-4 sm:px-6">
-          <div className="freeShipping w-full py-3 sm:py-4 p-3 sm:p-4 border-2 border-[red] flex flex-col sm:flex-row items-center gap-3 sm:gap-0 sm:justify-between rounded-md mb-2">
-            <div className="col1 flex items-center gap-2 sm:gap-4">
-              <FaShippingFast className="text-[30px] sm:text-[40px] font-[600] flex-shrink-0" />
-              <span className="text-[16px] sm:text-[20px] font-[600] uppercase">
-                FreeShipping
-              </span>
-            </div>
+                    <ProductsSlider items={6} />
+
+
+                </div>
+            </section>
+
+            <section className="py-4 pt-2 bg-white">
+                <div className="container">
+                    <div className="freeShipping w-full py-4 p-4 border-2 border-[red] flex items-center justify-between rounded-md mb-2">
+                        <div className="col1 flex items-center gap-4">
+                            <FaShippingFast className="text-[40px] font-[600]" />
+                            <span className="text-[20px] font-[600] uppercase">FreeShipping</span>
+                        </div>
 
             <div className="col2 text-center sm:text-left">
               <p className="text-[13px] sm:text-[15px] mb-0 font-[500]">
@@ -173,50 +163,21 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="py-4 sm:py-5 pt-0">
-        <div className="container px-4 sm:px-6">
-          <h2 className="text-[18px] sm:text-[20px] md:text-[22px] font-[600] mb-4">
-            Latest Products
-          </h2>
-          <div className="product-list grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
-            {currentProducts.map((product) => (
-              <ProductItem key={product.id} product={product} />
-            ))}
-          </div>
-          <div className="flex justify-center mt-8 gap-2 flex-wrap">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="w-9 h-9 flex items-center justify-center border rounded-full text-gray-600 hover:bg-gray-200 disabled:opacity-40"
-            >
-              <FaArrowLeft />
-            </button>
+            <section className="py-5 pt-0">
+                <div className="container">
+                    <h2 className="text-[22px] font-[600]">
+                        Latest Products
+                    </h2>
+                    <ProductsSlider items={6} />
 
-            {Array.from({ length: totalPages }, (_, index) => (
-              <button
-                key={index + 1}
-                onClick={() => handlePageChange(index + 1)}
-                className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === index + 1
-                    ? "bg-blue-500 text-white font-bold"
-                    : "text-gray-700 hover:bg-gray-100"
-                  }`}
-              >
-                {index + 1}
-              </button>
-            ))}
+                    <AdsbannerSlider items={4} />
+                </div>
+            </section>
 
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="w-9 h-9 flex items-center justify-center border rounded-full text-gray-600 hover:bg-gray-200 disabled:opacity-40"
-            >
-              <FaArrowRight />
-            </button>
-          </div>
-        </div>
-      </section>
-    </>
-  );
-};
+
+
+        </>
+    );
+}
 
 export default Home;

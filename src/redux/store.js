@@ -1,13 +1,16 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./authSlice";
 import adminReducer from "./adminSlice";
-import shipperReducer from "./shipperSlice";
-
+import shopReducer from "./shopSlice";
+import productReducer from "./productSilce";
+import reviewReducer from "./reviewsSilce";
 const store = configureStore({
   reducer: {
     auth: authReducer,
     admin: adminReducer,
-    shipper: shipperReducer,
+    shops: shopReducer,
+    products: productReducer,
+    reviews: reviewReducer,
   },
 });
 
