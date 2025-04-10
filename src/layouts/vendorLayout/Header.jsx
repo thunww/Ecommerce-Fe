@@ -100,8 +100,9 @@ const Header = () => {
 
   // Hàm xử lý khi click vào avatar
   const handleAvatarClick = () => {
-    navigate("/vendor/shop/profile");
-    setProfileDropdownOpen(false);
+    // Chỉ mở dropdown menu, không điều hướng đến trang profile
+    setProfileDropdownOpen(!isProfileDropdownOpen);
+    setDropdownOpen(false);
   };
 
   // Hàm xử lý khi click vào các mục menu
@@ -254,7 +255,7 @@ const Header = () => {
                   <span>My Profile</span>
                 </Link>
                 <Link
-                  to="/vendor/shop-info"
+                  to="/vendor/shop/profile"
                   className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100"
                   onClick={handleMenuItemClick}
                 >

@@ -93,50 +93,18 @@ const ProductTable = ({ products, onProductChanged }) => {
         return;
       }
 
-      // Kiểm tra xem sản phẩm đã có ảnh trong danh sách chưa
-      if (product.image) {
-        console.log("Product already has image:", product.image);
-      }
-
-      // Sử dụng hook để lấy tất cả ảnh cho sản phẩm
-      const images = await productImagesHook.fetchProductImages(productId);
-      console.log("Retrieved images for product ID", productId, ":", images);
-
-      if (!images || images.length === 0) {
-        console.error("No images found for product:", product);
-        toast.error("Không tìm thấy ảnh sản phẩm");
-        return;
-      }
-
-      // Tìm ảnh chính hoặc dùng ảnh đầu tiên
-      const primaryImage = images.find((img) => img.isPrimary) || images[0];
-      const mainImageUrl = primaryImage.url || "";
-
-      if (!mainImageUrl) {
-        console.error("Main image URL not found:", primaryImage);
-        toast.error("Không tìm thấy URL ảnh sản phẩm");
-        return;
-      }
-
-      // Đảm bảo tên sản phẩm được xác định
-      const productName = product.name || product.product_name || "Sản phẩm";
-
-      // Mở ImageViewer với ảnh sản phẩm
+      // Mở ImageViewer với ảnh sản phẩm và truyền productId
+      // Để ImageViewer tự lấy ảnh từ API
       setImageViewer({
         isOpen: true,
-        imageUrl: mainImageUrl,
-        productName: productName,
-        images: images,
+        imageUrl:
+          product.image || "https://via.placeholder.com/400x400?text=No+Image",
+        productName: product.name || product.product_name || "Sản phẩm",
+        images: [],
         productId: productId,
       });
 
-      console.log("Image viewer opened with:", {
-        isOpen: true,
-        imageUrl: mainImageUrl,
-        productName: productName,
-        imagesCount: images.length,
-        productId: productId,
-      });
+      console.log("Image viewer opened with product ID:", productId);
     } catch (error) {
       console.error("Error in handleViewProduct:", error);
       toast.error("Đã xảy ra lỗi khi mở ảnh sản phẩm");
@@ -325,11 +293,11 @@ const ProductTable = ({ products, onProductChanged }) => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div
-                      className="flex-shrink-0 h-10 w-10 cursor-pointer"
+                      className="flex-shrink-0 h-14 w-14 cursor-pointer relative rounded-lg overflow-hidden border border-gray-200 group"
                       onClick={() => handleViewProduct(product)}
                     >
                       <img
-                        className="h-10 w-10 rounded-full object-cover"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                         src={
                           product.image ||
                           "https://via.placeholder.com/400x400?text=No+Image"
@@ -344,9 +312,15 @@ const ProductTable = ({ products, onProductChanged }) => {
                             "https://via.placeholder.com/400x400?text=No+Image";
                         }}
                       />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity duration-300 flex items-center justify-center">
+                        <FaEye className="text-white text-xl opacity-0 group-hover:opacity-100" />
+                      </div>
                     </div>
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div
+                        className="text-sm font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
+                        onClick={() => handleEditProduct(product.id)}
+                      >
                         {product.name}
                       </div>
                       <div className="text-sm text-gray-500">
@@ -437,7 +411,7 @@ const ProductTable = ({ products, onProductChanged }) => {
           isOpen={imageViewer.isOpen}
           imageUrl={imageViewer.imageUrl}
           productName={imageViewer.productName}
-          images={imageViewer.images}
+          productId={imageViewer.productId}
           onClose={closeImageViewer}
         />
       )}

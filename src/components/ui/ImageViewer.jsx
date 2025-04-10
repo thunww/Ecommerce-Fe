@@ -6,6 +6,8 @@ import {
   FaChevronLeft,
   FaChevronRight,
 } from "react-icons/fa";
+import axios from "axios";
+import { API_BASE_URL } from "../../config/config";
 
 const ImageViewer = ({
   isOpen,
@@ -13,6 +15,7 @@ const ImageViewer = ({
   productName,
   onClose,
   images = [],
+  productId = null,
 }) => {
   const imageContainerRef = useRef(null);
   const [scale, setScale] = useState(1);
@@ -20,10 +23,210 @@ const ImageViewer = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [loadedImages, setLoadedImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Sử dụng danh sách ảnh được cung cấp hoặc tạo một danh sách mới từ imageUrl
+  // Lấy ảnh từ API theo product_id
+  useEffect(() => {
+    const fetchProductImages = async () => {
+      if (!isOpen) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Phương án 1: Sử dụng hình ảnh đã được truyền vào component
+        if (images && images.length > 0) {
+          console.log("Using provided images:", images);
+          setLoadedImages(
+            images.map((img, index) => ({
+              url: typeof img === "string" ? img : img.url,
+              label: productName || "Ảnh sản phẩm",
+              isPrimary: index === 0,
+            }))
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        // Phương án 2: Sử dụng imageUrl được truyền vào
+        if (imageUrl) {
+          console.log("Using provided imageUrl:", imageUrl);
+          setLoadedImages([
+            {
+              url: imageUrl,
+              label: productName || "Ảnh sản phẩm",
+              isPrimary: true,
+            },
+          ]);
+          setIsLoading(false);
+          return;
+        }
+
+        // Phương án 3: Gọi API nếu có productId
+        if (productId) {
+          try {
+            console.log("Fetching images for product ID:", productId);
+            const token = localStorage.getItem("accessToken");
+
+            // Gọi API lấy danh sách sản phẩm trực tiếp
+            const response = await axios.get(
+              `${API_BASE_URL}/api/v1/vendor/shop/products`,
+              {
+                headers: {
+                  Authorization: token ? `Bearer ${token}` : "",
+                },
+                timeout: 8000, // Set timeout 8 seconds
+              }
+            );
+
+            if (!response.data || !Array.isArray(response.data)) {
+              throw new Error("API trả về dữ liệu không hợp lệ");
+            }
+
+            // Tìm sản phẩm trong danh sách
+            const productIdInt = parseInt(productId);
+            const product = response.data.find(
+              (p) => p.product_id === productIdInt
+            );
+
+            if (!product) {
+              console.error(`Không tìm thấy sản phẩm với ID: ${productId}`);
+              throw new Error(`Không tìm thấy sản phẩm với ID: ${productId}`);
+            }
+
+            console.log("Found product:", product);
+
+            // Xử lý ảnh từ dữ liệu sản phẩm
+            const productImages = [];
+
+            // Thêm ảnh chính (nếu có)
+            if (product.main_image) {
+              productImages.push({
+                url: product.main_image,
+                label: product.product_name || "Ảnh chính",
+                isPrimary: true,
+              });
+            }
+
+            // Thêm các ảnh khác từ mảng images
+            if (product.images && Array.isArray(product.images)) {
+              const additionalImages = product.images
+                .filter(
+                  (img) => img && img.url && img.url !== product.main_image
+                )
+                .map((img, index) => ({
+                  url: img.url,
+                  label: product.product_name + ` - ${index + 1}`,
+                  isPrimary: false,
+                }));
+
+              productImages.push(...additionalImages);
+            }
+
+            // Nếu không có ảnh nào, dùng ảnh mặc định từ prop
+            if (productImages.length === 0 && imageUrl) {
+              productImages.push({
+                url: imageUrl,
+                label: productName || "Ảnh sản phẩm",
+                isPrimary: true,
+              });
+            }
+
+            if (productImages.length > 0) {
+              setLoadedImages(productImages);
+              setError(null);
+            } else {
+              throw new Error("Sản phẩm không có ảnh");
+            }
+          } catch (error) {
+            console.error("Lỗi khi tải ảnh sản phẩm:", error);
+            fallbackToProvidedImage();
+          }
+        } else {
+          // Không có dữ liệu để hiển thị
+          setError("Không có ảnh để hiển thị");
+        }
+      } catch (error) {
+        console.error("Lỗi tổng thể:", error);
+        fallbackToProvidedImage();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Hàm xử lý dữ liệu ảnh từ sản phẩm
+    const processProductImages = (product) => {
+      let productImages = [];
+
+      // Thêm ảnh chính
+      if (product.main_image) {
+        productImages.push({
+          url: product.main_image,
+          label: product.product_name,
+          isPrimary: true,
+        });
+      }
+
+      // Thêm ảnh biến thể
+      if (product.images && Array.isArray(product.images)) {
+        const additionalImages = product.images
+          .filter((img) => img.url && img.url !== product.main_image)
+          .map((img, index) => ({
+            url: img.url,
+            label: `${product.product_name} - ${index + 1}`,
+            isPrimary: false,
+            variantId: img.variant_id,
+            price: img.price,
+          }));
+
+        productImages = [...productImages, ...additionalImages];
+      }
+
+      if (productImages.length > 0) {
+        setLoadedImages(productImages);
+        setCurrentImageIndex(0);
+      } else {
+        fallbackToProvidedImage();
+      }
+    };
+
+    // Fallback to imageUrl if available
+    const fallbackToProvidedImage = () => {
+      if (imageUrl) {
+        console.log("Fallback to imageUrl:", imageUrl);
+        setLoadedImages([
+          {
+            url: imageUrl,
+            label: productName || "Ảnh sản phẩm",
+            isPrimary: true,
+          },
+        ]);
+        setError(null);
+      } else if (images && images.length > 0) {
+        // Fallback to provided images
+        setLoadedImages(
+          images.map((img, index) => ({
+            url: typeof img === "string" ? img : img.url,
+            label: productName || "Ảnh sản phẩm",
+            isPrimary: index === 0,
+          }))
+        );
+        setError(null);
+      } else {
+        setError("Không có ảnh để hiển thị");
+      }
+    };
+
+    fetchProductImages();
+  }, [isOpen, imageUrl, images, productId, productName]);
+
+  // Sử dụng danh sách ảnh đã tải hoặc danh sách được cung cấp
   const imageList =
-    images.length > 0
+    loadedImages.length > 0
+      ? loadedImages
+      : images.length > 0
       ? images
       : imageUrl
       ? [{ url: imageUrl, label: productName }]
@@ -32,50 +235,11 @@ const ImageViewer = ({
   // Reset khi mở viewer mới hoặc khi đổi ảnh
   useEffect(() => {
     if (isOpen) {
-      console.log("ImageViewer opened with data:", {
-        imageUrl,
-        images,
-        productName,
-      });
-
       // Reset zoom và position
       setScale(1);
       setPosition({ x: 0, y: 0 });
-
-      // Tìm chỉ mục của ảnh hiện tại trong danh sách
-      if (imageUrl && images && images.length > 0) {
-        const foundIndex = images.findIndex((img) => {
-          if (typeof img === "string") return img === imageUrl;
-          return img.url === imageUrl;
-        });
-
-        console.log(
-          "Found image at index:",
-          foundIndex,
-          "for imageUrl:",
-          imageUrl
-        );
-
-        // Nếu tìm thấy ảnh, đặt chỉ mục, nếu không dùng ảnh đầu tiên
-        setCurrentImageIndex(foundIndex !== -1 ? foundIndex : 0);
-      } else {
-        // Mặc định là ảnh đầu tiên nếu không tìm thấy
-        setCurrentImageIndex(0);
-        console.log("Using default image index 0");
-      }
     }
-  }, [isOpen, imageUrl, images]);
-
-  // Tạo một useEffect riêng để xử lý việc log thông tin ảnh hiện tại khi currentImageIndex thay đổi
-  useEffect(() => {
-    if (isOpen && imageList && imageList.length > 0) {
-      console.log(
-        "Current image info:",
-        currentImageIndex,
-        imageList[currentImageIndex]
-      );
-    }
-  }, [isOpen, currentImageIndex, imageList]);
+  }, [isOpen, currentImageIndex]);
 
   // Cải thiện xử lý ảnh hiện tại
   const currentImage = imageList[currentImageIndex] || null;
@@ -86,22 +250,20 @@ const ImageViewer = ({
   if (currentImage) {
     if (typeof currentImage === "string") {
       currentImageUrl = currentImage;
-      currentImageLabel = productName || "Product Image";
+      currentImageLabel = productName || "Ảnh sản phẩm";
     } else {
       currentImageUrl = currentImage.url || "";
       currentImageLabel =
         currentImage.label ||
         currentImage.variantName ||
         productName ||
-        "Product Image";
+        "Ảnh sản phẩm";
     }
   } else if (imageUrl) {
     // Fallback sang imageUrl nếu không tìm thấy ảnh trong danh sách
     currentImageUrl = imageUrl;
-    currentImageLabel = productName || "Product Image";
+    currentImageLabel = productName || "Ảnh sản phẩm";
   }
-
-  console.log("Final image data:", { currentImageUrl, currentImageLabel });
 
   // Ngăn chặn cuộn trang khi trong modal
   useEffect(() => {
@@ -115,7 +277,6 @@ const ImageViewer = ({
     if (isOpen) {
       document.body.style.overflow = "hidden";
       window.addEventListener("wheel", preventScroll, { passive: false });
-      console.log("ImageViewer opened with image:", currentImageUrl);
     }
 
     // Cleanup khi component unmount
@@ -127,16 +288,44 @@ const ImageViewer = ({
 
   if (!isOpen) return null;
 
+  // Hiển thị trạng thái loading
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
+        <div className="bg-white rounded-lg p-6 flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+          <p className="text-lg">Đang tải ảnh sản phẩm...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Hiển thị lỗi khi không có ảnh nào
+  if (error && imageList.length === 0) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
+        <div className="bg-white rounded-lg p-6 flex flex-col items-center">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <p className="text-lg text-red-600 mb-4">{error}</p>
+          <button
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            onClick={onClose}
+          >
+            Đóng
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Xử lý phóng to
   const handleZoomIn = () => {
     setScale((prevScale) => Math.min(prevScale + 0.25, 3));
-    console.log("Zoom in. New scale:", Math.min(scale + 0.25, 3));
   };
 
   // Xử lý thu nhỏ
   const handleZoomOut = () => {
     setScale((prevScale) => Math.max(prevScale - 0.25, 0.5));
-    console.log("Zoom out. New scale:", Math.max(scale - 0.25, 0.5));
   };
 
   // Xử lý mở đầu kéo thả
@@ -147,7 +336,6 @@ const ImageViewer = ({
       x: e.clientX - position.x,
       y: e.clientY - position.y,
     });
-    console.log("Mouse down. Start dragging.");
   };
 
   // Xử lý khi di chuyển chuột
@@ -165,7 +353,6 @@ const ImageViewer = ({
   // Xử lý kết thúc kéo thả
   const handleMouseUp = () => {
     setIsDragging(false);
-    console.log("Mouse up. Stop dragging. Position:", position);
   };
 
   // Xử lý khi con lăn chuột
@@ -197,6 +384,8 @@ const ImageViewer = ({
 
   // Xử lý chuyển đến ảnh trước
   const handlePrevImage = () => {
+    if (imageList.length <= 1) return;
+
     setCurrentImageIndex((prev) => {
       const newIndex = prev - 1 < 0 ? imageList.length - 1 : prev - 1;
       // Reset zoom và position khi chuyển ảnh
@@ -208,6 +397,8 @@ const ImageViewer = ({
 
   // Xử lý chuyển đến ảnh sau
   const handleNextImage = () => {
+    if (imageList.length <= 1) return;
+
     setCurrentImageIndex((prev) => {
       const newIndex = (prev + 1) % imageList.length;
       // Reset zoom và position khi chuyển ảnh
@@ -233,57 +424,15 @@ const ImageViewer = ({
           <>
             <button
               className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 rounded-full p-2 hover:bg-opacity-75 z-10"
-              onClick={() => {
-                setCurrentImageIndex((prev) =>
-                  prev === 0 ? imageList.length - 1 : prev - 1
-                );
-                // Reset scale và position khi chuyển ảnh
-                setScale(1);
-                setPosition({ x: 0, y: 0 });
-                console.log("Switched to previous image");
-              }}
+              onClick={handlePrevImage}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                className="h-6 w-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
+              <FaChevronLeft className="h-6 w-6" />
             </button>
             <button
               className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 rounded-full p-2 hover:bg-opacity-75 z-10"
-              onClick={() => {
-                setCurrentImageIndex((prev) =>
-                  prev === imageList.length - 1 ? 0 : prev + 1
-                );
-                // Reset scale và position khi chuyển ảnh
-                setScale(1);
-                setPosition({ x: 0, y: 0 });
-                console.log("Switched to next image");
-              }}
+              onClick={handleNextImage}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                className="h-6 w-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+              <FaChevronRight className="h-6 w-6" />
             </button>
           </>
         )}
@@ -297,12 +446,13 @@ const ImageViewer = ({
           onMouseLeave={handleMouseUp}
           onWheel={handleWheel}
           style={{ cursor: isDragging ? "grabbing" : "grab" }}
+          ref={imageContainerRef}
         >
           {/* Hiển thị ảnh với scale và position */}
           {currentImageUrl ? (
             <img
               src={currentImageUrl}
-              alt={currentImageLabel || "Product Image"}
+              alt={currentImageLabel || "Ảnh sản phẩm"}
               className="max-h-[80vh] max-w-[80vw] object-contain transition-transform"
               style={{
                 transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
@@ -311,28 +461,13 @@ const ImageViewer = ({
               }}
               onError={(e) => {
                 console.error("Failed to load image:", currentImageUrl);
-                // Thử tải lại ảnh một lần trước khi hiển thị ảnh lỗi
-                const originalSrc = e.target.src;
-                const retryCount = e.target.getAttribute("data-retry") || 0;
-
-                if (parseInt(retryCount) < 1) {
-                  console.log("Retrying image load:", originalSrc);
-                  e.target.setAttribute("data-retry", "1");
-
-                  // Đặt timeout ngắn để tải lại
-                  setTimeout(() => {
-                    e.target.src = originalSrc;
-                  }, 1000);
-                } else {
-                  // Nếu đã thử tải lại một lần, hiển thị ảnh lỗi
-                  e.target.src =
-                    "https://via.placeholder.com/400x400?text=Image+Not+Found";
-                }
+                e.target.src =
+                  "https://via.placeholder.com/400x400?text=Ảnh+không+tải+được";
               }}
             />
           ) : (
             <div className="bg-gray-200 p-8 rounded text-gray-500">
-              No image available
+              Không có ảnh
             </div>
           )}
         </div>
@@ -349,51 +484,24 @@ const ImageViewer = ({
           <button
             className="bg-white bg-opacity-75 rounded-full p-2 hover:bg-opacity-100"
             onClick={handleZoomIn}
-            title="Zoom In"
+            title="Phóng to"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              className="h-6 w-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              />
-            </svg>
+            <FaSearchPlus className="h-6 w-6" />
           </button>
           <button
             className="bg-white bg-opacity-75 rounded-full p-2 hover:bg-opacity-100"
             onClick={handleZoomOut}
-            title="Zoom Out"
+            title="Thu nhỏ"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              className="h-6 w-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M18 12H6"
-              />
-            </svg>
+            <FaSearchMinus className="h-6 w-6" />
           </button>
           <button
             className="bg-white bg-opacity-75 rounded-full p-2 hover:bg-opacity-100"
             onClick={() => {
               setScale(1);
               setPosition({ x: 0, y: 0 });
-              console.log("Reset zoom and position");
             }}
-            title="Reset Zoom"
+            title="Đặt lại kích thước"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -412,26 +520,20 @@ const ImageViewer = ({
           </button>
         </div>
 
+        {/* Chỉ thị số ảnh */}
+        {imageList.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full">
+            {currentImageIndex + 1} / {imageList.length}
+          </div>
+        )}
+
         {/* Nút đóng viewer */}
         <button
           className="absolute top-4 right-4 bg-white bg-opacity-75 rounded-full p-2 hover:bg-opacity-100"
           onClick={onClose}
-          title="Close"
+          title="Đóng"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            className="h-6 w-6"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <FaTimes className="h-6 w-6" />
         </button>
       </div>
     </div>

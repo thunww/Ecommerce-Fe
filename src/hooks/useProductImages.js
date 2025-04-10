@@ -27,6 +27,160 @@ const useProductImages = (initialProductId = null) => {
   };
 
   /**
+   * Lấy ảnh cho một sản phẩm cụ thể từ API vendor/shop/products
+   * @param {number} productId - ID sản phẩm cần lấy ảnh
+   * @returns {Array} Mảng ảnh của sản phẩm
+   */
+  const fetchShopProductImages = useCallback(
+    async (productId) => {
+      if (!productId) {
+        console.warn("fetchShopProductImages called without productId");
+        return [];
+      }
+
+      // Trả về cache nếu đã có
+      if (productImages[productId]) {
+        console.log("Using cached images for product ID:", productId);
+        return productImages[productId];
+      }
+
+      // Không có trong cache, bắt đầu tải
+      setLoading(true);
+      setError(null);
+      console.log("Fetching shop product images for product ID:", productId);
+
+      try {
+        // Kiểm tra API_BASE_URL
+        if (!API_BASE_URL) {
+          throw new Error("API_BASE_URL không được định nghĩa");
+        }
+
+        const token = localStorage.getItem("accessToken");
+
+        console.log(
+          "Sử dụng API endpoint:",
+          `${API_BASE_URL}/api/v1/vendor/shop/products`
+        );
+
+        // Lấy danh sách sản phẩm của shop
+        const response = await axios.get(
+          `${API_BASE_URL}/api/v1/vendor/shop/products`,
+          {
+            headers: {
+              Authorization: token ? `Bearer ${token}` : "",
+            },
+            timeout: 10000, // Đặt timeout để không chờ quá lâu
+          }
+        );
+
+        // Kiểm tra dữ liệu trả về
+        if (!response.data || !Array.isArray(response.data)) {
+          throw new Error("API trả về cấu trúc dữ liệu không hợp lệ");
+        }
+
+        // Tìm sản phẩm trong danh sách
+        const product = response.data.find(
+          (p) => p.product_id === parseInt(productId)
+        );
+
+        if (!product) {
+          throw new Error(`Không tìm thấy sản phẩm với ID: ${productId}`);
+        }
+
+        console.log("Dữ liệu sản phẩm nhận được:", product);
+
+        // Khởi tạo mảng ảnh
+        let allImages = [];
+
+        // Xử lý ảnh chính sản phẩm
+        if (product.main_image && isValidImageUrl(product.main_image)) {
+          allImages.push({
+            url: product.main_image,
+            label: product.product_name || "Ảnh chính",
+            isPrimary: true,
+            type: "main",
+          });
+        }
+
+        // Xử lý các ảnh khác của sản phẩm
+        if (product.images && Array.isArray(product.images)) {
+          const additionalImages = product.images
+            .filter(
+              (img) =>
+                img &&
+                img.url &&
+                isValidImageUrl(img.url) &&
+                img.url !== product.main_image
+            )
+            .map((img, index) => ({
+              url: img.url,
+              label: `${product.product_name || "Sản phẩm"} - ${index + 1}`,
+              isPrimary: false,
+              imageId: img.image_id,
+              type: "additional",
+            }));
+
+          allImages = [...allImages, ...additionalImages];
+        }
+
+        // Nếu không có ảnh nào, dùng ảnh mặc định
+        if (allImages.length === 0 && product.image) {
+          allImages.push({
+            url: product.image,
+            label: product.product_name || "Ảnh sản phẩm",
+            isPrimary: true,
+            type: "default",
+          });
+        }
+
+        // Nếu vẫn không có ảnh nào, dùng ảnh placeholder
+        if (allImages.length === 0) {
+          allImages.push({
+            url: "https://via.placeholder.com/400x400?text=Không+Có+Ảnh",
+            label: product.product_name || "Ảnh sản phẩm",
+            isPrimary: true,
+            type: "placeholder",
+          });
+        }
+
+        console.log("Danh sách ảnh cuối cùng:", allImages);
+
+        // Lưu vào cache
+        setProductImages((prev) => ({
+          ...prev,
+          [productId]: allImages,
+        }));
+
+        setLoading(false);
+        return allImages;
+      } catch (err) {
+        console.error("Lỗi khi tải ảnh sản phẩm từ shop API:", err);
+
+        // Tạo ảnh mặc định khi có lỗi
+        const defaultImages = [
+          {
+            url: "https://via.placeholder.com/400x400?text=Lỗi+Tải+Ảnh",
+            label: "Lỗi tải ảnh sản phẩm",
+            type: "error",
+            isPrimary: true,
+          },
+        ];
+
+        // Lưu ảnh mặc định vào cache để tránh gọi API liên tục khi có lỗi
+        setProductImages((prev) => ({
+          ...prev,
+          [productId]: defaultImages,
+        }));
+
+        setError(err.message || "Lỗi không xác định");
+        setLoading(false);
+        return defaultImages;
+      }
+    },
+    [productImages]
+  );
+
+  /**
    * Lấy ảnh cho một sản phẩm cụ thể
    * @param {number} productId - ID sản phẩm cần lấy ảnh
    * @returns {Array} Mảng ảnh của sản phẩm
@@ -276,6 +430,7 @@ const useProductImages = (initialProductId = null) => {
     images: productImages[currentProductId] || [],
     allProductImages: productImages,
     fetchProductImages,
+    fetchShopProductImages,
     getPrimaryImage,
     setProductId,
     invalidateCache,
