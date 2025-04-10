@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { FaUser, FaPhone, FaEnvelope, FaMapMarkerAlt, FaCalendarAlt, FaCar, FaStar, FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import { useUser } from "../../contexts/UserContext";
+import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
+import AddressSelector from '../../components/AddressSelector';
 
 // Add address data
 const PROVINCES = [
@@ -64,6 +67,8 @@ const INITIAL_PROFILE = {
 
 const ShipperProfile = () => {
   const { userInfo, updateUserInfo } = useUser();
+  const dispatch = useDispatch();
+  const { shipper } = useSelector((state) => state.shipper || {});
   const [isEditing, setIsEditing] = useState(false);
   const [editedInfo, setEditedInfo] = useState({ ...userInfo });
   const [errors, setErrors] = useState({});
@@ -72,6 +77,15 @@ const ShipperProfile = () => {
   const [selectedProvince, setSelectedProvince] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedWard, setSelectedWard] = useState("");
+  const [formData, setFormData] = useState({
+    fullName: userInfo?.name || '',
+    email: userInfo?.email || '',
+    phone: shipper?.phone || '',
+    delivery_address: shipper?.delivery_address || '',
+    vehicle_type: shipper?.vehicle_type || 'bike',
+    license_plate: shipper?.license_plate || '',
+    driver_license: shipper?.driver_license || '',
+  });
 
   // Reset editedInfo when userInfo changes
   useEffect(() => {
@@ -82,39 +96,55 @@ const ShipperProfile = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!editedInfo.phone?.match(/^[0-9]{10}$/)) {
-      newErrors.phone = "Số điện thoại không hợp lệ";
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Họ và tên không được để trống";
     }
     
-    if (!editedInfo.email?.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    if (!formData.email.trim()) {
+      newErrors.email = "Email không được để trống";
+    }
+    
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Email không hợp lệ";
     }
     
-    if (!editedInfo.name?.trim()) {
-      newErrors.name = "Họ và tên không được để trống";
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Số điện thoại không được để trống";
     }
     
-    if (!editedInfo.locations?.length) {
-      newErrors.locations = "Vui lòng chọn ít nhất một khu vực hoạt động";
+    if (!/^\d{10,15}$/.test(formData.phone)) {
+      newErrors.phone = "Số điện thoại không hợp lệ";
+    }
+    
+    if (!formData.delivery_address.trim()) {
+      newErrors.delivery_address = "Địa chỉ giao hàng không được để trống";
+    }
+    
+    if (!formData.license_plate.trim()) {
+      newErrors.license_plate = "Biển số xe không được để trống";
+    }
+    
+    if (!formData.driver_license.trim()) {
+      newErrors.driver_license = "Số bằng lái xe không được để trống";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleEditChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setEditedInfo((prev) => ({
+    setFormData((prev) => ({
       ...prev,
-      contact: {
-        ...prev.contact,
-        [name]: value,
-      },
+      [name]: value,
     }));
-    // Clear error when user types
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
-    }
+  };
+
+  const handleAddressChange = (address) => {
+    setFormData((prev) => ({
+      ...prev,
+      delivery_address: address,
+    }));
   };
 
   const handleAvatarChange = (e) => {
@@ -143,353 +173,202 @@ const ShipperProfile = () => {
     }
   };
 
-  const handleSave = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!validateForm()) return;
 
     try {
-      setIsSaving(true);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update user info with new avatar if selected
-      const updatedInfo = {
-        ...editedInfo,
-        avatar: selectedAvatar || editedInfo.avatar
-      };
-      
-      updateUserInfo(updatedInfo);
-      setIsEditing(false);
-      setErrors({});
-      setSelectedAvatar(null);
+      // TODO: Implement update shipper profile action
+      // await dispatch(updateShipperProfile(formData)).unwrap();
+      toast.success('Cập nhật thông tin thành công');
     } catch (error) {
-      console.error('Error saving profile:', error);
-      alert('Không thể lưu thông tin. Vui lòng thử lại sau.');
-    } finally {
-      setIsSaving(false);
+      toast.error(error || 'Cập nhật thất bại');
     }
   };
 
   const handleCancel = () => {
-    setEditedInfo({ ...userInfo });
+    setFormData({
+      fullName: userInfo?.name || '',
+      email: userInfo?.email || '',
+      phone: shipper?.phone || '',
+      delivery_address: shipper?.delivery_address || '',
+      vehicle_type: shipper?.vehicle_type || 'bike',
+      license_plate: shipper?.license_plate || '',
+      driver_license: shipper?.driver_license || '',
+    });
     setIsEditing(false);
     setErrors({});
     setSelectedAvatar(null);
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Thông tin cá nhân</h2>
-            <div className="flex gap-2">
-              {isEditing ? (
-                <>
-                  <button
-                    onClick={handleCancel}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-                    disabled={isSaving}
-                  >
-                    Hủy
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors disabled:opacity-50"
-                    disabled={isSaving}
-                  >
-                    {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-                >
-                  Chỉnh sửa
-                </button>
-              )}
-            </div>
+    <div className="min-h-screen bg-gradient-to-b from-red-50 to-red-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+          <div className="px-4 py-5 sm:px-6 bg-red-600">
+            <h3 className="text-lg leading-6 font-medium text-white">
+              Thông tin cá nhân
+            </h3>
+            <p className="mt-1 max-w-2xl text-sm text-red-100">
+              Cập nhật thông tin cá nhân và phương tiện của bạn
+            </p>
           </div>
+          <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Thông tin cá nhân */}
+              <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+                <h3 className="text-lg font-semibold text-red-700 mb-4">Thông tin cá nhân</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="fullName"
+                      className="block text-sm font-medium text-red-700"
+                    >
+                      Họ và tên <span className="text-red-500">*</span>
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        id="fullName"
+                        name="fullName"
+                        type="text"
+                        required
+                        value={formData.fullName}
+                        onChange={handleChange}
+                        className="appearance-none block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm placeholder-red-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                      />
+                    </div>
+                  </div>
 
-          <div className="flex flex-col md:flex-row gap-8">
-            {/* Avatar section */}
-            <div className="flex flex-col items-center space-y-4">
-              <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100">
-                <img
-                  src={editedInfo.avatar || '/default-avatar.jpg'}
-                  alt={userInfo.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src = '/default-avatar.jpg';
-                  }}
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-red-700"
+                    >
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="appearance-none block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm placeholder-red-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="phone"
+                      className="block text-sm font-medium text-red-700"
+                    >
+                      Số điện thoại <span className="text-red-500">*</span>
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        required
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className="appearance-none block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm placeholder-red-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Thông tin địa chỉ */}
+              <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+                <h3 className="text-lg font-semibold text-red-700 mb-4">Thông tin địa chỉ</h3>
+                <AddressSelector 
+                  onChange={handleAddressChange}
+                  value={formData.delivery_address}
                 />
               </div>
-              {isEditing && (
-                <div>
-                  <label
-                    htmlFor="avatar-upload"
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md cursor-pointer hover:bg-gray-200 transition-colors"
-                  >
-                    Thay đổi ảnh
-                  </label>
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarChange}
-                    className="hidden"
-                  />
-                </div>
-              )}
-            </div>
 
-            {/* Info section */}
-            <div className="flex-1 space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Họ và tên
-                </label>
-                {isEditing ? (
+              {/* Thông tin phương tiện */}
+              <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+                <h3 className="text-lg font-semibold text-red-700 mb-4">Thông tin phương tiện</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <input
-                      type="text"
-                      value={editedInfo.name}
-                      onChange={(e) =>
-                        setEditedInfo({ ...editedInfo, name: e.target.value })
-                      }
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                        errors.name ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    />
-                    {errors.name && (
-                      <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-gray-900">{userInfo.name}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                {isEditing ? (
-                  <div>
-                    <input
-                      type="email"
-                      value={editedInfo.email}
-                      onChange={(e) =>
-                        setEditedInfo({ ...editedInfo, email: e.target.value })
-                      }
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                        errors.email ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    />
-                    {errors.email && (
-                      <p className="mt-1 text-sm text-red-500">{errors.email}</p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-gray-900">{userInfo.email}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Số điện thoại
-                </label>
-                {isEditing ? (
-                  <div>
-                    <input
-                      type="tel"
-                      value={editedInfo.phone}
-                      onChange={(e) =>
-                        setEditedInfo({ ...editedInfo, phone: e.target.value })
-                      }
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                        errors.phone ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    />
-                    {errors.phone && (
-                      <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-gray-900">{userInfo.phone}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Khu vực hoạt động
-                </label>
-                {isEditing ? (
-                  <div className="space-y-4">
-                    <div className="flex flex-wrap gap-2">
-                      {editedInfo.locations?.map((location, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-red-500 text-white rounded-full"
-                        >
-                          <span>{`${location.district}, ${location.ward}`}</span>
-                          <button
-                            onClick={() => {
-                              const newLocations = editedInfo.locations.filter((_, i) => i !== index);
-                              setEditedInfo(prev => ({
-                                ...prev,
-                                locations: newLocations
-                              }));
-                            }}
-                            className="hover:text-red-200"
-                          >
-                            <FaTimes size={14} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="border rounded-md p-4 space-y-3">
-                      <div>
-                        <label className="block text-sm text-gray-600 mb-1">Tỉnh/Thành phố</label>
-                        <select
-                          className="w-full p-2 border rounded-md"
-                          value={selectedProvince || ""}
-                          onChange={(e) => {
-                            setSelectedProvince(e.target.value);
-                            setSelectedDistrict("");
-                            setSelectedWard("");
-                          }}
-                        >
-                          <option value="">Chọn Tỉnh/Thành phố</option>
-                          {PROVINCES.map(province => (
-                            <option key={province.id} value={province.name}>
-                              {province.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {selectedProvince && (
-                        <div>
-                          <label className="block text-sm text-gray-600 mb-1">Quận/Huyện</label>
-                          <select
-                            className="w-full p-2 border rounded-md"
-                            value={selectedDistrict || ""}
-                            onChange={(e) => {
-                              setSelectedDistrict(e.target.value);
-                              setSelectedWard("");
-                            }}
-                          >
-                            <option value="">Chọn Quận/Huyện</option>
-                            {PROVINCES.find(p => p.name === selectedProvince)
-                              ?.districts.map(district => (
-                                <option key={district.id} value={district.name}>
-                                  {district.name}
-                                </option>
-                              ))}
-                          </select>
-                        </div>
-                      )}
-
-                      {selectedDistrict && (
-                        <div>
-                          <label className="block text-sm text-gray-600 mb-1">Phường/Xã</label>
-                          <select
-                            className="w-full p-2 border rounded-md"
-                            value={selectedWard || ""}
-                            onChange={(e) => setSelectedWard(e.target.value)}
-                          >
-                            <option value="">Chọn Phường/Xã</option>
-                            {PROVINCES.find(p => p.name === selectedProvince)
-                              ?.districts.find(d => d.name === selectedDistrict)
-                              ?.wards.map(ward => (
-                                <option key={ward.id} value={ward.name}>
-                                  {ward.name}
-                                </option>
-                              ))}
-                          </select>
-                        </div>
-                      )}
-
-                      <button
-                        className="w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={!selectedWard}
-                        onClick={() => {
-                          if (selectedProvince && selectedDistrict && selectedWard) {
-                            const newLocation = {
-                              province: selectedProvince,
-                              district: selectedDistrict,
-                              ward: selectedWard
-                            };
-                            
-                            // Check if location already exists
-                            const locationExists = editedInfo.locations?.some(
-                              loc => 
-                                loc.province === newLocation.province &&
-                                loc.district === newLocation.district &&
-                                loc.ward === newLocation.ward
-                            );
-
-                            if (!locationExists) {
-                              setEditedInfo(prev => ({
-                                ...prev,
-                                locations: [...(prev.locations || []), newLocation]
-                              }));
-                            }
-
-                            // Reset selections
-                            setSelectedProvince("");
-                            setSelectedDistrict("");
-                            setSelectedWard("");
-                          }
-                        }}
+                    <label
+                      htmlFor="vehicle_type"
+                      className="block text-sm font-medium text-red-700"
+                    >
+                      Loại phương tiện <span className="text-red-500">*</span>
+                    </label>
+                    <div className="mt-1">
+                      <select
+                        id="vehicle_type"
+                        name="vehicle_type"
+                        required
+                        value={formData.vehicle_type}
+                        onChange={handleChange}
+                        className="appearance-none block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm placeholder-red-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
                       >
-                        Thêm khu vực
-                      </button>
+                        <option value="bike">Xe máy</option>
+                        <option value="car">Ô tô</option>
+                        <option value="truck">Xe tải</option>
+                        <option value="van">Xe van</option>
+                      </select>
                     </div>
-                    {errors.locations && (
-                      <p className="mt-1 text-sm text-red-500">{errors.locations}</p>
-                    )}
                   </div>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {userInfo.locations?.map((location, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full"
-                      >
-                        {`${location.district}, ${location.ward}`}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
 
-              {/* Thông tin đánh giá */}
-              <div className="mt-8 pt-6 border-t">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Thông tin đánh giá</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-red-500">{userInfo.totalOrders}</div>
-                    <div className="text-sm text-gray-600">Tổng đơn hàng</div>
+                  <div>
+                    <label
+                      htmlFor="license_plate"
+                      className="block text-sm font-medium text-red-700"
+                    >
+                      Biển số xe <span className="text-red-500">*</span>
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        id="license_plate"
+                        name="license_plate"
+                        type="text"
+                        required
+                        value={formData.license_plate}
+                        onChange={handleChange}
+                        className="appearance-none block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm placeholder-red-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                      />
+                    </div>
                   </div>
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-500">{userInfo.completionRate}</div>
-                    <div className="text-sm text-gray-600">Tỷ lệ hoàn thành</div>
-                  </div>
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-500">{userInfo.onTimeRate}</div>
-                    <div className="text-sm text-gray-600">Tỷ lệ đúng giờ</div>
-                  </div>
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-500">{userInfo.rating}</div>
-                    <div className="text-sm text-gray-600">Đánh giá</div>
+
+                  <div>
+                    <label
+                      htmlFor="driver_license"
+                      className="block text-sm font-medium text-red-700"
+                    >
+                      Số bằng lái xe <span className="text-red-500">*</span>
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        id="driver_license"
+                        name="driver_license"
+                        type="text"
+                        required
+                        value={formData.driver_license}
+                        onChange={handleChange}
+                        className="appearance-none block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm placeholder-red-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Cập nhật thông tin
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>

@@ -5,10 +5,12 @@
 .nav li .submenu {
     visibility: hidden;
     z-index: 1000;
+    transition: all 0.3s ease;
 }
 
 .nav li .submenu button {
     font-weight: 400 !important;
+    padding: 8px 12px !important;
 }
 
 .nav li:hover .submenu {
@@ -30,4 +32,37 @@
 
 .nav li.submenu li .submenu button:hover {
     color: rgba(225, 90, 90, 0.7) !important;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .nav {
+        flex-wrap: nowrap;
+        padding-bottom: 0.5rem;
+    }
+
+    .nav li button {
+        padding: 6px 8px !important;
+        min-width: auto !important;
+    }
+}
+
+/* Fix text overflow */
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ensure dropdowns are working correctly */
+@media (max-width: 1024px) {
+    .nav li .submenu {
+        min-width: 180px;
+    }
+}
+
+@media (max-width: 640px) {
+    .nav li .submenu {
+        min-width: 160px;
+    }
 }

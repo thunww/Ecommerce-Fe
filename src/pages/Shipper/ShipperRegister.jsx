@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerShipper } from '../../redux/shipperSlice';
+import AddressSelector from '../../components/AddressSelector';
 
 const ShipperRegister = () => {
   const navigate = useNavigate();
@@ -25,6 +26,13 @@ const ShipperRegister = () => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleAddressChange = (address) => {
+    setFormData((prev) => ({
+      ...prev,
+      delivery_address: address,
     }));
   };
 
@@ -160,25 +168,10 @@ const ShipperRegister = () => {
             {/* Thông tin địa chỉ */}
             <div className="bg-red-50 p-4 rounded-lg border border-red-100">
               <h3 className="text-lg font-semibold text-red-700 mb-4">Thông tin địa chỉ</h3>
-              <div>
-                <label
-                  htmlFor="delivery_address"
-                  className="block text-sm font-medium text-red-700"
-                >
-                  Địa chỉ giao hàng <span className="text-red-500">*</span>
-                </label>
-                <div className="mt-1">
-                  <textarea
-                    id="delivery_address"
-                    name="delivery_address"
-                    required
-                    value={formData.delivery_address}
-                    onChange={handleChange}
-                    rows="3"
-                    className="appearance-none block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm placeholder-red-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-                  />
-                </div>
-              </div>
+              <AddressSelector 
+                onChange={handleAddressChange}
+                value={formData.delivery_address}
+              />
             </div>
 
             {/* Thông tin phương tiện */}
