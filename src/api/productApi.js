@@ -15,6 +15,22 @@ const productApi = {
 
   getProductRelated: (categoryId) =>
     axiosClient.get(`/products/related/${categoryId}`),
+  searchProduct: ({
+    keyword = "",
+    categoryId,
+    minPrice,
+    maxPrice,
+    sort,
+  } = {}) =>
+    axiosClient.get("/products/search", {
+      params: {
+        q: keyword,
+        category_id: categoryId,
+        min_price: minPrice,
+        max_price: maxPrice,
+        sort,
+      },
+    }),
 };
 
 export default productApi;
