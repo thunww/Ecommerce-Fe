@@ -61,6 +61,14 @@ const productService = {
       throw error;
     }
   },
+  searchSuggest: async (keyword, limit = 5) => {
+    try {
+      const response = await productApi.searchSuggest(keyword, limit);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default productService;

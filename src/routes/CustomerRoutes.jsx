@@ -61,11 +61,6 @@ const CustomerRoutes = () => {
           <Route path="/" element={<CustomerLayout />}>
             <Route index element={<Home />} />
 
-            <Route
-              path="/productListing"
-              exact={true}
-              element={<ProductListing />}
-            />
             <Route path="/search" element={<SearchResults />} />
 
             <Route path="/login" exact={true} element={<Login />} />

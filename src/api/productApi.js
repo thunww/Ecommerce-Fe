@@ -31,6 +31,13 @@ const productApi = {
         sort,
       },
     }),
+  searchSuggest: (keyword, limit = 5) =>
+    axiosClient.get("/products/suggest", {
+      params: {
+        q: keyword,
+        limit,
+      },
+    }),
 };
 
 export default productApi;
