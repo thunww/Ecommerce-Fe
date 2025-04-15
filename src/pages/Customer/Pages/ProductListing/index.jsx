@@ -14,40 +14,22 @@ import Pagination from "@mui/material/Pagination";
 import { fetchAllProducts } from "../../../../redux/productSilce";
 import { useDispatch, useSelector } from "react-redux";
 
-const ProductListing = () => {
+const ProductListing = ({ products = [], loading = false, error = null }) => {
   const [itemView, setItemView] = useState("grid");
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [productsPerPageGrid] = useState(12);
   const [productsPerPageList] = useState(5);
   const open = Boolean(anchorEl);
-  const dispatch = useDispatch();
-
-  const {
-    products = [],
-    loading,
-    error,
-  } = useSelector((state) => state.products);
 
   const activeProducts = products.filter(
     (product) => product.status === "active"
   );
 
-  useEffect(() => {
-    if (products.length === 0) {
-      dispatch(fetchAllProducts());
-    }
-  }, [dispatch, products.length]);
+  const handleClick = (event) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
+  const handlePageChange = (event, value) => setCurrentPage(value);
 
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  // Calculate products to display for the current page based on itemView
   const indexOfLastProduct =
     itemView === "grid"
       ? currentPage * productsPerPageGrid
@@ -60,35 +42,9 @@ const ProductListing = () => {
     indexOfLastProduct
   );
 
-  // Handle page change
-  const handlePageChange = (event, value) => {
-    setCurrentPage(value);
-  };
-
   return (
-    <section className="py-5 pb-0">
-      <div className="container">
-        <Breadcrumbs aria-label="breadcrumb">
-          <Link
-            underline="hover"
-            color="inherit"
-            href="/"
-            className="link transition"
-          >
-            Home
-          </Link>
-          <Link
-            underline="hover"
-            color="inherit"
-            href="/"
-            className="link transition"
-          >
-            Fashion
-          </Link>
-        </Breadcrumbs>
-      </div>
-
-      <div className="bg-white p-2 mt-4">
+    <section className="py-2 pb-0">
+      <div className="bg-white p-2 mt-2">
         <div className="container flex gap-3">
           <div className="sidebarWrapper w-[20%] h-full bg-white">
             <Sidebar />
