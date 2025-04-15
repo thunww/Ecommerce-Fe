@@ -41,6 +41,34 @@ const productService = {
       throw error;
     }
   },
+  searchProduct: async ({
+    keyword = "",
+    categoryId,
+    minPrice,
+    maxPrice,
+    sort,
+  } = {}) => {
+    try {
+      const response = await productApi.searchProduct({
+        keyword,
+        categoryId,
+        minPrice,
+        maxPrice,
+        sort,
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  searchSuggest: async (keyword, limit = 5) => {
+    try {
+      const response = await productApi.searchSuggest(keyword, limit);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default productService;

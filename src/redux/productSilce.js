@@ -71,11 +71,35 @@ export const getProductRelated = createAsyncThunk(
   }
 );
 
+export const searchProducts = createAsyncThunk(
+  "products/searchProducts",
+  async (
+    { keyword = "", categoryId, minPrice, maxPrice, sort } = {},
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await productService.searchProduct({
+        keyword,
+        categoryId,
+        minPrice,
+        maxPrice,
+        sort,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to search products"
+      );
+    }
+  }
+);
+
 const productSlice = createSlice({
   name: "products",
   initialState: {
     products: [],
     relatedProducts: [],
+    searchResults: [],
     product: null,
     loading: false,
     error: null,
@@ -133,6 +157,18 @@ const productSlice = createSlice({
         state.products = state.products.filter(
           (p) => p.product_id !== action.payload
         );
+      })
+      .addCase(searchProducts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(searchProducts.fulfilled, (state, action) => {
+        state.loading = false;
+        state.searchResults = action.payload;
+      })
+      .addCase(searchProducts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

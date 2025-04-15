@@ -62,7 +62,7 @@ const Navigation = () => {
               </li>
               <li className="list-none relative">
                 <Link
-                  to="/productListing"
+                  to="/"
                   className="link transition text-[13px] md:text-[14px] lg:text-[15px] font-[500]"
                 >
                   <Button className="link transition !font-[500] !text-black hover:!text-[red] !py-3 !px-2 md:!px-3 !min-w-0 !text-xs sm:!text-sm">
@@ -214,7 +214,7 @@ const Navigation = () => {
                 </li>
                 <li className="border-b border-gray-100">
                   <Link
-                    to="/productListing"
+                    to="/"
                     className="block px-4 py-2 text-sm hover:bg-gray-50"
                   >
                     Fashion

@@ -42,10 +42,10 @@ const ProductDetails = () => {
             <Link
               underline="hover"
               color="inherit"
-              to="/fashion"
+              to={`/category/${product?.category_id}`}
               className="link transition !text-[14px]"
             >
-              Fashion
+              {product?.Category?.category_name}
             </Link>
             <Link
               underline="hover"
