@@ -1,39 +1,14 @@
-import cartApi from "../api/cartApi";
+import {
+    getPaymentMethods,
+    createPayment,
+    verifyPayment
+} from "../api/cartApi";
 import { message } from "antd";
 
 const paymentService = {
-    // Lấy danh sách phương thức thanh toán
-    getPaymentMethods: async () => {
-        try {
-            const response = await cartApi.getPaymentMethods();
-            return response.data;
-        } catch (error) {
-            message.error("Lỗi khi lấy phương thức thanh toán");
-            throw error;
-        }
-    },
-
-    // Tạo thanh toán
-    createPayment: async (orderId, method) => {
-        try {
-            const response = await cartApi.createPayment(orderId, method);
-            return response.data;
-        } catch (error) {
-            message.error("Lỗi khi tạo thanh toán");
-            throw error;
-        }
-    },
-
-    // Xác thực thanh toán
-    verifyPayment: async (orderId, paymentId) => {
-        try {
-            const response = await cartApi.verifyPayment(orderId, paymentId);
-            return response.data;
-        } catch (error) {
-            message.error("Lỗi khi xác thực thanh toán");
-            throw error;
-        }
-    },
+    getPaymentMethods,
+    createPayment,
+    verifyPayment,
 
     // Lấy thông tin vận chuyển
     getShippingMethods: async () => {
