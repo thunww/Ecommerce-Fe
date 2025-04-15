@@ -1,4 +1,13 @@
-import cartApi from "../api/cartApi";
+import {
+    checkout,
+    getOrderStatus,
+    getOrderHistory,
+    cancelOrder,
+    trackOrder,
+    getPaymentMethods,
+    createPayment,
+    verifyPayment
+} from "../api/cartApi";
 import { message } from "antd";
 
 const orderService = {

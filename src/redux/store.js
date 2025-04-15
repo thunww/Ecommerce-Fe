@@ -3,10 +3,8 @@ import authReducer from "./authSlice";
 import adminReducer from "./adminSlice";
 import shopReducer from "./shopSlice";
 import productReducer from "./productSilce";
-
 import cartReducer from "./slices/cartSlice";
 import wishlistReducer from "./slices/wishlistSlice";
-
 import reviewReducer from "./reviewsSilce";
 import categoryReducer from "./categorySlice";
 

@@ -24,8 +24,7 @@ import ProductZoom from "../components/customer/Components/ProductZoom";
 import { IoCloseSharp } from "react-icons/io5";
 import ProductDetailsComponent from "../components/customer/Components/ProductDetails";
 import MyContext from "../context/MyContext";
-
-import CartPage from "../Pages/Customer/Pages/Cart";
+import Cart from "../pages/Customer/Pages/Cart";
 import SearchResults from "../components/customer/Components/Search/SearchResult";
 
 const CustomerRoutes = () => {
@@ -72,7 +71,7 @@ const CustomerRoutes = () => {
               exact={true}
               element={<ProductDetails />}
             />
-            {/* <Route path="/cart" exact={true} element={<Cart />} /> */}
+            <Route path="/cart" exact={true} element={<Cart />} />
 
             {/* Thêm routes cho My Account */}
             <Route path="/my-account" element={<MyAccount />}>
