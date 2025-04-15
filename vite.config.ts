@@ -8,6 +8,9 @@ export default defineConfig({
     open: true,  // Tự động mở trình duyệt khi chạy
     hmr: false,
   },
+  optimizeDeps: {
+    exclude: ['react-csv']
+  },
   css: {
     postcss: "./postcss.config.js",  // Kiểm tra dòng này
   },

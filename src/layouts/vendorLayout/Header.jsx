@@ -16,6 +16,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../redux/authSlice";
 import Logo from "../../assets/image/logo.jpg";
+import { getShopInfo } from "../../services/vendorService";
 
 // Hàm xử lý breadcrumb từ URL
 const getBreadcrumbTitle = (pathname) => {
@@ -50,6 +51,7 @@ const Header = () => {
   const breadcrumb = getBreadcrumbTitle(location.pathname);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [shopLogo, setShopLogo] = useState(null);
 
   // Lấy thông tin user và roles từ Redux store
   const { user, roles } = useSelector((state) => state.auth);
@@ -62,7 +64,37 @@ const Header = () => {
   const mainMenuRef = useRef(null);
   const profileMenuRef = useRef(null);
 
+  // Fetch Shop Info from API
   useEffect(() => {
+    const fetchShopInfo = async () => {
+      try {
+        const shopData = await getShopInfo();
+        console.log("Shop data từ API:", shopData);
+
+        if (shopData && shopData.data) {
+          // Nếu API trả về {data: {logo: ...}}
+          setShopLogo(shopData.data.logo);
+          console.log(
+            "Đã lấy logo shop từ API response.data:",
+            shopData.data.logo
+          );
+        } else if (shopData && shopData.logo) {
+          // Nếu API trả về {logo: ...}
+          setShopLogo(shopData.logo);
+          console.log("Đã lấy logo shop từ API response:", shopData.logo);
+        } else {
+          console.log("Không tìm thấy logo shop trong response API");
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy thông tin shop:", error);
+      }
+    };
+
+    // Chỉ gọi API khi user đã đăng nhập
+    if (user) {
+      fetchShopInfo();
+    }
+
     const handleClickOutside = (event) => {
       // Kiểm tra click có phải bên ngoài main menu không
       if (mainMenuRef.current && !mainMenuRef.current.contains(event.target)) {
@@ -84,7 +116,7 @@ const Header = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [user]);
 
   // Hàm xử lý khi click vào menu chính
   const handleMainMenuClick = () => {
@@ -207,9 +239,16 @@ const Header = () => {
           )}
         </div>
 
-        {/* Profile Avatar & Dropdown */}
+        {/* Profile Avatar & Dropdown - Sử dụng logo shop */}
         <div ref={profileMenuRef} className="relative">
-          {user && user.profile_picture ? (
+          {shopLogo ? (
+            <img
+              src={shopLogo}
+              alt="Shop Logo"
+              className="w-8 h-8 rounded-full cursor-pointer object-cover border border-gray-200"
+              onClick={handleAvatarClick}
+            />
+          ) : user && user.profile_picture ? (
             <img
               src={user.profile_picture}
               alt={user.username || "User Profile"}
@@ -247,7 +286,7 @@ const Header = () => {
 
               <div className="py-1">
                 <Link
-                  to="/vendor/shop/profile"
+                  to="/vendor/user-profile"
                   className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100"
                   onClick={handleMenuItemClick}
                 >
@@ -255,7 +294,7 @@ const Header = () => {
                   <span>My Profile</span>
                 </Link>
                 <Link
-                  to="/vendor/shop/profile"
+                  to="/vendor/shop-profile"
                   className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100"
                   onClick={handleMenuItemClick}
                 >

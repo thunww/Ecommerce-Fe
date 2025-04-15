@@ -5,6 +5,7 @@ const authApi = {
   register: (data) => axiosClient.post("/auth/register", data),
   logout: () => axiosClient.post("/api/v1/auth/logout"),
   getProfile: () => axiosClient.get("/auth/profile"),
+  getUserById: (userId) => axiosClient.get(`/users/${userId}`),
 };
 
 export default authApi;

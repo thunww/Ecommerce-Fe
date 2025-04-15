@@ -33,10 +33,25 @@ const authService = {
   },
   getProfile: async () => {
     try {
-      return await authApi.getProfile();
+      const response = await authApi.getProfile();
+      return response.data;
     } catch (error) {
       throw new Error(
         error.response?.data?.message || "Failed to fetch profile"
+      );
+    }
+  },
+  getUserById: async (userId) => {
+    try {
+      if (!userId) {
+        throw new Error("userId is required");
+      }
+      const response = await authApi.getUserById(userId);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching user by ID:", error);
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch user information"
       );
     }
   },

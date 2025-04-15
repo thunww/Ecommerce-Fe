@@ -10,6 +10,7 @@ import NotFound from "../pages/Vendor/NotFound";
 import BulkShippingPage from "../pages/Vendor/bulk-shipping";
 import AddProductPage from "../pages/Vendor/AddProduct";
 import ShopProfile from "../components/seller/ShopProfile/ShopProfile";
+import UserProfile from "../components/seller/ShopProfile/UserProfile";
 
 const VendorRoutes = () => {
   return (
@@ -24,7 +25,8 @@ const VendorRoutes = () => {
         <Route path="products" element={<Products />} />
         <Route path="products/add" element={<AddProductPage />} />
         <Route path="products/settings" element={<Settings />} />
-        <Route path="shop/profile" element={<ShopProfile />} />
+        <Route path="shop-profile" element={<ShopProfile />} />
+        <Route path="user-profile" element={<UserProfile />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<NotFound />} />

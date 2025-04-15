@@ -28,7 +28,7 @@ const menuItems = [
     icon: <FaBox />, 
     submenu: [
       { name: "All Products", path: "products" },
-      { name: "Add New Product", path: "add-product" },
+      { name: "Add New Product", path: "products/add" },
     ],
   },
   { title: "Marketing", icon: <FaChartBar />, path: "marketing" },
