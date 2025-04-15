@@ -8,8 +8,8 @@ import userReducer from "./userSlice";
 
 import cartReducer from "./slices/cartSlice";
 import wishlistReducer from "./slices/wishlistSlice";
-
 import reviewReducer from "./reviewsSilce";
+import categoryReducer from "./categorySlice";
 
 const store = configureStore({
   reducer: {
@@ -19,11 +19,10 @@ const store = configureStore({
     user: userReducer,
     shops: shopReducer,
     products: productReducer,
-
     cart: cartReducer,
     wishlist: wishlistReducer,
-
     reviews: reviewReducer,
+    categories: categoryReducer,
   },
 });
 

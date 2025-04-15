@@ -11,7 +11,12 @@ const ProductItem = ({ product }) => {
   const price = variantPrices.length > 0 ? Math.min(...variantPrices) : 0;
   const discount = parseFloat(product.discount) || 0;
   const priceAfterDiscount = price * (1 - discount / 100);
-
+  const formatSold = (sold) => {
+    if (sold >= 1000) {
+      return (sold / 1000).toFixed(1) + "k";
+    }
+    return sold;
+  };
   const formattedPrice = new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
@@ -85,7 +90,7 @@ const ProductItem = ({ product }) => {
 
           <div className="bg-gray-100 rounded-full px-2 py-1">
             <span className="text-xs text-gray-600 font-medium">
-              {product.sold || 0} sold
+              {formatSold(product.sold || 0)} sold
             </span>
           </div>
         </div>
