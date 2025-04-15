@@ -37,17 +37,84 @@ const cartService = {
     getCart: async () => {
         try {
             const response = await cartApi.getCart();
-            return response.data;
-        } catch (error) {
-            console.log("CartService: Trả về giỏ hàng trống vì có lỗi");
+            console.log('API Response:', response);
+
+            if (!response || !response.data) {
+                throw new Error('Không có dữ liệu giỏ hàng');
+            }
+
+            const cartData = response.data;
+            console.log('Cart Data:', cartData);
+
+            // Xử lý và chuẩn hóa dữ liệu trả về từ backend
+            if (cartData && cartData.items) {
+                const processedItems = cartData.items.map(item => {
+                    // Xử lý biến thể sản phẩm
+                    let variantInfo = null;
+                    if (item.variant_info) {
+                        try {
+                            variantInfo = typeof item.variant_info === 'string'
+                                ? JSON.parse(item.variant_info)
+                                : item.variant_info;
+                        } catch (e) {
+                            console.error('Lỗi khi parse variant_info:', e);
+                        }
+                    }
+
+                    // Tạo tên biến thể
+                    let variantName = '';
+                    if (item.variant) {
+                        const variantAttributes = [];
+                        if (item.variant.size) variantAttributes.push(`Size: ${item.variant.size}`);
+                        if (item.variant.color) variantAttributes.push(`Màu: ${item.variant.color}`);
+                        if (item.variant.material) variantAttributes.push(`Chất liệu: ${item.variant.material}`);
+                        variantName = variantAttributes.join(' | ');
+                    } else if (variantInfo) {
+                        const variantAttributes = [];
+                        if (variantInfo.size) variantAttributes.push(`Size: ${variantInfo.size}`);
+                        if (variantInfo.color) variantAttributes.push(`Màu: ${variantInfo.color}`);
+                        if (variantInfo.material) variantAttributes.push(`Chất liệu: ${variantInfo.material}`);
+                        variantName = variantAttributes.join(' | ');
+                    }
+
+                    // Xác định hình ảnh sản phẩm
+                    let productImage = item.product_image;
+                    if (!productImage && item.product) {
+                        if (item.product.thumbnail) {
+                            productImage = item.product.thumbnail;
+                        } else if (item.product.images && item.product.images.length > 0) {
+                            productImage = item.product.images[0].image_url;
+                        }
+                    }
+
+                    return {
+                        ...item,
+                        product_name: item.product_name || (item.product ? item.product.name : "Sản phẩm"),
+                        product_image: productImage || "https://placehold.co/600x400?text=No+Image",
+                        variant_name: variantName || "Mặc định",
+                        price: parseFloat(item.price || (item.product ? item.product.price : 0)),
+                        original_price: item.original_price || (item.product && item.product.original_price ? parseFloat(item.product.original_price) : null),
+                        shop_name: item.shop_name || (item.shop ? item.shop.name : ""),
+                        stock: item.stock || (item.variant ? item.variant.stock : (item.product ? item.product.stock : 10))
+                    };
+                });
+
+                return {
+                    items: processedItems,
+                    shippingFee: parseFloat(cartData.shippingFee || 0),
+                    discount: parseFloat(cartData.discount || 0)
+                };
+            }
+
             return {
                 items: [],
-                total_price: 0,
                 shippingFee: 0,
-                discount: 0,
-                subtotal: 0,
-                total: 0
+                discount: 0
             };
+        } catch (error) {
+            console.error('Lỗi khi lấy giỏ hàng:', error);
+            message.error('Không thể lấy thông tin giỏ hàng');
+            throw error;
         }
     },
 
@@ -55,69 +122,35 @@ const cartService = {
     addToCart: async (data) => {
         try {
             const response = await cartApi.addToCart(data);
-            message.success("Đã thêm vào giỏ hàng");
             return response.data;
         } catch (error) {
-            console.error("Lỗi khi thêm vào giỏ hàng:", error);
-            message.error("Lỗi khi thêm vào giỏ hàng");
-
-            // Tạo dữ liệu giả lập cho thêm sản phẩm thành công
-            return {
-                ...mockCartData,
-                items: [
-                    ...mockCartData.items,
-                    {
-                        id: Date.now(),
-                        cart_item_id: Date.now(),
-                        name: data.product_name || "Sản phẩm mới",
-                        product_name: data.product_name || "Sản phẩm mới",
-                        product_image: data.product_image || "https://placehold.co/600x400?text=New",
-                        variant_name: data.variant_name || "Mặc định",
-                        price: data.price || 100000,
-                        quantity: data.quantity || 1,
-                        stock: 20
-                    }
-                ]
-            };
+            console.error('Lỗi khi thêm vào giỏ hàng:', error);
+            message.error('Không thể thêm sản phẩm vào giỏ hàng');
+            throw error;
         }
     },
 
     // Cập nhật số lượng sản phẩm
-    updateCartItem: async (cartItemId, data) => {
+    updateCartItem: async (cartItemId, quantity) => {
         try {
-            const response = await cartApi.updateCartItem(cartItemId, data);
+            const response = await cartApi.updateCartItem(cartItemId, quantity);
             return response.data;
         } catch (error) {
-            console.error("Lỗi khi cập nhật giỏ hàng:", error);
-            message.error("Lỗi khi cập nhật giỏ hàng");
-
-            // Tạo dữ liệu giả lập cho cập nhật thành công
-            const updatedMockData = { ...mockCartData };
-            const itemIndex = updatedMockData.items.findIndex(item =>
-                item.cart_item_id === cartItemId || item.id === cartItemId
-            );
-
-            if (itemIndex !== -1) {
-                updatedMockData.items[itemIndex] = {
-                    ...updatedMockData.items[itemIndex],
-                    ...data
-                };
-            }
-
-            return updatedMockData;
+            console.error('Lỗi khi cập nhật giỏ hàng:', error);
+            message.error('Không thể cập nhật số lượng sản phẩm');
+            throw error;
         }
     },
 
     // Xóa sản phẩm khỏi giỏ hàng
     removeFromCart: async (cartItemId) => {
         try {
-            await cartApi.removeFromCart(cartItemId);
-            message.success("Đã xóa sản phẩm");
-            return cartItemId;
+            const response = await cartApi.removeFromCart(cartItemId);
+            return response.data;
         } catch (error) {
-            console.error("Lỗi khi xóa sản phẩm:", error);
-            message.error("Lỗi khi xóa sản phẩm");
-            return cartItemId; // Vẫn trả về cartItemId để reducer có thể xử lý
+            console.error('Lỗi khi xóa khỏi giỏ hàng:', error);
+            message.error('Không thể xóa sản phẩm khỏi giỏ hàng');
+            throw error;
         }
     },
 
@@ -138,17 +171,11 @@ const cartService = {
     applyCoupon: async (code) => {
         try {
             const response = await cartApi.applyCoupon(code);
-            message.success("Áp dụng mã giảm giá thành công");
             return response.data;
         } catch (error) {
-            console.error("Lỗi khi áp dụng mã giảm giá:", error);
-            message.error("Mã giảm giá không hợp lệ");
-
-            // Dữ liệu giả lập cho áp dụng mã giảm giá
-            return {
-                code: code,
-                discount: 50000
-            };
+            console.error('Lỗi khi áp dụng mã giảm giá:', error);
+            message.error('Không thể áp dụng mã giảm giá');
+            throw error;
         }
     },
 
@@ -158,14 +185,9 @@ const cartService = {
             const response = await cartApi.calculateShipping(address);
             return response.data;
         } catch (error) {
-            console.error("Lỗi khi tính phí vận chuyển:", error);
-            message.error("Lỗi khi tính phí vận chuyển");
-
-            // Dữ liệu giả lập cho phí vận chuyển
-            return {
-                fee: 30000,
-                estimatedTime: "2-3 ngày"
-            };
+            console.error('Lỗi khi tính phí vận chuyển:', error);
+            message.error('Không thể tính phí vận chuyển');
+            throw error;
         }
     }
 };

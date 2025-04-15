@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Card, Button, Input, message, Space, Typography, Divider, Spin, Empty, Result } from "antd";
-import { ShoppingCartOutlined } from "@ant-design/icons";
+import { Card, Button, Input, message, Space, Typography, Divider, Spin, Empty, Result, Row, Col, Tag, Checkbox } from "antd";
+import { ShoppingCartOutlined, ShoppingOutlined, DeleteOutlined, PlusOutlined, MinusOutlined, TagOutlined } from "@ant-design/icons";
 import CartItem from "./CartItem";
-import { fetchCart } from "../../../../redux/slices/cartSlice";
-import store from "../../../../redux/store";
+import { fetchCart, updateCartItem, removeFromCart, applyCoupon } from "../../../../redux/slices/cartSlice";
 import "./Cart.css";
 
 const { Title, Text } = Typography;
@@ -41,73 +40,128 @@ const mockCartData = {
     discount: 50000
 };
 
-const Cart = () => {
+const CartPage = () => {
     console.log("=== Rendering Cart Component ===");
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
     // Lấy dữ liệu từ Redux store
-    const { cart: reduxCart, loading, error } = useSelector((state) => {
-        console.log("Redux state in selector:", state);
-        return state.cart;
-    });
-    console.log("Redux Cart Data:", reduxCart);
-    console.log("Loading state:", loading);
-    console.log("Error state:", error);
-
-    // In toàn bộ Redux store để debug
-    console.log("Entire Redux Store:", store.getState());
-
-    // Sử dụng local state để đảm bảo luôn có dữ liệu hiển thị
-    const [cart, setCart] = useState(mockCartData);
+    const { items = [], loading, error } = useSelector((state) => state.cart);
     const [couponCode, setCouponCode] = useState("");
-    const [debugInfo, setDebugInfo] = useState("");
+    const [applyingCoupon, setApplyingCoupon] = useState(false);
+
+    // State cho các item được chọn
+    const [selectedItems, setSelectedItems] = useState([]);
+    // State cho biến thể được chọn
+    const [selectedVariants, setSelectedVariants] = useState({});
 
     useEffect(() => {
-        console.log("Cart component mounted, fetching cart data...");
-        // Cố gắng lấy dữ liệu từ API
+        console.log("Fetching cart data...");
         dispatch(fetchCart())
             .unwrap()
             .then(data => {
-                console.log("Dữ liệu giỏ hàng từ API:", data);
-                if (data && data.items && data.items.length > 0) {
-                    setCart(data);
-                }
+                console.log("Cart data received:", data);
             })
             .catch(err => {
-                console.error("Lỗi khi tải giỏ hàng:", err);
-                setDebugInfo(JSON.stringify(err, null, 2));
+                console.error("Error fetching cart:", err);
             });
     }, [dispatch]);
 
-    // Cập nhật cart từ Redux nếu có dữ liệu
-    useEffect(() => {
-        if (reduxCart && reduxCart.items && reduxCart.items.length > 0) {
-            console.log("Cập nhật giỏ hàng từ Redux:", reduxCart);
-            setCart(reduxCart);
+    // Xử lý chọn tất cả items
+    const handleSelectAll = (checked) => {
+        if (checked) {
+            setSelectedItems(items.map(item => item.cart_item_id));
+        } else {
+            setSelectedItems([]);
         }
-    }, [reduxCart]);
-
-    const calculateTotal = () => {
-        if (!cart?.items || !cart.items.length) return 0;
-        return cart.items.reduce((total, item) => total + item.price * item.quantity, 0);
     };
 
-    const handleApplyCoupon = () => {
+    // Xử lý chọn từng item
+    const handleSelectItem = (checked, cartItemId) => {
+        if (checked) {
+            setSelectedItems(prev => [...prev, cartItemId]);
+        } else {
+            setSelectedItems(prev => prev.filter(id => id !== cartItemId));
+        }
+    };
+
+    // Xử lý thay đổi biến thể
+    const handleVariantChange = (cartItemId, variantId) => {
+        setSelectedVariants(prev => ({
+            ...prev,
+            [cartItemId]: variantId
+        }));
+    };
+
+    const handleQuantityChange = async (cartItemId, newQuantity) => {
+        try {
+            await dispatch(updateCartItem({ cartItemId, quantity: newQuantity })).unwrap();
+            message.success("Cập nhật số lượng thành công");
+        } catch (error) {
+            message.error(error.message || "Có lỗi xảy ra khi cập nhật số lượng");
+        }
+    };
+
+    const handleRemoveItem = async (cartItemId) => {
+        try {
+            await dispatch(removeFromCart(cartItemId)).unwrap();
+            setSelectedItems(prev => prev.filter(id => id !== cartItemId));
+            setSelectedVariants(prev => {
+                const newVariants = { ...prev };
+                delete newVariants[cartItemId];
+                return newVariants;
+            });
+            message.success("Đã xóa sản phẩm khỏi giỏ hàng");
+        } catch (error) {
+            message.error("Không thể xóa sản phẩm");
+        }
+    };
+
+    const handleApplyCoupon = async () => {
         if (!couponCode.trim()) {
             message.warning("Vui lòng nhập mã giảm giá");
             return;
         }
-        message.info("Đang áp dụng mã giảm giá: " + couponCode);
+
+        setApplyingCoupon(true);
+        try {
+            await dispatch(applyCoupon(couponCode)).unwrap();
+            message.success("Áp dụng mã giảm giá thành công");
+            setCouponCode("");
+        } catch (error) {
+            message.error(error.message || "Có lỗi xảy ra khi áp dụng mã giảm giá");
+        } finally {
+            setApplyingCoupon(false);
+        }
     };
 
     const handleCheckout = () => {
-        message.success("Đang chuyển đến trang thanh toán...");
+        if (selectedItems.length === 0) {
+            message.warning("Vui lòng chọn ít nhất một sản phẩm để thanh toán");
+            return;
+        }
+
+        // Chuẩn bị dữ liệu cho trang checkout
+        const checkoutData = {
+            items: items.filter(item => selectedItems.includes(item.cart_item_id)),
+            variants: selectedVariants,
+            total: calculateTotal(),
+            couponCode
+        };
+
+        // Lưu dữ liệu vào sessionStorage để sử dụng ở trang checkout
+        sessionStorage.setItem('checkoutData', JSON.stringify(checkoutData));
+
+        // Chuyển đến trang checkout
         navigate("/checkout");
     };
 
-    console.log("Cart about to render with data:", cart);
+    const handleContinueShopping = () => {
+        navigate("/products");
+    };
+
+    console.log("Current cart items:", items);
 
     // HardCoded JSX để kiểm tra hiển thị
     const renderHardCodedCart = () => (
@@ -130,200 +184,271 @@ const Cart = () => {
     }
 
     // Hiển thị trạng thái loading
-    if (loading && !cart.items.length) {
+    if (loading) {
         return (
-            <div className="cart-container">
-                <div className="loading-container">
-                    <Spin size="large" />
-                    <p>Đang tải giỏ hàng...</p>
-                </div>
+            <div className="cart-loading">
+                <Spin size="large" />
+                <Text>Đang tải giỏ hàng...</Text>
             </div>
         );
     }
 
     // Nếu có lỗi nhưng vẫn có dữ liệu mẫu, vẫn hiển thị cart với dữ liệu mẫu
-    if (error && debugInfo) {
+    if (error) {
         return (
-            <div className="cart-container">
-                <Result
-                    status="warning"
-                    title="Không thể tải giỏ hàng từ máy chủ"
-                    subTitle="Đang hiển thị dữ liệu mẫu, một số tính năng có thể không hoạt động."
-                    extra={[
-                        <Button key="retry" type="primary" onClick={() => dispatch(fetchCart())}>
-                            Thử lại
-                        </Button>
-                    ]}
+            <div className="cart-error">
+                <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description={
+                        <Text type="danger">{error}</Text>
+                    }
                 />
-
-                {/* Hiển thị debug info nếu cần */}
-                <div className="debug-info">
-                    <Text type="secondary">Debug info:</Text>
-                    <pre>{debugInfo}</pre>
-                </div>
-
-                {/* Vẫn hiển thị giỏ hàng với dữ liệu mẫu */}
-                <Title level={2}>Giỏ hàng của bạn</Title>
-                <div className="cart-content">
-                    <div className="cart-items">
-                        {cart.items.map((item) => (
-                            <CartItem key={item.cart_item_id || item.id} item={item} />
-                        ))}
-                    </div>
-
-                    <div className="cart-summary">
-                        <Card title="Tổng đơn hàng">
-                            <Space direction="vertical" size="large" style={{ width: "100%" }}>
-                                <div className="summary-item">
-                                    <Text>Tạm tính:</Text>
-                                    <Text>{calculateTotal().toLocaleString("vi-VN")}đ</Text>
-                                </div>
-
-                                {cart.shippingFee > 0 && (
-                                    <div className="summary-item">
-                                        <Text>Phí vận chuyển:</Text>
-                                        <Text>{cart.shippingFee.toLocaleString("vi-VN")}đ</Text>
-                                    </div>
-                                )}
-
-                                {cart.discount > 0 && (
-                                    <div className="summary-item">
-                                        <Text>Giảm giá:</Text>
-                                        <Text>-{cart.discount.toLocaleString("vi-VN")}đ</Text>
-                                    </div>
-                                )}
-
-                                <div className="coupon-section">
-                                    <Input
-                                        placeholder="Nhập mã giảm giá"
-                                        value={couponCode}
-                                        onChange={(e) => setCouponCode(e.target.value)}
-                                        id="coupon-code"
-                                        name="coupon-code"
-                                        suffix={
-                                            <Button type="link" onClick={handleApplyCoupon} aria-label="Áp dụng mã giảm giá">
-                                                Áp dụng
-                                            </Button>
-                                        }
-                                    />
-                                </div>
-
-                                <Divider />
-
-                                <div className="summary-item total">
-                                    <Text strong>Tổng cộng:</Text>
-                                    <Text strong>{(calculateTotal() + (cart.shippingFee || 0) - (cart.discount || 0)).toLocaleString("vi-VN")}đ</Text>
-                                </div>
-
-                                <Button
-                                    type="primary"
-                                    size="large"
-                                    block
-                                    onClick={handleCheckout}
-                                    aria-label="Tiến hành đặt hàng"
-                                >
-                                    Tiến hành đặt hàng
-                                </Button>
-                            </Space>
-                        </Card>
-                    </div>
-                </div>
             </div>
         );
     }
 
     // Hiển thị giỏ hàng trống nếu không có sản phẩm nào
-    if (!cart?.items || cart.items.length === 0) {
+    if (!items || items.length === 0) {
         return (
-            <div className="cart-container">
-                <div className="empty-cart">
-                    <Empty
-                        image={<ShoppingCartOutlined style={{ fontSize: 64 }} />}
-                        description="Giỏ hàng của bạn đang trống"
+            <div className="cart-empty">
+                <Empty
+                    image={<ShoppingCartOutlined style={{ fontSize: 64 }} />}
+                    description={
+                        <Text>Giỏ hàng của bạn đang trống</Text>
+                    }
+                >
+                    <Button
+                        type="primary"
+                        onClick={handleContinueShopping}
+                        size="large"
                     >
-                        <Button type="primary" onClick={() => navigate("/products")}>
-                            Tiếp tục mua sắm
-                        </Button>
-                    </Empty>
-                </div>
+                        Tiếp tục mua sắm
+                    </Button>
+                </Empty>
             </div>
         );
     }
+
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(price);
+    };
+
+    const calculateSubtotal = () => {
+        return items.reduce((total, item) => total + parseFloat(item.total_price), 0);
+    };
+
+    const calculateTotal = () => {
+        const subtotal = calculateSubtotal();
+        const shippingFee = 0; // Tạm thời để 0
+        const discount = 0; // Tạm thời để 0
+        return subtotal + shippingFee - discount;
+    };
+
+    // Nhóm items theo shop
+    const groupItemsByShop = () => {
+        const groups = {};
+        items.forEach(item => {
+            const shopId = item.product.shop.shop_id;
+            if (!groups[shopId]) {
+                groups[shopId] = {
+                    shop: item.product.shop,
+                    items: []
+                };
+            }
+            groups[shopId].items.push(item);
+        });
+        return groups;
+    };
+
+    // Xử lý chọn tất cả sản phẩm của một shop
+    const handleSelectShop = (checked, shopId) => {
+        const shopItems = groupItemsByShop()[shopId].items;
+        const shopItemIds = shopItems.map(item => item.cart_item_id);
+
+        if (checked) {
+            setSelectedItems(prev => [...new Set([...prev, ...shopItemIds])]);
+        } else {
+            setSelectedItems(prev => prev.filter(id => !shopItemIds.includes(id)));
+        }
+    };
+
+    // Kiểm tra xem shop có được chọn hoàn toàn hay không
+    const isShopSelected = (shopId) => {
+        const shopItems = groupItemsByShop()[shopId].items;
+        return shopItems.every(item => selectedItems.includes(item.cart_item_id));
+    };
+
+    // Kiểm tra xem shop có được chọn một phần hay không
+    const isShopIndeterminate = (shopId) => {
+        const shopItems = groupItemsByShop()[shopId].items;
+        const selectedCount = shopItems.filter(item => selectedItems.includes(item.cart_item_id)).length;
+        return selectedCount > 0 && selectedCount < shopItems.length;
+    };
 
     // Render giỏ hàng bình thường
     return (
         <div className="cart-container">
             <Title level={2}>Giỏ hàng của bạn</Title>
-
-            <div className="cart-content">
-                <div className="cart-items">
-                    {cart.items.map((item) => (
-                        <CartItem
-                            key={item.cart_item_id || item.id}
-                            item={item}
-                        />
-                    ))}
-                </div>
-
-                <div className="cart-summary">
-                    <Card title="Tổng đơn hàng">
-                        <Space direction="vertical" size="large" style={{ width: "100%" }}>
-                            <div className="summary-item">
-                                <Text>Tạm tính:</Text>
-                                <Text>{calculateTotal().toLocaleString("vi-VN")}đ</Text>
-                            </div>
-
-                            {cart.shippingFee > 0 && (
-                                <div className="summary-item">
-                                    <Text>Phí vận chuyển:</Text>
-                                    <Text>{cart.shippingFee.toLocaleString("vi-VN")}đ</Text>
-                                </div>
-                            )}
-
-                            {cart.discount > 0 && (
-                                <div className="summary-item">
-                                    <Text>Giảm giá:</Text>
-                                    <Text>-{cart.discount.toLocaleString("vi-VN")}đ</Text>
-                                </div>
-                            )}
-
-                            <div className="coupon-section">
-                                <Input
-                                    placeholder="Nhập mã giảm giá"
-                                    value={couponCode}
-                                    onChange={(e) => setCouponCode(e.target.value)}
-                                    id="coupon-code"
-                                    name="coupon-code"
-                                    suffix={
-                                        <Button type="link" onClick={handleApplyCoupon} aria-label="Áp dụng mã giảm giá">
-                                            Áp dụng
-                                        </Button>
-                                    }
-                                />
-                            </div>
-
-                            <Divider />
-
-                            <div className="summary-item total">
-                                <Text strong>Tổng cộng:</Text>
-                                <Text strong>{(calculateTotal() + (cart.shippingFee || 0) - (cart.discount || 0)).toLocaleString("vi-VN")}đ</Text>
-                            </div>
-
-                            <Button
-                                type="primary"
-                                size="large"
-                                block
-                                onClick={handleCheckout}
-                                aria-label="Tiến hành đặt hàng"
+            <Row gutter={[24, 24]}>
+                <Col xs={24} lg={16}>
+                    <Card className="cart-items">
+                        <div className="cart-header">
+                            <h1>Giỏ hàng của bạn</h1>
+                            <Checkbox
+                                checked={selectedItems.length === items.length}
+                                indeterminate={selectedItems.length > 0 && selectedItems.length < items.length}
+                                onChange={(e) => handleSelectAll(e.target.checked)}
                             >
-                                Tiến hành đặt hàng
-                            </Button>
-                        </Space>
+                                Chọn tất cả ({selectedItems.length}/{items.length})
+                            </Checkbox>
+                        </div>
+
+                        {Object.entries(groupItemsByShop()).map(([shopId, { shop, items: shopItems }]) => (
+                            <div key={shopId} className="shop-items-group">
+                                <div className="shop-header">
+                                    <Checkbox
+                                        checked={isShopSelected(shopId)}
+                                        indeterminate={isShopIndeterminate(shopId)}
+                                        onChange={(e) => handleSelectShop(e.target.checked, shopId)}
+                                    />
+                                    <div className="shop-info">
+                                        <img
+                                            src={shop.logo}
+                                            alt={shop.shop_name}
+                                            className="shop-logo"
+                                        />
+                                        <Text strong>{shop.shop_name}</Text>
+                                    </div>
+                                </div>
+
+                                {shopItems.map((item) => (
+                                    <div key={item.cart_item_id} className="cart-item">
+                                        <Row gutter={[16, 16]} align="middle">
+                                            <Col flex="32px">
+                                                <Checkbox
+                                                    checked={selectedItems.includes(item.cart_item_id)}
+                                                    onChange={(e) => handleSelectItem(e.target.checked, item.cart_item_id)}
+                                                />
+                                            </Col>
+                                            <Col xs={24} sm={8} md={6}>
+                                                <div className="product-image">
+                                                    <img
+                                                        src={item.variant?.image_url}
+                                                        alt={item.product.product_name}
+                                                    />
+                                                </div>
+                                            </Col>
+                                            <Col xs={24} sm={16} md={16}>
+                                                <div className="product-info">
+                                                    <Title level={5}>{item.product.product_name}</Title>
+
+                                                    {item.variant && (
+                                                        <div className="variant-info">
+                                                            <Space wrap>
+                                                                {item.variant.attributes.size && (
+                                                                    <Tag color="blue">Size: {item.variant.attributes.size}</Tag>
+                                                                )}
+                                                                {item.variant.attributes.color && (
+                                                                    <Tag color="green">Màu: {item.variant.attributes.color}</Tag>
+                                                                )}
+                                                                {item.variant.attributes.material && (
+                                                                    <Tag color="purple">Chất liệu: {item.variant.attributes.material}</Tag>
+                                                                )}
+                                                            </Space>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="price-info">
+                                                        <Text className="price">{formatPrice(item.price)}</Text>
+                                                    </div>
+
+                                                    <div className="item-actions">
+                                                        <Space>
+                                                            <Button
+                                                                icon={<MinusOutlined />}
+                                                                onClick={() => handleQuantityChange(item.cart_item_id, item.quantity - 1)}
+                                                                disabled={item.quantity <= 1}
+                                                            />
+                                                            <Text>{item.quantity}</Text>
+                                                            <Button
+                                                                icon={<PlusOutlined />}
+                                                                onClick={() => handleQuantityChange(item.cart_item_id, item.quantity + 1)}
+                                                                disabled={item.quantity >= (item.variant?.stock || 999)}
+                                                            />
+                                                            <Button
+                                                                type="text"
+                                                                danger
+                                                                icon={<DeleteOutlined />}
+                                                                onClick={() => handleRemoveItem(item.cart_item_id)}
+                                                            />
+                                                        </Space>
+                                                    </div>
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                ))}
+                                <Divider />
+                            </div>
+                        ))}
                     </Card>
-                </div>
-            </div>
+                </Col>
+                <Col xs={24} lg={8}>
+                    <Card className="cart-summary">
+                        <Title level={4}>Tổng đơn hàng</Title>
+                        <div className="summary-item">
+                            <Text>Tạm tính:</Text>
+                            <Text>{formatPrice(calculateSubtotal())}</Text>
+                        </div>
+                        <div className="summary-item">
+                            <Text>Phí vận chuyển:</Text>
+                            <Text>{formatPrice(0)}</Text>
+                        </div>
+                        <div className="summary-item">
+                            <Text>Giảm giá:</Text>
+                            <Text type="success">-{formatPrice(0)}</Text>
+                        </div>
+                        <Divider />
+                        <div className="summary-item total">
+                            <Text strong>Tổng cộng:</Text>
+                            <Text strong>{formatPrice(calculateTotal())}</Text>
+                        </div>
+
+                        <div className="coupon-section">
+                            <Input
+                                placeholder="Nhập mã giảm giá"
+                                value={couponCode}
+                                onChange={(e) => setCouponCode(e.target.value)}
+                                prefix={<TagOutlined />}
+                                suffix={
+                                    <Button
+                                        type="primary"
+                                        loading={applyingCoupon}
+                                        onClick={handleApplyCoupon}
+                                    >
+                                        Áp dụng
+                                    </Button>
+                                }
+                            />
+                        </div>
+
+                        <Button
+                            type="primary"
+                            size="large"
+                            block
+                            className="checkout-button"
+                            onClick={handleCheckout}
+                        >
+                            Tiến hành thanh toán
+                        </Button>
+                    </Card>
+                </Col>
+            </Row>
         </div>
     );
 };
 
-export default Cart; 
+export default CartPage; 

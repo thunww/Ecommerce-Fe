@@ -40,10 +40,10 @@ export const fetchCart = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const response = await cartService.getCart();
-            return response || mockCartData; // Trả về dữ liệu mẫu nếu API lỗi
+            console.log('Cart data from API:', response);
+            return response;
         } catch (error) {
             console.error("Lỗi khi lấy dữ liệu giỏ hàng:", error);
-            // Trả về dữ liệu mẫu trong trường hợp lỗi để vẫn hiển thị UI
             return rejectWithValue(error.message);
         }
     }
@@ -62,9 +62,9 @@ export const addToCart = createAsyncThunk(
 
 export const updateCartItem = createAsyncThunk(
     "cart/updateCartItem",
-    async ({ cartItemId, data }, { rejectWithValue }) => {
+    async ({ cartItemId, quantity }, { rejectWithValue }) => {
         try {
-            return await cartService.updateCartItem(cartItemId, data);
+            return await cartService.updateCartItem(cartItemId, quantity);
         } catch (error) {
             return rejectWithValue(error.message);
         }
@@ -160,7 +160,7 @@ export const createPayment = createAsyncThunk(
 );
 
 const initialState = {
-    cart: mockCartData, // Sử dụng dữ liệu mẫu làm giá trị mặc định
+    items: [],
     loading: false,
     error: null,
     shippingFee: 0,
@@ -176,11 +176,13 @@ const initialState = {
 };
 
 const cartSlice = createSlice({
-    name: "cart",
+    name: 'cart',
     initialState,
     reducers: {
-        clearCartState: (state) => {
-            return initialState;
+        clearCart: (state) => {
+            state.items = [];
+            state.shippingFee = 0;
+            state.discount = 0;
         },
         setSelectedAddress: (state, action) => {
             state.selectedAddress = action.payload;
@@ -191,99 +193,61 @@ const cartSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // Fetch Cart
             .addCase(fetchCart.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
             .addCase(fetchCart.fulfilled, (state, action) => {
+                console.log('Setting cart data:', action.payload);
+                state.items = action.payload.items || [];
+                state.shippingFee = action.payload.shippingFee || 0;
+                state.discount = action.payload.discount || 0;
                 state.loading = false;
-                state.cart = action.payload;
+                state.error = null;
             })
             .addCase(fetchCart.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
-                // Giữ lại dữ liệu mẫu trong trường hợp lỗi
-                state.cart = mockCartData;
             })
-
-            // Add to Cart
             .addCase(addToCart.fulfilled, (state, action) => {
-                state.cart = action.payload;
+                state.items = action.payload.items || [];
             })
-            .addCase(addToCart.rejected, (state, action) => {
-                state.error = action.payload;
-            })
-
-            // Update Cart Item
             .addCase(updateCartItem.fulfilled, (state, action) => {
-                state.cart = action.payload;
+                state.items = action.payload.items || [];
             })
-            .addCase(updateCartItem.rejected, (state, action) => {
-                state.error = action.payload;
-            })
-
-            // Remove from Cart
             .addCase(removeFromCart.fulfilled, (state, action) => {
-                state.cart.items = state.cart.items.filter(
-                    (item) => item.cart_item_id !== action.payload
-                );
+                state.items = action.payload.items || [];
             })
-            .addCase(removeFromCart.rejected, (state, action) => {
-                state.error = action.payload;
-            })
-
-            // Apply Coupon
             .addCase(applyCoupon.fulfilled, (state, action) => {
-                state.discount = action.payload.discount;
-                state.couponCode = action.payload.code;
+                state.discount = action.payload.discount || 0;
             })
-            .addCase(applyCoupon.rejected, (state, action) => {
-                state.error = action.payload;
-            })
-
-            // Calculate Shipping
             .addCase(calculateShipping.fulfilled, (state, action) => {
-                state.shippingFee = action.payload.fee;
-                state.estimatedDeliveryTime = action.payload.estimatedTime;
+                state.shippingFee = action.payload.shippingFee || 0;
             })
-            .addCase(calculateShipping.rejected, (state, action) => {
-                state.error = action.payload;
-            })
-
-            // Checkout
             .addCase(checkout.fulfilled, (state, action) => {
                 state.orderStatus = action.payload;
             })
             .addCase(checkout.rejected, (state, action) => {
                 state.error = action.payload;
             })
-
-            // Get Order Status
             .addCase(getOrderStatus.fulfilled, (state, action) => {
                 state.orderStatus = action.payload;
             })
             .addCase(getOrderStatus.rejected, (state, action) => {
                 state.error = action.payload;
             })
-
-            // Track Order
             .addCase(trackOrder.fulfilled, (state, action) => {
                 state.trackingInfo = action.payload;
             })
             .addCase(trackOrder.rejected, (state, action) => {
                 state.error = action.payload;
             })
-
-            // Get Payment Methods
             .addCase(getPaymentMethods.fulfilled, (state, action) => {
                 state.paymentMethods = action.payload;
             })
             .addCase(getPaymentMethods.rejected, (state, action) => {
                 state.error = action.payload;
             })
-
-            // Create Payment
             .addCase(createPayment.fulfilled, (state, action) => {
                 // Handle payment creation success
             })
@@ -293,6 +257,5 @@ const cartSlice = createSlice({
     }
 });
 
-export const { clearCartState, setSelectedAddress, setPaymentMethod } = cartSlice.actions;
-
+export const { clearCart, setSelectedAddress, setPaymentMethod } = cartSlice.actions;
 export default cartSlice.reducer; 

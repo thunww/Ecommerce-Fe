@@ -105,19 +105,28 @@ const cartApi = {
             .catch(error => handleApiError(error, "addToCart"));
     },
 
-    updateCartItem: (cartItemId, data) => {
-        logApiCall("updateCartItem", cartItemId, data);
+    updateCartItem: async (cartItemId, quantity) => {
+        try {
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                throw new Error('Chưa đăng nhập');
+            }
 
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để cập nhật giỏ hàng" });
+            console.log('API: Cập nhật số lượng sản phẩm', { cartItemId, quantity });
+            const response = await axiosClient.put(`/cart/items/${cartItemId}`, {
+                quantity: quantity
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            console.log('API: Kết quả cập nhật', response.data);
+            return response;
+        } catch (error) {
+            console.error('Lỗi khi cập nhật số lượng:', error);
+            throw error;
         }
-
-        return axiosClient.put(`/cart/items/${cartItemId}`, data)
-            .then(response => {
-                console.log("CartAPI: updateCartItem response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "updateCartItem"));
     },
 
     removeFromCart: (cartItemId) => {

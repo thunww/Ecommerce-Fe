@@ -144,15 +144,17 @@ const Header = () => {
                 </li>
                 <li>
                   <Tooltip title="Notification">
-                    <IconButton
-                      aria-label="notification"
-                      size="small"
-                      className="p-1 sm:p-2"
-                    >
-                      <StyledBadge badgeContent={69} color="secondary">
-                        <MdNotificationsNone className="text-base sm:text-lg" />
-                      </StyledBadge>
-                    </IconButton>
+                    <Link to="/shipper/register">
+                      <IconButton
+                        aria-label="notification"
+                        size="small"
+                        className="p-1 sm:p-2"
+                      >
+                        <StyledBadge badgeContent={69} color="secondary">
+                          <MdNotificationsNone className="text-base sm:text-lg" />
+                        </StyledBadge>
+                      </IconButton>
+                    </Link>
                   </Tooltip>
                 </li>
 
@@ -188,8 +190,7 @@ const Header = () => {
                         <div className="py-3 px-4 border-b border-gray-100">
                           <p className="text-sm font-medium text-gray-800 truncate">
                             {user
-                              ? `${user.first_name || ""} ${
-                                  user.last_name || ""
+                              ? `${user.first_name || ""} ${user.last_name || ""
                                 }`.trim()
                               : "User"}
                           </p>
