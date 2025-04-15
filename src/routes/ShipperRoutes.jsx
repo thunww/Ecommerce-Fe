@@ -18,12 +18,10 @@ const ShipperRoutes = () => {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<ShipperLanding />} />
-       
-        {/* <Route path="/login" element={<ShipperLogin />} /> */}
+        <Route path="/register" element={<ShipperRegister />} />
 
         {/* Protected routes with layout */}
         <Route element={<ShipperLayout />}>
-        <Route path="/register" element={<ShipperRegister />} />
           <Route path="/dashboard" element={<ShipperDashboard />} />
           <Route path="/orders" element={<ShipperOrders />} />
           <Route path="/orders/:id" element={<ShipperOrderDetail />} />

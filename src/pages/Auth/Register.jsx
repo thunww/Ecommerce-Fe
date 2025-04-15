@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { register } from "../../redux/authSlice";
+import AddressSelector from "../../components/AddressSelector";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -15,6 +16,12 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [address, setAddress] = useState({
+    province: '',
+    district: '',
+    ward: '',
+    street: ''
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +30,11 @@ const Register = () => {
       !username.trim() ||
       !email.trim() ||
       !password.trim() ||
-      !confirmPassword.trim()
+      !confirmPassword.trim() ||
+      !address.province ||
+      !address.district ||
+      !address.ward ||
+      !address.street
     ) {
       toast.error("Vui lòng nhập đầy đủ thông tin!", { position: "top-right" });
       return;
@@ -36,7 +47,12 @@ const Register = () => {
 
     try {
       const result = await dispatch(
-        register({ username, email, password })
+        register({ 
+          username, 
+          email, 
+          password,
+          address: `${address.street}, ${address.ward}, ${address.district}, ${address.province}`
+        })
       ).unwrap();
 
       toast.success(result.message || "Đăng ký thành công!", {
@@ -159,6 +175,14 @@ const Register = () => {
                       required
                     />
                   </div>
+                </div>
+
+                {/* Address */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Địa chỉ
+                  </label>
+                  <AddressSelector onAddressChange={setAddress} />
                 </div>
 
                 <button
