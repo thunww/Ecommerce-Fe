@@ -1,139 +1,100 @@
-import { useState } from "react";
-import { FaAngleLeft, FaAngleRight } from "react-icons/fa";
-import { Link } from "react-router-dom"; // Import Link
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import ShipperSidebar from "../../components/shipper/ShipperSidebar";
+import OrdersTable from "../../components/shipper/OrdersTable";
+import { FaSearch } from "react-icons/fa";
 
-const statusClasses = {
-  "Chờ xác nhận": "bg-yellow-100 text-yellow-700",
-  "Đang giao": "bg-blue-100 text-blue-700",
-  "Đã hoàn thành": "bg-green-100 text-green-700",
-  "Đã hủy": "bg-red-100 text-red-700"
-};
+const ShipperOrders = () => {
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
 
-const tabs = ["Tất cả", "Chờ xác nhận", "Đang giao", "Đã hoàn thành", "Đã hủy"];
-const itemsPerPage = 10;
+  useEffect(() => {
+    // TODO: Fetch orders from API
+    setIsLoading(false);
+  }, []);
 
-const sampleOrders = [
-  { id: "ORD0012345", name: "Nguyễn Văn A", phone: "0912345678", price: 150000, date: "2025-03-07T10:30", address: "23 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh", status: "Chờ xác nhận" },
-  { id: "ORD0012344", name: "Trần Thị B", phone: "0987654321", price: 200000, date: "2025-03-07T09:45", address: "45 Lê Lợi, Quận 3, TP. Hồ Chí Minh", status: "Đang giao" },
-  { id: "ORD0012343", name: "Phạm Văn C", phone: "0909123456", price: 350000, date: "2025-03-06T16:20", address: "12 Trần Phú, Quận 5, TP. Hồ Chí Minh", status: "Đã hoàn thành" },
-  { id: "ORD0012342", name: "Lê Thị D", phone: "0976543210", price: 120000, date: "2025-03-06T14:15", address: "78 Võ Văn Tần, Quận 10, TP. Hồ Chí Minh", status: "Đã hủy" }
-];
+  const handleOrderClick = (orderId) => {
+    navigate(`/shipper/orders/${orderId}`);
+  };
 
-export default function Orders() {
-  const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("Tất cả");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [ordersData] = useState(sampleOrders);
-
-  const filteredOrders = ordersData
-    .filter(order =>
-      (activeTab === "Tất cả" || order.status === activeTab) &&
-      (order.id.includes(search) || order.name.includes(search)) &&
-      (!startDate || new Date(order.date) >= new Date(startDate)) &&
-      (!endDate || new Date(order.date) <= new Date(endDate))
-    );
-
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  const displayedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const filteredOrders = orders.filter((order) => {
+    const matchesSearch = order.id?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+    const matchesDate = dateFilter === "all" || order.date === dateFilter;
+    return matchesSearch && matchesStatus && matchesDate;
+  });
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-md">
-        {/* Tabs */}
-        <div className="flex space-x-4 border-b pb-2 mb-4">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              className={`px-4 py-2 rounded-t-md ${activeTab === tab ? "border-b-2 border-red-500 text-red-500" : "text-gray-500"}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-        
-        {/* Search Bar & Filters */}
-        <div className="mb-4 flex space-x-2">
-          <input
-            type="text"
-            placeholder="Tìm kiếm theo mã đơn hàng, tên khách hàng..."
-            className="p-2 border rounded flex-grow"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <input
-            type="date"
-            className="p-2 border rounded"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-          <input
-            type="date"
-            className="p-2 border rounded"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
-        
-        {/* Order Table */}
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2">Mã đơn</th>
-              <th className="border p-2">Khách hàng</th>
-              <th className="border p-2">Số điện thoại</th>
-              <th className="border p-2">Giá trị</th>
-              <th className="border p-2">Ngày tạo</th>
-              <th className="border p-2">Địa chỉ</th>
-              <th className="border p-2">Trạng thái</th>
-              <th className="border p-2">Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayedOrders.length > 0 ? (
-              displayedOrders.map((order) => (
-                <tr key={order.id} className="border">
-                  <td className="border p-2 text-blue-600 font-semibold">#{order.id}</td>
-                  <td className="border p-2">{order.name}</td>
-                  <td className="border p-2">{order.phone}</td>
-                  <td className="border p-2">{order.price.toLocaleString()}đ</td>
-                  <td className="border p-2">{new Date(order.date).toLocaleString()}</td>
-                  <td className="border p-2">{order.address}</td>
-                  <td className={`border p-2 rounded ${statusClasses[order.status]}`}>{order.status}</td>
-                  <td className="border p-2">
-                    <Link to={`/shipper/orders/${order.id}`} className="bg-red-500 text-white px-3 py-1 rounded">Chi tiết</Link>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="8" className="border p-2 text-center">Không có đơn hàng nào được tìm thấy.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+    <div className="flex-1 overflow-hidden">
+      <div className="h-full flex flex-col p-6">
+        {/* Header and Filters */}
+        <div className="space-y-4 mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">Danh sách đơn hàng</h1>
+          
+          <div className="flex flex-wrap gap-4">
+            {/* Search Input */}
+            <div className="relative w-full md:w-64">
+              <input
+                type="text"
+                placeholder="Tìm kiếm đơn hàng..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
 
-        {/* Pagination */}
-        <div className="flex justify-between mt-4">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="bg-gray-300 text-gray-700 px-3 py-1 rounded disabled:opacity-50"
-          >
-            <FaAngleLeft />
-          </button>
-          <span>{`Trang ${currentPage} / ${totalPages}`}</span>
-          <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="bg-gray-300 text-gray-700 px-3 py-1 rounded disabled:opacity-50"
-          >
-            <FaAngleRight />
-          </button>
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full md:w-48 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+            >
+              <option value="all">Tất cả trạng thái</option>
+              <option value="pending">Đang chờ</option>
+              <option value="processing">Đang xử lý</option>
+              <option value="completed">Hoàn thành</option>
+              <option value="cancelled">Đã hủy</option>
+            </select>
+
+            {/* Date Filter */}
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="w-full md:w-48 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+            >
+              <option value="all">Tất cả ngày</option>
+              <option value="today">Hôm nay</option>
+              <option value="week">Tuần này</option>
+              <option value="month">Tháng này</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Orders Table */}
+        <div className="flex-1 bg-white rounded-lg shadow-md overflow-hidden">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-full">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+            </div>
+          ) : (
+            <div className="h-full flex flex-col">
+              <div className="flex-1 overflow-auto">
+                <OrdersTable
+                  orders={filteredOrders}
+                  onOrderClick={handleOrderClick}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ShipperOrders;

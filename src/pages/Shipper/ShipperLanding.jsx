@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ShipperLogo from '../../components/ShipperLogo';
+import ShipperLogo from '../../components/shipper/ShipperLogo';
 
 const ShipperLanding = () => {
   const navigate = useNavigate();

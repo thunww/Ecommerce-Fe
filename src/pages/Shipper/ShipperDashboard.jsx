@@ -1,204 +1,63 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { FaCheckCircle, FaTimesCircle, FaSpinner } from "react-icons/fa";
+import ShipperStatsCards from "../../components/shipper/ShipperStatsCards";
+import OrdersTable from "../../components/shipper/OrdersTable";
+import { FaSearch } from "react-icons/fa";
 
 const ShipperDashboard = () => {
   const [stats, setStats] = useState({
-    todayOrders: 124,
-    completedOrders: 104,
-    pendingOrders: 24,
-    todayRevenue: "50.004 đ"
+    todayOrders: 0,
+    completedOrders: 0,
+    pendingOrders: 0,
+    todayRevenue: "0 đ",
   });
 
-  const [orders, setOrders] = useState([
-    {
-      id: "DH001",
-      customerName: "Nguyễn Văn A",
-      address: "123 Nguyễn Văn Cừ, Quận 5, TP.HCM",
-      phone: "0901234567",
-      total: "150.000 đ",
-      status: "pending", // pending, accepted, completed
-      time: "10:30 AM"
-    },
-    {
-      id: "DH002",
-      customerName: "Trần Thị B",
-      address: "456 Lê Lợi, Quận 1, TP.HCM",
-      phone: "0907654321",
-      total: "200.000 đ",
-      status: "pending",
-      time: "11:00 AM"
-    },
-    {
-      id: "DH003",
-      customerName: "Phạm Văn C",
-      address: "789 Cách Mạng Tháng 8, Quận 3, TP.HCM",
-      phone: "0909876543",
-      total: "180.000 đ",
-      status: "accepted",
-      time: "11:30 AM"
-    }
-  ]);
+  const [orders, setOrders] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleAcceptOrder = (orderId) => {
-    setOrders(orders.map(order => 
-      order.id === orderId 
-        ? { ...order, status: "accepted" }
-        : order
-    ));
-  };
+  useEffect(() => {
+    // TODO: Fetch dashboard data from API
+    setIsLoading(false);
+  }, []);
 
-  const handleCompleteOrder = (orderId) => {
-    setOrders(orders.map(order => 
-      order.id === orderId 
-        ? { ...order, status: "completed" }
-        : order
-    ));
-
-    // Cập nhật thống kê
-    setStats(prev => ({
-      ...prev,
-      completedOrders: prev.completedOrders + 1,
-      pendingOrders: prev.pendingOrders - 1
-    }));
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "accepted":
-        return "bg-blue-100 text-blue-800";
-      case "completed":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case "pending":
-        return "Chờ nhận";
-      case "accepted":
-        return "Đang giao";
-      case "completed":
-        return "Đã giao";
-      default:
-        return "Không xác định";
-    }
-  };
+  const filteredOrders = orders.filter((order) =>
+    order.id?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-4">
-          Xin chào, đây là bảng điều khiển giao hàng của bạn
-        </h1>
-        
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-500">Đơn hàng hôm nay</div>
-            <div className="text-2xl font-bold text-gray-800">{stats.todayOrders}</div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-500">Đã giao thành công</div>
-            <div className="text-2xl font-bold text-green-600">{stats.completedOrders}</div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-500">Đang chờ giao</div>
-            <div className="text-2xl font-bold text-yellow-600">{stats.pendingOrders}</div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-500">Tổng doanh thu hôm nay</div>
-            <div className="text-2xl font-bold text-blue-600">{stats.todayRevenue}</div>
-          </div>
+    <div className="flex-1 overflow-hidden">
+      <div className="h-full flex flex-col p-4 md:p-6 space-y-6">
+        {/* Stats Section */}
+        <div className="w-full">
+          <ShipperStatsCards stats={stats} />
         </div>
-      </div>
 
-      {/* Orders Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Danh sách đơn hàng</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Mã đơn
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Khách hàng
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Địa chỉ
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thời gian
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tổng tiền
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trạng thái
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thao tác
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {orders.map((order) => (
-                  <tr key={order.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Link 
-                        to={`/shipper/orders/${order.id}`}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        {order.id}
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{order.customerName}</div>
-                      <div className="text-sm text-gray-500">{order.phone}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{order.address}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{order.time}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{order.total}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                        {getStatusText(order.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      {order.status === "pending" && (
-                        <button
-                          onClick={() => handleAcceptOrder(order.id)}
-                          className="text-blue-600 hover:text-blue-900 mr-4"
-                        >
-                          Nhận đơn
-                        </button>
-                      )}
-                      {order.status === "accepted" && (
-                        <button
-                          onClick={() => handleCompleteOrder(order.id)}
-                          className="text-green-600 hover:text-green-900"
-                        >
-                          Đánh dấu đã giao
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Recent Orders Section */}
+        <div className="flex-1 bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+              <h2 className="text-xl font-semibold text-gray-800">Đơn hàng gần đây</h2>
+              <div className="relative w-full md:w-64">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm đơn hàng..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
+            </div>
+
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <OrdersTable orders={filteredOrders} />
+              </div>
+            )}
           </div>
         </div>
       </div>

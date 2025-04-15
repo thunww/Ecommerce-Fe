@@ -8,7 +8,7 @@ import ShipperProfile from "../pages/Shipper/ShipperProfile";
 import ShipperOrderDetail from "../pages/Shipper/ShipperOrderDetail";
 import ShipperLanding from "../pages/Shipper/ShipperLanding";
 import ShipperIncome from "../pages/Shipper/ShipperIncome";
-import ShipperRegister from '../pages/ShipperRegister';
+import ShipperRegister from '../pages/Shipper/ShipperRegister';
 import NotFound from "../pages/NotFound";
 
 
