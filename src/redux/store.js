@@ -4,6 +4,7 @@ import adminReducer from "./adminSlice";
 import shopReducer from "./shopSlice";
 import productReducer from "./productSilce";
 import reviewReducer from "./reviewsSilce";
+import categoryReducer from "./categorySlice";
 const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -11,6 +12,7 @@ const store = configureStore({
     shops: shopReducer,
     products: productReducer,
     reviews: reviewReducer,
+    categories: categoryReducer,
   },
 });
 
