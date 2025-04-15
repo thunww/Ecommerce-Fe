@@ -24,416 +24,125 @@ const hasValidToken = () => {
 };
 
 const cartApi = {
-    // ===== CART OPERATIONS =====
+    // Lấy giỏ hàng
     getCart: () => {
-        console.log("CartAPI: Fetching cart");
-        const token = localStorage.getItem("accessToken");
-
-        // Ghi log thông tin token để debug (chỉ hiển thị vài ký tự đầu và cuối)
-        if (token) {
-            const tokenStart = token.substring(0, 10);
-            const tokenEnd = token.substring(token.length - 5);
-            console.log(`CartAPI: Using token (masked): ${tokenStart}...${tokenEnd}`);
-        }
-
-        // Kiểm tra token trước khi gọi API
-        if (!hasValidToken()) {
-            console.warn("CartAPI: Trả về giỏ hàng trống vì chưa đăng nhập");
-            return Promise.resolve({
-                data: {
-                    items: [],
-                    total_price: 0,
-                    shippingFee: 0,
-                    discount: 0,
-                    subtotal: 0,
-                    total: 0
-                }
-            });
-        }
-
-        // Thêm options để debug network request
-        const requestOptions = {
-            headers: {
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
-            }
-        };
-
-        return axiosClient.get("/cart", requestOptions)
-            .then(response => {
-                console.log("CartAPI: getCart response:", response);
-                return response;
-            })
-            .catch(error => {
-                console.error(`CartAPI: Error in getCart:`, error);
-
-                // Kiểm tra lỗi liên quan đến xác thực
-                if (error.message?.includes('Unauthorized') ||
-                    error.message?.includes('token') ||
-                    error.status === 400 ||
-                    error.status === 401) {
-                    console.warn("CartAPI: Lỗi xác thực, xóa token và đăng nhập lại");
-                    // Đề xuất refresh trang hoặc đăng nhập lại
-                }
-
-                // Trả về giỏ hàng trống nếu có lỗi
-                return {
-                    data: {
-                        items: [],
-                        total_price: 0,
-                        shippingFee: 0,
-                        discount: 0,
-                        subtotal: 0,
-                        total: 0
-                    }
-                };
-            });
+        const url = "/cart";
+        return axiosClient.get(url);
     },
 
-    addToCart: (data) => {
-        logApiCall("addToCart", data);
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để thêm vào giỏ hàng" });
-        }
-
-        return axiosClient.post("/cart/items", data)
-            .then(response => {
-                console.log("CartAPI: addToCart response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "addToCart"));
+    // Thêm sản phẩm vào giỏ hàng
+    addToCart: (product_id, quantity = 1, variant_id = null) => {
+        const url = "/cart/items";
+        return axiosClient.post(url, { product_id, quantity, variant_id });
     },
 
-    updateCartItem: async (cartItemId, quantity) => {
-        try {
-            const accessToken = localStorage.getItem('accessToken');
-            if (!accessToken) {
-                throw new Error('Chưa đăng nhập');
-            }
-
-            console.log('API: Cập nhật số lượng sản phẩm', { cartItemId, quantity });
-            const response = await axiosClient.put(`/cart/items/${cartItemId}`, {
-                quantity: quantity
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            console.log('API: Kết quả cập nhật', response.data);
-            return response;
-        } catch (error) {
-            console.error('Lỗi khi cập nhật số lượng:', error);
-            throw error;
-        }
+    // Cập nhật số lượng sản phẩm trong giỏ hàng
+    updateCartItem: (cart_item_id, quantity) => {
+        const url = `/cart/items/${cart_item_id}`;
+        return axiosClient.put(url, { quantity });
     },
 
-    removeFromCart: (cartItemId) => {
-        logApiCall("removeFromCart", cartItemId);
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để xóa sản phẩm khỏi giỏ hàng" });
-        }
-
-        return axiosClient.delete(`/cart/items/${cartItemId}`)
-            .then(response => {
-                console.log("CartAPI: removeFromCart response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "removeFromCart"));
+    // Xóa sản phẩm khỏi giỏ hàng
+    removeFromCart: (cart_item_id) => {
+        const url = `/cart/items/${cart_item_id}`;
+        return axiosClient.delete(url);
     },
 
+    // Xóa toàn bộ giỏ hàng
     clearCart: () => {
-        console.log("CartAPI: Clearing cart");
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để xóa giỏ hàng" });
-        }
-
-        return axiosClient.delete("/cart")
-            .then(response => {
-                console.log("CartAPI: clearCart response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "clearCart"));
+        const url = "/api/v1/cart";
+        return axiosClient.delete(url);
     },
 
-    // ===== COUPON OPERATIONS =====
+    // Áp dụng mã giảm giá
     applyCoupon: (code) => {
-        logApiCall("applyCoupon", code);
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để áp dụng mã giảm giá" });
-        }
-
-        return axiosClient.post("/cart/coupons", { code })
-            .then(response => {
-                console.log("CartAPI: applyCoupon response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "applyCoupon"));
+        const url = "/api/v1/cart/coupon";
+        return axiosClient.post(url, { code });
     },
 
-    removeCoupon: () => {
-        console.log("CartAPI: Removing coupon");
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để xóa mã giảm giá" });
-        }
-
-        return axiosClient.delete("/cart/coupons")
-            .then(response => {
-                console.log("CartAPI: removeCoupon response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "removeCoupon"));
-    },
-
-    validateCoupon: (code) => {
-        logApiCall("validateCoupon", code);
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để kiểm tra mã giảm giá" });
-        }
-
-        return axiosClient.get(`/coupons/validate?code=${code}`)
-            .then(response => {
-                console.log("CartAPI: validateCoupon response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "validateCoupon"));
-    },
-
-    // ===== CHECKOUT OPERATIONS =====
-    getCartSummary: () => {
-        console.log("CartAPI: Fetching cart summary");
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để xem tổng giỏ hàng" });
-        }
-
-        return axiosClient.get("/cart/summary")
-            .then(response => {
-                console.log("CartAPI: getCartSummary response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "getCartSummary"));
-    },
-
+    // Tính phí vận chuyển
     calculateShipping: (address) => {
-        logApiCall("calculateShipping", address);
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để tính phí vận chuyển" });
-        }
-
-        return axiosClient.post("/cart/shipping", { address })
-            .then(response => {
-                console.log("CartAPI: calculateShipping response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "calculateShipping"));
+        const url = "/api/v1/cart/shipping";
+        return axiosClient.post(url, { address });
     },
 
-    // ===== ADDRESS OPERATIONS =====
-    getUserAddresses: () => {
-        console.log("CartAPI: Fetching user addresses");
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để xem địa chỉ" });
-        }
-
-        return axiosClient.get("/addresses")
-            .then(response => {
-                console.log("CartAPI: getUserAddresses response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "getUserAddresses"));
-    },
-
-    addAddress: (addressData) => {
-        logApiCall("addAddress", addressData);
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để thêm địa chỉ" });
-        }
-
-        return axiosClient.post("/addresses", addressData)
-            .then(response => {
-                console.log("CartAPI: addAddress response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "addAddress"));
-    },
-
-    updateAddress: (addressId, addressData) => {
-        logApiCall("updateAddress", addressId, addressData);
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để cập nhật địa chỉ" });
-        }
-
-        return axiosClient.put(`/addresses/${addressId}`, addressData)
-            .then(response => {
-                console.log("CartAPI: updateAddress response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "updateAddress"));
-    },
-
-    deleteAddress: (addressId) => {
-        logApiCall("deleteAddress", addressId);
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để xóa địa chỉ" });
-        }
-
-        return axiosClient.delete(`/addresses/${addressId}`)
-            .then(response => {
-                console.log("CartAPI: deleteAddress response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "deleteAddress"));
-    },
-
-    setDefaultAddress: (addressId) => {
-        logApiCall("setDefaultAddress", addressId);
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để đặt địa chỉ mặc định" });
-        }
-
-        return axiosClient.put(`/addresses/${addressId}/default`)
-            .then(response => {
-                console.log("CartAPI: setDefaultAddress response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "setDefaultAddress"));
-    },
-
-    // ===== ORDER OPERATIONS =====
+    // Thanh toán
     checkout: (data) => {
-        logApiCall("checkout", data);
-
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để đặt hàng" });
-        }
-
-        return axiosClient.post("/orders", data)
-            .then(response => {
-                console.log("CartAPI: checkout response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "checkout"));
+        const url = "/api/v1/cart/checkout";
+        return axiosClient.post(url, data);
     },
 
+    // Lấy trạng thái đơn hàng
     getOrderStatus: (orderId) => {
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để xem trạng thái đơn hàng" });
-        }
-
-        return axiosClient.get(`/orders/${orderId}`)
-            .then(response => {
-                console.log("CartAPI: getOrderStatus response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "getOrderStatus"));
+        const url = `/api/v1/cart/orders/${orderId}/status`;
+        return axiosClient.get(url);
     },
 
+    // Lấy lịch sử đơn hàng
     getOrderHistory: () => {
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để xem lịch sử đơn hàng" });
-        }
-
-        return axiosClient.get("/orders")
-            .then(response => {
-                console.log("CartAPI: getOrderHistory response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "getOrderHistory"));
+        const url = "/api/v1/cart/orders";
+        return axiosClient.get(url);
     },
 
+    // Hủy đơn hàng
     cancelOrder: (orderId) => {
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để hủy đơn hàng" });
-        }
-
-        return axiosClient.put(`/orders/${orderId}/cancel`)
-            .then(response => {
-                console.log("CartAPI: cancelOrder response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "cancelOrder"));
+        const url = `/api/v1/cart/orders/${orderId}/cancel`;
+        return axiosClient.post(url);
     },
 
+    // Theo dõi đơn hàng
     trackOrder: (orderId) => {
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để theo dõi đơn hàng" });
-        }
-
-        return axiosClient.get(`/orders/${orderId}/tracking`)
-            .then(response => {
-                console.log("CartAPI: trackOrder response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "trackOrder"));
+        const url = `/api/v1/cart/orders/${orderId}/track`;
+        return axiosClient.get(url);
     },
 
-    // ===== PAYMENT OPERATIONS =====
+    // Lấy danh sách phương thức thanh toán
     getPaymentMethods: () => {
-        return axiosClient.get("/payments/methods")
-            .then(response => {
-                console.log("CartAPI: getPaymentMethods response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "getPaymentMethods"));
+        const url = "/api/v1/cart/payment-methods";
+        return axiosClient.get(url);
     },
 
+    // Tạo thanh toán
     createPayment: (orderId, method) => {
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để tạo thanh toán" });
-        }
-
-        return axiosClient.post(`/payments/orders/${orderId}`, { method })
-            .then(response => {
-                console.log("CartAPI: createPayment response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "createPayment"));
+        const url = "/api/v1/cart/payment";
+        return axiosClient.post(url, { orderId, method });
     },
 
-    verifyPayment: (orderId, paymentId) => {
-        if (!hasValidToken()) {
-            return Promise.reject({ message: "Vui lòng đăng nhập để xác nhận thanh toán" });
-        }
-
-        return axiosClient.get(`/payments/orders/${orderId}/verify/${paymentId}`)
-            .then(response => {
-                console.log("CartAPI: verifyPayment response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "verifyPayment"));
+    // Xác minh thanh toán
+    verifyPayment: (paymentId) => {
+        const url = `/api/v1/cart/payment/${paymentId}/verify`;
+        return axiosClient.post(url);
     },
 
-    // ===== SHIPPING OPERATIONS =====
+    // Lấy danh sách phương thức vận chuyển
     getShippingMethods: () => {
-        return axiosClient.get("/shipping/methods")
-            .then(response => {
-                console.log("CartAPI: getShippingMethods response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "getShippingMethods"));
+        const url = "/api/v1/cart/shipping-methods";
+        return axiosClient.get(url);
     },
 
-    estimateDeliveryTime: (address, method) => {
-        return axiosClient.post("/shipping/estimate", { address, method })
-            .then(response => {
-                console.log("CartAPI: estimateDeliveryTime response:", response);
-                return response;
-            })
-            .catch(error => handleApiError(error, "estimateDeliveryTime"));
+    // Ước tính thời gian giao hàng
+    estimateDeliveryTime: (address) => {
+        const url = "/api/v1/cart/estimate-delivery";
+        return axiosClient.post(url, { address });
     }
 };
 
-export default cartApi; 
+export const {
+    getCart,
+    addToCart,
+    updateCartItem,
+    removeFromCart,
+    clearCart,
+    applyCoupon,
+    calculateShipping,
+    checkout,
+    getOrderStatus,
+    getOrderHistory,
+    cancelOrder,
+    trackOrder,
+    getPaymentMethods,
+    createPayment,
+    verifyPayment,
+    getShippingMethods,
+    estimateDeliveryTime
+} = cartApi; 

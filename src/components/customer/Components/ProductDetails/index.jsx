@@ -6,7 +6,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { MdOutlineShoppingCart, MdLocalShipping } from "react-icons/md";
 import { FaRegHeart, FaCheck, FaExchangeAlt } from "react-icons/fa";
 import { BsShieldCheck } from "react-icons/bs";
+import { useNavigate } from "react-router-dom";
+import { addToCart, toggleSelectItem } from "../../../../redux/slices/cartSlice";
 import ProductZoom from "../../../../components/customer/Components/ProductZoom";
+import { message } from "antd";
 
 const formatVND = (price) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
@@ -18,6 +21,7 @@ const isProductActive = (product) => {
 
 const ProductDetailsComponent = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { product, loading, error } = useSelector((state) => state.products);
 
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -86,6 +90,46 @@ const ProductDetailsComponent = () => {
     (variant) => variant.size || variant.color || variant.ram || variant.storage
   );
 
+  const handleBuyNow = async () => {
+    if (!selected) return;
+
+    try {
+      const response = await dispatch(addToCart({
+        product_id: product.product_id,
+        quantity: qty,
+        variant_id: selected.variant_id
+      })).unwrap();
+
+      // Chọn sản phẩm vừa thêm vào giỏ hàng
+      if (response.items && response.items.length > 0) {
+        const newItem = response.items[response.items.length - 1];
+        dispatch(toggleSelectItem({ cart_item_id: newItem.cart_item_id }));
+      }
+
+      // Chuyển đến trang giỏ hàng
+      navigate("/cart");
+    } catch (error) {
+      console.error("Lỗi khi thêm vào giỏ hàng:", error);
+    }
+  };
+
+  const handleAddToCart = async () => {
+    try {
+      const result = await dispatch(addToCart({
+        product_id: product.product_id,
+        quantity: qty,
+        variant_id: selected?.variant_id
+      })).unwrap();
+
+      // Chọn sản phẩm vừa thêm vào giỏ hàng
+      dispatch(toggleSelectItem({ cart_item_id: result.cart_item_id }));
+
+      message.success("Đã thêm vào giỏ hàng");
+    } catch (error) {
+      message.error(error.message || "Có lỗi xảy ra");
+    }
+  };
+
   return (
     <div className="product-details bg-white rounded-xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
       <div className="product-zoom-section">
@@ -151,26 +195,24 @@ const ProductDetailsComponent = () => {
               <div className="flex items-center">
                 <div className={`h-2 w-32 bg-gray-200 rounded-full mr-2`}>
                   <div
-                    className={`h-full rounded-full ${
-                      selected.stock > 10
-                        ? "bg-green-500"
-                        : selected.stock > 5
+                    className={`h-full rounded-full ${selected.stock > 10
+                      ? "bg-green-500"
+                      : selected.stock > 5
                         ? "bg-yellow-500"
                         : "bg-red-500"
-                    }`}
+                      }`}
                     style={{
                       width: `${Math.min((selected.stock / 30) * 100, 100)}%`,
                     }}
                   ></div>
                 </div>
                 <span
-                  className={`text-xs font-medium ${
-                    selected.stock > 10
-                      ? "text-green-600"
-                      : selected.stock > 5
+                  className={`text-xs font-medium ${selected.stock > 10
+                    ? "text-green-600"
+                    : selected.stock > 5
                       ? "text-yellow-600"
                       : "text-red-600"
-                  }`}
+                    }`}
                 >
                   {selected.stock} in stock
                 </span>
@@ -215,11 +257,10 @@ const ProductDetailsComponent = () => {
                             type="button"
                             onClick={() => setSelectedSize(size)}
                             className={`px-4 py-2 rounded-full text-sm border transition 
-                ${
-                  isSelected
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50"
-                }`}
+                ${isSelected
+                                ? "bg-blue-600 text-white border-blue-600"
+                                : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50"
+                              }`}
                           >
                             {size}
                           </button>
@@ -237,11 +278,10 @@ const ProductDetailsComponent = () => {
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => handleSelectVariant(index)}
-                    className={`p-2 rounded-lg border-2 transition-all flex items-center gap-2 ${
-                      selectedVariant === index
-                        ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
+                    className={`p-2 rounded-lg border-2 transition-all flex items-center gap-2 ${selectedVariant === index
+                      ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                      : "border-gray-200 hover:border-gray-300"
+                      }`}
                   >
                     {/* Thu nhỏ kích thước ảnh */}
                     <img
@@ -273,11 +313,10 @@ const ProductDetailsComponent = () => {
               <button
                 onClick={decrementQty}
                 disabled={qty <= 1}
-                className={`w-8 h-8 flex items-center justify-center rounded-l-lg border border-r-0 ${
-                  qty <= 1
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`w-8 h-8 flex items-center justify-center rounded-l-lg border border-r-0 ${qty <= 1
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 -
               </button>
@@ -292,11 +331,10 @@ const ProductDetailsComponent = () => {
               <button
                 onClick={incrementQty}
                 disabled={qty >= stock}
-                className={`w-8 h-8 flex items-center justify-center rounded-r-lg border border-l-0 ${
-                  qty >= stock
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`w-8 h-8 flex items-center justify-center rounded-r-lg border border-l-0 ${qty >= stock
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 +
               </button>
@@ -327,6 +365,7 @@ const ProductDetailsComponent = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               disabled={!selected}
+              onClick={handleBuyNow}
               className="flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Buy Now
@@ -335,6 +374,7 @@ const ProductDetailsComponent = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               disabled={!selected}
+              onClick={handleAddToCart}
               className="flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <MdOutlineShoppingCart size={20} />
