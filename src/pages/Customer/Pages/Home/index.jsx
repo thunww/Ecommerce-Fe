@@ -98,18 +98,21 @@ const Home = () => {
 
       <HomeCatSlider />
 
-      <section className="bg-white py-4 sm:py-8">
-        <div className="container px-4 sm:px-6">
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-0 items-start lg:items-center justify-between">
+      <section className="py-4 sm:py-5 pt-0">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 lg:gap-6">
+            {/* Left Section: Title + Description */}
             <div className="leftSec w-full lg:w-auto">
-              <h2 className="text-[18px] sm:text-[20px] md:text-[22px] font-[600]">
-                Popular ProDuct
+              <h2 className="text-[18px] sm:text-[20px] md:text-[22px] font-semibold">
+                Popular Products
               </h2>
-              <p className="text-[12px] sm:text-[13px] md:text-[14px] font-[500]">
-                Do not mis the current offers until the end of March
+              <p className="text-[12px] sm:text-[13px] md:text-[14px] font-medium text-gray-600">
+                Do not miss the current offers until the end of March
               </p>
             </div>
-            <div className="rightSec w-full lg:w-[70%] overflow-x-auto">
+
+            {/* Right Section: Tabs */}
+            <div className="rightSec w-full lg:flex-1 overflow-x-auto max-w-full">
               <Tabs
                 value={value}
                 onChange={handleChange}
@@ -122,6 +125,8 @@ const Home = () => {
                     fontSize: { xs: "12px", sm: "14px" },
                     minHeight: "42px",
                     padding: { xs: "6px 10px", sm: "8px 16px" },
+                    textTransform: "none",
+                    fontWeight: 500,
                   },
                 }}
               >
@@ -129,7 +134,7 @@ const Home = () => {
                 <Tab label="Electronics" />
                 <Tab label="Bags" />
                 <Tab label="Beauty" />
-                <Tab label="Wealness" />
+                <Tab label="Wellness" />
                 <Tab label="Item Six" />
                 <Tab label="Item Seven" />
                 <Tab label="Item One" />
@@ -142,16 +147,12 @@ const Home = () => {
               </Tabs>
             </div>
           </div>
-
-          <div className="mt-4 sm:mt-6">
-            {/*<ProductsSlider items={6} /> */}
-          </div>
         </div>
       </section>
 
-      <section className="py-3 sm:py-4 pt-1 sm:pt-2 bg-white">
-        <div className="container px-4 sm:px-6">
-          <div className="freeShipping w-full py-3 sm:py-4 p-3 sm:p-4 border-2 border-[red] flex flex-col sm:flex-row items-center gap-3 sm:gap-0 sm:justify-between rounded-md mb-2">
+      <section className="py-4 sm:py-5 pt-0">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="freeShipping w-full py-3 sm:py-4 px-3 sm:px-4 border-2 border-[red] flex flex-col sm:flex-row items-center gap-3 sm:gap-0 sm:justify-between rounded-md mb-2">
             <div className="col1 flex items-center gap-2 sm:gap-4">
               <FaShippingFast className="text-[30px] sm:text-[40px] font-[600] flex-shrink-0" />
               <span className="text-[16px] sm:text-[20px] font-[600] uppercase">
@@ -176,7 +177,7 @@ const Home = () => {
       <section className="py-4 sm:py-5 pt-0">
         <div className="container px-4 sm:px-6">
           <h2 className="text-[18px] sm:text-[20px] md:text-[22px] font-[600] mb-4">
-            Latest Products
+            Today's Suggestion
           </h2>
           <div className="product-list grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
             {currentProducts.map((product) => (

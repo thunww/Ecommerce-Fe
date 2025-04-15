@@ -24,8 +24,13 @@ import ProductZoom from "../components/customer/Components/ProductZoom";
 import { IoCloseSharp } from "react-icons/io5";
 import ProductDetailsComponent from "../components/customer/Components/ProductDetails";
 import MyContext from "../context/MyContext";
+<<<<<<< HEAD
 import Cart from "../pages/Customer/Pages/Cart";
 
+=======
+import CartPage from "../Pages/Customer/Pages/Cart";
+import SearchResults from "../components/customer/Components/Search/SearchResult";
+>>>>>>> main
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
@@ -60,11 +65,9 @@ const CustomerRoutes = () => {
           {/* Bọc tất cả route con trong CustomerLayout */}
           <Route path="/" element={<CustomerLayout />}>
             <Route index element={<Home />} />
-            <Route
-              path="/productListing"
-              exact={true}
-              element={<ProductListing />}
-            />
+
+            <Route path="/search" element={<SearchResults />} />
+
             <Route path="/login" exact={true} element={<Login />} />
             <Route path="register" exact={true} element={<Register />} />
             <Route

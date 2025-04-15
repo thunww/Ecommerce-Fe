@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getProductById } from "../../../../redux/productSilce";
 import ShopInfoOfProduct from "./ShopInfoOfProduct";
 import RelatedProducts from "../../../../components/customer/Components/ProductRelated";
-
+import ProductReviewSection from "./ProductReviewSection";
 const ProductDetails = () => {
   const [activeTab, setActiveTab] = useState(0);
   const { id } = useParams();
@@ -42,10 +42,10 @@ const ProductDetails = () => {
             <Link
               underline="hover"
               color="inherit"
-              to="/fashion"
+              to={`/category/${product?.category_id}`}
               className="link transition !text-[14px]"
             >
-              Fashion
+              {product?.Category?.category_name}
             </Link>
             <Link
               underline="hover"
@@ -59,16 +59,32 @@ const ProductDetails = () => {
         </div>
       </div>
       <section className="bg-white py-5">
-        <div className="container">
-          <div className="productContent px-5">
-            <ProductDetailsComponent />
-            <ShopInfoOfProduct />
+        <div className="container mx-auto">
+          <div className="productContent px-5 space-y-10">
+            {/* ✅ Chi tiết sản phẩm */}
+            <div className="product-details">
+              <ProductDetailsComponent />
+            </div>
 
-            {/* ✅ Related Products */}
-            <RelatedProducts
-              categoryId={product?.category_id}
-              currentProductId={product?.product_id}
-            />
+            {/* ✅ Thông tin shop */}
+            <div className="shop-info border-t pt-6">
+              <ShopInfoOfProduct />
+            </div>
+
+            {/* ✅ Sản phẩm liên quan */}
+            <div className="related-products pt-6">
+              <RelatedProducts
+                categoryId={product?.category_id}
+                currentProductId={product?.product_id}
+              />
+            </div>
+
+            {/* ✅ Đánh giá sản phẩm */}
+            <div className="product-reviews border-t pt-6">
+              <div className="review-wrapper bg-gray-50 p-4 rounded-md shadow-sm">
+                <ProductReviewSection productId={product?.product_id} />
+              </div>
+            </div>
           </div>
         </div>
       </section>
