@@ -1,9 +1,9 @@
 import React, { useState, useContext, useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { checkAuthStatus } from "../redux/authSlice";
 import CustomerLayout from "../layouts/CustomerLayout";
-import Home from "../Pages/Customer/Pages/Home";
+import Home from "../pages/Customer/Pages/Home";
 import ProductListing from "../Pages/Customer/Pages/ProductListing";
 import Login from "../Pages/Auth/Login";
 import { ToastContainer } from "react-toastify";
@@ -24,7 +24,10 @@ import ProductZoom from "../components/customer/Components/ProductZoom";
 import { IoCloseSharp } from "react-icons/io5";
 import ProductDetailsComponent from "../components/customer/Components/ProductDetails";
 import MyContext from "../context/MyContext";
+
 import CartPage from "../Pages/Customer/Pages/Cart";
+import SearchResults from "../components/customer/Components/Search/SearchResult";
+
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
@@ -59,11 +62,9 @@ const CustomerRoutes = () => {
           {/* Bọc tất cả route con trong CustomerLayout */}
           <Route path="/" element={<CustomerLayout />}>
             <Route index element={<Home />} />
-            <Route
-              path="/productListing"
-              exact={true}
-              element={<ProductListing />}
-            />
+
+            <Route path="/search" element={<SearchResults />} />
+
             <Route path="/login" exact={true} element={<Login />} />
             <Route path="register" exact={true} element={<Register />} />
             <Route
@@ -71,7 +72,7 @@ const CustomerRoutes = () => {
               exact={true}
               element={<ProductDetails />}
             />
-            <Route path="/cart" exact={true} element={<CartPage />} />
+            <Route path="/cart" exact={true} element={<Cart />} />
 
             {/* Thêm routes cho My Account */}
             <Route path="/my-account" element={<MyAccount />}>
