@@ -38,7 +38,9 @@ axiosClient.interceptors.response.use(
       // Tùy chỉnh: có thể chuyển hướng đến trang đăng nhập
     }
 
-    return Promise.reject(error.response?.data || error.message || "Lỗi kết nối đến server");
+    return Promise.reject(
+      error.response?.data || error.message || "Lỗi kết nối đến server"
+    );
   }
 );
 

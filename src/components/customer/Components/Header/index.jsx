@@ -165,12 +165,16 @@ const Header = () => {
                     >
                       <div className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 overflow-hidden rounded-full border border-gray-200">
                         <img
-                          src={user?.profile_picture || "/avatar.jpg"}
+                          src={
+                            user?.profile_picture ||
+                            "https://th.bing.com/th/id/OIP.ByNwhzY5vUBvdIEfMCqDogHaHa?rs=1&pid=ImgDetMain"
+                          }
                           alt="Avatar"
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.target.onerror = null;
-                            e.target.src = "/avatar.jpg";
+                            e.target.src =
+                              "https://th.bing.com/th/id/OIP.ByNwhzY5vUBvdIEfMCqDogHaHa?rs=1&pid=ImgDetMain";
                           }}
                         />
                       </div>
@@ -189,7 +193,8 @@ const Header = () => {
                         <div className="py-3 px-4 border-b border-gray-100">
                           <p className="text-sm font-medium text-gray-800 truncate">
                             {user
-                              ? `${user.first_name || ""} ${user.last_name || ""
+                              ? `${user.first_name || ""} ${
+                                  user.last_name || ""
                                 }`.trim()
                               : "User"}
                           </p>

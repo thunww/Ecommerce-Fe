@@ -26,7 +26,8 @@ import ProductDetailsComponent from "../components/customer/Components/ProductDe
 import MyContext from "../context/MyContext";
 import Cart from "../pages/Customer/Pages/Cart";
 import SearchResults from "../components/customer/Components/Search/SearchResult";
-
+import ResetPassword from "../pages/Auth/ResetPassword";
+import ForgotPassword from "../pages/Auth/ForgotPassword";
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
@@ -66,6 +67,16 @@ const CustomerRoutes = () => {
 
             <Route path="/login" exact={true} element={<Login />} />
             <Route path="register" exact={true} element={<Register />} />
+            <Route
+              path="forgot-password"
+              exact={true}
+              element={<ForgotPassword />}
+            />
+            <Route
+              path="reset-password"
+              exact={true}
+              element={<ResetPassword />}
+            />
             <Route
               path="/product/:id"
               exact={true}
