@@ -45,7 +45,7 @@ const Login = () => {
           <div className="hidden md:block w-1/2 relative">
             <div className="absolute inset-0 flex items-center justify-center">
               <img
-                src="https://ad2cart.com/wp-content/uploads/2021/02/ecommerce-website-banners.jpg"
+                src="./login.png"
                 alt="Login visual"
                 className="h-full w-full object-contain hover:scale-102 transition-transform duration-700"
               />
@@ -87,7 +87,7 @@ const Login = () => {
                       Password
                     </label>
                     <a
-                      href="#"
+                      href="/forgot-password"
                       className="text-sm text-indigo-600 hover:text-indigo-800"
                     >
                       Forgot password?

@@ -7,6 +7,7 @@ export default defineConfig({
     port: 5173, // Nếu muốn cố định cổng
     open: true,  // Tự động mở trình duyệt khi chạy
     hmr: false,
+    
   },
   css: {
     postcss: "./postcss.config.js",  // Kiểm tra dòng này

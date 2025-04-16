@@ -46,17 +46,31 @@ export const logout = createAsyncThunk("auth/logout", async () => {
   return null;
 });
 
-// **Khởi tạo state**
+// ✅ Khởi tạo state an toàn
 const initialState = {
-  user: JSON.parse(localStorage.getItem("user")) || null,
-  roles: JSON.parse(localStorage.getItem("roles")) || [],
+  user: (() => {
+    try {
+      const raw = localStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  })(),
+  roles: (() => {
+    try {
+      const raw = localStorage.getItem("roles");
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  })(),
   token: localStorage.getItem("accessToken") || null,
   isAuthenticated: !!localStorage.getItem("accessToken"),
   isLoading: false,
   error: null,
 };
 
-// **Tạo slice**
+// Tạo slice
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -69,7 +83,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Xử lý đăng ký
+      // Đăng ký
       .addCase(register.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -92,7 +106,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Xử lý đăng nhập
+      // Đăng nhập
       .addCase(login.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -115,7 +129,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Xử lý lấy thông tin người dùng (getProfile)
+      // Lấy profile
       .addCase(getProfile.pending, (state) => {
         state.isLoading = true;
       })
@@ -131,7 +145,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Xử lý đăng xuất
+      // Đăng xuất
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.token = null;
@@ -144,6 +158,5 @@ const authSlice = createSlice({
   },
 });
 
-// Export actions và reducer
 export const { checkAuthStatus } = authSlice.actions;
 export default authSlice.reducer;
