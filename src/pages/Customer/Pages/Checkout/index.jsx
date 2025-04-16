@@ -1,91 +1,142 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
-    fetchCart,
-    applyCoupon,
-    calculateShipping,
-    setSelectedAddress,
-    setPaymentMethod,
-    clearCart
-} from "../../../../redux/slices/cartSlice";
-import {
-    Form,
-    Input,
-    Button,
-    Select,
-    Radio,
-    Space,
-    Divider,
+    Box,
     Card,
+    CardContent,
     Typography,
-    message,
-    Spin,
-    Steps,
-    Row,
-    Col
-} from "antd";
-import { FaTruck, FaCreditCard, FaWallet, FaMoneyBillWave, FaMapMarkerAlt } from "react-icons/fa";
-import './Checkout.css';
-
-const { Title, Text } = Typography;
-const { Option } = Select;
+    TextField,
+    Button,
+    Grid,
+    Divider,
+    FormControlLabel,
+    Radio,
+    RadioGroup,
+    FormControl,
+    FormLabel,
+    Alert,
+    CircularProgress,
+    Select,
+    MenuItem,
+    InputLabel,
+    Paper
+} from '@mui/material';
+import {
+    LocalShipping as ShippingIcon,
+    Payment as PaymentIcon,
+    ShoppingCart as CartIcon,
+    Phone as PhoneIcon
+} from '@mui/icons-material';
+import "./Checkout.css";
 
 const Checkout = () => {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
-    const [form] = Form.useForm();
+    const { items, selectedItems } = useSelector(state => state.cart);
     const [loading, setLoading] = useState(false);
-    const [selectedPayment, setSelectedPayment] = useState("cod");
+    const [error, setError] = useState(null);
+    const [phone, setPhone] = useState('');
+    const [address, setAddress] = useState('');
+    const [provinces, setProvinces] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [wards, setWards] = useState([]);
+    const [selectedProvince, setSelectedProvince] = useState('');
+    const [selectedDistrict, setSelectedDistrict] = useState('');
+    const [selectedWard, setSelectedWard] = useState('');
 
-    const {
-        cart,
-        shippingFee,
-        discount,
-        total,
-        items
-    } = useSelector((state) => state.cart);
+    // Lọc ra các sản phẩm đã được chọn
+    const selectedProducts = items.filter(item => selectedItems.includes(item.cart_item_id));
 
-    useEffect(() => {
-        // Chỉ fetch cart nếu chưa có dữ liệu
-        if (!items || items.length === 0) {
-            dispatch(fetchCart());
-        }
-    }, [dispatch]);
+    // Log để kiểm tra dữ liệu
+    console.log('Selected Products:', selectedProducts);
+    console.log('Cart Items:', items);
+    console.log('Selected Items:', selectedItems);
 
-    // Kiểm tra giỏ hàng trống và chuyển hướng
-    useEffect(() => {
-        if (items && items.length === 0) {
-            navigate('/cart');
-        }
-    }, [items, navigate]);
-
-    const handlePaymentChange = (e) => {
-        setSelectedPayment(e.target.value);
-        dispatch(setPaymentMethod(e.target.value));
+    // Tính tổng tiền
+    const calculateTotal = () => {
+        return selectedProducts.reduce((total, item) => total + (item.price * item.quantity), 0);
     };
 
-    const handleSubmit = async (values) => {
+    // Lấy danh sách tỉnh/thành phố
+    useEffect(() => {
+        const fetchProvinces = async () => {
+            try {
+                const response = await fetch('https://provinces.open-api.vn/api/?depth=1');
+                const data = await response.json();
+                setProvinces(data);
+            } catch (err) {
+                console.error('Lỗi khi lấy danh sách tỉnh/thành phố:', err);
+            }
+        };
+        fetchProvinces();
+    }, []);
+
+    // Lấy danh sách quận/huyện khi chọn tỉnh
+    useEffect(() => {
+        if (selectedProvince) {
+            const fetchDistricts = async () => {
+                try {
+                    const response = await fetch(`https://provinces.open-api.vn/api/p/${selectedProvince}?depth=2`);
+                    const data = await response.json();
+                    setDistricts(data.districts || []);
+                    setSelectedDistrict('');
+                    setWards([]);
+                    setSelectedWard('');
+                } catch (err) {
+                    console.error('Lỗi khi lấy danh sách quận/huyện:', err);
+                }
+            };
+            fetchDistricts();
+        } else {
+            setDistricts([]);
+            setSelectedDistrict('');
+            setWards([]);
+            setSelectedWard('');
+        }
+    }, [selectedProvince]);
+
+    // Lấy danh sách phường/xã khi chọn quận
+    useEffect(() => {
+        if (selectedDistrict) {
+            const fetchWards = async () => {
+                try {
+                    const response = await fetch(`https://provinces.open-api.vn/api/d/${selectedDistrict}?depth=2`);
+                    const data = await response.json();
+                    setWards(data.wards || []);
+                    setSelectedWard('');
+                } catch (err) {
+                    console.error('Lỗi khi lấy danh sách phường/xã:', err);
+                }
+            };
+            fetchWards();
+        } else {
+            setWards([]);
+            setSelectedWard('');
+        }
+    }, [selectedDistrict]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
         try {
-            setLoading(true);
+            const formData = new FormData(e.target);
             const orderData = {
-                shipping_address: {
-                    full_name: values.full_name,
-                    phone: values.phone,
-                    address: values.address,
-                    city: values.city,
-                    district: values.district,
-                    ward: values.ward
-                },
-                payment_method: selectedPayment,
-                items: items.map(item => ({
+                phone: phone,
+                address: address,
+                province: provinces.find(p => p.code === selectedProvince)?.name,
+                district: districts.find(d => d.code === selectedDistrict)?.name,
+                ward: wards.find(w => w.code === selectedWard)?.name,
+                payment_method: formData.get('payment_method'),
+                items: selectedProducts.map(item => ({
                     product_id: item.product_id,
                     variant_id: item.variant_id,
                     quantity: item.quantity
                 }))
             };
 
-            // Gửi request tạo đơn hàng đến API
+            // Gọi API tạo đơn hàng
             const response = await fetch('http://localhost:3000/api/orders', {
                 method: 'POST',
                 headers: {
@@ -95,205 +146,362 @@ const Checkout = () => {
                 body: JSON.stringify(orderData)
             });
 
-            if (response.ok) {
-                message.success('Đặt hàng thành công!');
-                dispatch(clearCart());
+            const result = await response.json();
+
+            if (result.success) {
                 navigate('/my-account/orders');
             } else {
-                throw new Error('Đặt hàng thất bại');
+                setError(result.message || 'Đặt hàng thất bại. Vui lòng thử lại!');
             }
-        } catch (error) {
-            message.error(error.message || 'Đặt hàng thất bại. Vui lòng thử lại!');
+        } catch (err) {
+            setError('Có lỗi xảy ra. Vui lòng thử lại!');
         } finally {
             setLoading(false);
         }
     };
 
-    if (!cart || loading) {
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+    };
+
+    if (selectedProducts.length === 0) {
         return (
-            <div className="flex justify-center items-center h-screen">
-                <Spin size="large" />
-            </div>
+            <Box className="checkout-container">
+                <Alert severity="warning">
+                    Không có sản phẩm nào được chọn. Vui lòng quay lại giỏ hàng để chọn sản phẩm.
+                </Alert>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<CartIcon />}
+                    onClick={() => navigate('/cart')}
+                    sx={{ mt: 2 }}
+                >
+                    Quay lại giỏ hàng
+                </Button>
+            </Box>
         );
     }
 
     return (
-        <div className="checkout-container">
-            <div className="checkout-header">
-                <Title level={3}>Thanh toán</Title>
-            </div>
+        <Box className="checkout-container">
+            <Typography variant="h4" gutterBottom>
+                Thanh toán
+            </Typography>
 
-            <Form
-                form={form}
-                layout="vertical"
-                onFinish={handleSubmit}
-                className="checkout-form"
-            >
-                <Row gutter={24}>
-                    <Col span={16}>
-                        <Card className="shipping-info-card">
-                            <div className="section-title">
-                                <FaMapMarkerAlt />
-                                <Title level={4}>Địa chỉ nhận hàng</Title>
-                            </div>
-                            <Form.Item
-                                name="full_name"
-                                label="Họ và tên"
-                                rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
-                            >
-                                <Input placeholder="Nhập họ và tên người nhận" />
-                            </Form.Item>
+            <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                    <Card>
+                        <CardContent>
+                            <Box display="flex" alignItems="center" mb={2}>
+                                <ShippingIcon sx={{ mr: 1 }} />
+                                <Typography variant="h6">Thông tin giao hàng</Typography>
+                            </Box>
 
-                            <Form.Item
-                                name="phone"
-                                label="Số điện thoại"
-                                rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
-                            >
-                                <Input placeholder="Nhập số điện thoại" />
-                            </Form.Item>
+                            <form onSubmit={handleSubmit}>
+                                <Grid container spacing={2}>
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            fullWidth
+                                            required
+                                            label="Số điện thoại"
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                            variant="outlined"
+                                            InputProps={{
+                                                startAdornment: <PhoneIcon sx={{ mr: 1, color: 'action.active' }} />
+                                            }}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            fullWidth
+                                            required
+                                            label="Địa chỉ"
+                                            value={address}
+                                            onChange={(e) => setAddress(e.target.value)}
+                                            variant="outlined"
+                                            multiline
+                                            rows={2}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={4}>
+                                        <FormControl fullWidth>
+                                            <InputLabel>Tỉnh/Thành phố</InputLabel>
+                                            <Select
+                                                value={selectedProvince}
+                                                onChange={(e) => setSelectedProvince(e.target.value)}
+                                                label="Tỉnh/Thành phố"
+                                            >
+                                                {provinces.map(province => (
+                                                    <MenuItem key={province.code} value={province.code}>
+                                                        {province.name}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid item xs={12} sm={4}>
+                                        <FormControl fullWidth>
+                                            <InputLabel>Quận/Huyện</InputLabel>
+                                            <Select
+                                                value={selectedDistrict}
+                                                onChange={(e) => setSelectedDistrict(e.target.value)}
+                                                label="Quận/Huyện"
+                                                disabled={!selectedProvince}
+                                            >
+                                                {districts.map(district => (
+                                                    <MenuItem key={district.code} value={district.code}>
+                                                        {district.name}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid item xs={12} sm={4}>
+                                        <FormControl fullWidth>
+                                            <InputLabel>Phường/Xã</InputLabel>
+                                            <Select
+                                                value={selectedWard}
+                                                onChange={(e) => setSelectedWard(e.target.value)}
+                                                label="Phường/Xã"
+                                                disabled={!selectedDistrict}
+                                            >
+                                                {wards.map(ward => (
+                                                    <MenuItem key={ward.code} value={ward.code}>
+                                                        {ward.name}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
+                                </Grid>
 
-                            <Row gutter={16}>
-                                <Col span={8}>
-                                    <Form.Item
-                                        name="city"
-                                        label="Tỉnh/Thành phố"
-                                        rules={[{ required: true, message: 'Vui lòng chọn tỉnh/thành phố' }]}
-                                    >
-                                        <Select placeholder="Chọn tỉnh/thành phố">
-                                            <Option value="hanoi">Hà Nội</Option>
-                                            <Option value="hcm">TP. Hồ Chí Minh</Option>
-                                        </Select>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={8}>
-                                    <Form.Item
-                                        name="district"
-                                        label="Quận/Huyện"
-                                        rules={[{ required: true, message: 'Vui lòng chọn quận/huyện' }]}
-                                    >
-                                        <Select placeholder="Chọn quận/huyện">
-                                            <Option value="thanhxuan">Thanh Xuân</Option>
-                                            <Option value="hoankiem">Hoàn Kiếm</Option>
-                                        </Select>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={8}>
-                                    <Form.Item
-                                        name="ward"
-                                        label="Phường/Xã"
-                                        rules={[{ required: true, message: 'Vui lòng chọn phường/xã' }]}
-                                    >
-                                        <Select placeholder="Chọn phường/xã">
-                                            <Option value="phuong1">Phường 1</Option>
-                                            <Option value="phuong2">Phường 2</Option>
-                                        </Select>
-                                    </Form.Item>
-                                </Col>
-                            </Row>
+                                <Box mt={4}>
+                                    <Box display="flex" alignItems="center" mb={2}>
+                                        <PaymentIcon sx={{ mr: 1 }} />
+                                        <Typography variant="h6">Phương thức thanh toán</Typography>
+                                    </Box>
 
-                            <Form.Item
-                                name="address"
-                                label="Địa chỉ cụ thể"
-                                rules={[{ required: true, message: 'Vui lòng nhập địa chỉ cụ thể' }]}
-                            >
-                                <Input.TextArea placeholder="Số nhà, tên đường..." />
-                            </Form.Item>
-                        </Card>
+                                    <FormControl component="fieldset">
+                                        <RadioGroup name="payment_method" defaultValue="cod">
+                                            <FormControlLabel
+                                                value="cod"
+                                                control={<Radio />}
+                                                label="Thanh toán khi nhận hàng (COD)"
+                                            />
+                                            <FormControlLabel
+                                                value="momo"
+                                                control={<Radio />}
+                                                label="Ví điện tử MoMo"
+                                            />
+                                            <FormControlLabel
+                                                value="vnpay"
+                                                control={<Radio />}
+                                                label="VNPay"
+                                            />
+                                        </RadioGroup>
+                                    </FormControl>
+                                </Box>
 
-                        <Card className="payment-method-card">
-                            <div className="section-title">
-                                <FaCreditCard />
-                                <Title level={4}>Phương thức thanh toán</Title>
-                            </div>
-                            <Form.Item
-                                name="payment_method"
-                                initialValue="cod"
-                            >
-                                <Radio.Group onChange={handlePaymentChange} value={selectedPayment}>
-                                    <Space direction="vertical">
-                                        <Radio value="cod">
-                                            <Space>
-                                                <FaMoneyBillWave />
-                                                Thanh toán khi nhận hàng (COD)
-                                            </Space>
-                                        </Radio>
-                                        <Radio value="momo">
-                                            <Space>
-                                                <FaWallet />
-                                                Ví MoMo
-                                            </Space>
-                                        </Radio>
-                                        <Radio value="vnpay">
-                                            <Space>
-                                                <FaCreditCard />
-                                                VNPay
-                                            </Space>
-                                        </Radio>
-                                    </Space>
-                                </Radio.Group>
-                            </Form.Item>
-                        </Card>
-                    </Col>
-
-                    <Col span={8}>
-                        <Card className="order-summary-card">
-                            <Title level={4}>Tóm tắt đơn hàng</Title>
-                            <div className="order-items">
-                                {items.map(item => (
-                                    <div key={item.cart_item_id} className="order-item">
-                                        <div className="item-info">
-                                            <img src={item.image} alt={item.product_name} />
-                                            <div>
-                                                <Text>{item.product_name}</Text>
-                                                <Text type="secondary">x{item.quantity}</Text>
-                                            </div>
-                                        </div>
-                                        <Text strong>{item.total_price.toLocaleString('vi-VN')}đ</Text>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <Divider />
-
-                            <div className="price-summary">
-                                <div className="price-row">
-                                    <Text>Tạm tính</Text>
-                                    <Text>{total.toLocaleString('vi-VN')}đ</Text>
-                                </div>
-                                <div className="price-row">
-                                    <Text>Phí vận chuyển</Text>
-                                    <Text>{shippingFee.toLocaleString('vi-VN')}đ</Text>
-                                </div>
-                                {discount > 0 && (
-                                    <div className="price-row discount">
-                                        <Text>Giảm giá</Text>
-                                        <Text>-{discount.toLocaleString('vi-VN')}đ</Text>
-                                    </div>
+                                {error && (
+                                    <Alert severity="error" sx={{ mt: 2 }}>
+                                        {error}
+                                    </Alert>
                                 )}
-                                <Divider />
-                                <div className="price-row total">
-                                    <Text strong>Tổng cộng</Text>
-                                    <Text strong className="total-amount">
-                                        {(total + shippingFee - discount).toLocaleString('vi-VN')}đ
-                                    </Text>
-                                </div>
-                            </div>
 
-                            <Button
-                                type="primary"
-                                size="large"
-                                block
-                                htmlType="submit"
-                                loading={loading}
-                                className="checkout-button"
-                            >
-                                Đặt hàng
-                            </Button>
-                        </Card>
-                    </Col>
-                </Row>
-            </Form>
-        </div>
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    color="primary"
+                                    size="large"
+                                    fullWidth
+                                    disabled={loading}
+                                    sx={{ mt: 3 }}
+                                >
+                                    {loading ? <CircularProgress size={24} /> : 'Đặt hàng'}
+                                </Button>
+                            </form>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                    <Card>
+                        <CardContent>
+                            <Typography variant="h6" gutterBottom>
+                                Đơn hàng của bạn ({selectedProducts.length} sản phẩm)
+                            </Typography>
+
+                            <Box mb={2}>
+                                {selectedProducts.map(item => (
+                                    <Paper
+                                        key={item.cart_item_id}
+                                        elevation={0}
+                                        sx={{
+                                            p: 2,
+                                            mb: 2,
+                                            border: '1px solid #e0e0e0',
+                                            borderRadius: 1,
+                                            backgroundColor: '#fff'
+                                        }}
+                                    >
+                                        <Box display="flex" alignItems="flex-start">
+                                            <Box
+                                                sx={{
+                                                    width: 120,
+                                                    height: 120,
+                                                    mr: 2,
+                                                    borderRadius: 1,
+                                                    overflow: 'hidden',
+                                                    border: '1px solid #e0e0e0'
+                                                }}
+                                            >
+                                                <img
+                                                    src={item.product_image || item.image_url}
+                                                    alt={item.product_name}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        objectFit: 'cover'
+                                                    }}
+                                                />
+                                            </Box>
+                                            <Box flex={1}>
+                                                <Typography
+                                                    variant="h6"
+                                                    sx={{
+                                                        fontWeight: 'bold',
+                                                        mb: 1,
+                                                        fontSize: '1rem'
+                                                    }}
+                                                >
+                                                    {item.product_name}
+                                                </Typography>
+                                                <Box sx={{ mb: 1 }}>
+                                                    {item.size && (
+                                                        <Typography
+                                                            component="span"
+                                                            sx={{
+                                                                mr: 2,
+                                                                bgcolor: '#e3f2fd',
+                                                                px: 1,
+                                                                py: 0.5,
+                                                                borderRadius: 1,
+                                                                fontSize: '0.875rem'
+                                                            }}
+                                                        >
+                                                            Size: {item.size}
+                                                        </Typography>
+                                                    )}
+                                                    {item.color && (
+                                                        <Typography
+                                                            component="span"
+                                                            sx={{
+                                                                mr: 2,
+                                                                bgcolor: '#e8f5e9',
+                                                                px: 1,
+                                                                py: 0.5,
+                                                                borderRadius: 1,
+                                                                fontSize: '0.875rem'
+                                                            }}
+                                                        >
+                                                            Màu: {item.color}
+                                                        </Typography>
+                                                    )}
+                                                    {item.material && (
+                                                        <Typography
+                                                            component="span"
+                                                            sx={{
+                                                                bgcolor: '#f3e5f5',
+                                                                px: 1,
+                                                                py: 0.5,
+                                                                borderRadius: 1,
+                                                                fontSize: '0.875rem'
+                                                            }}
+                                                        >
+                                                            Chất liệu: {item.material}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+                                                <Box
+                                                    display="flex"
+                                                    justifyContent="space-between"
+                                                    alignItems="center"
+                                                    mt={2}
+                                                >
+                                                    <Box display="flex" alignItems="center">
+                                                        <Typography
+                                                            variant="body1"
+                                                            sx={{
+                                                                color: '#ee4d2d',
+                                                                fontWeight: 'bold',
+                                                                fontSize: '1.1rem'
+                                                            }}
+                                                        >
+                                                            {formatPrice(item.price)}
+                                                        </Typography>
+                                                        <Typography
+                                                            sx={{
+                                                                mx: 2,
+                                                                color: '#757575',
+                                                                fontSize: '0.9rem'
+                                                            }}
+                                                        >
+                                                            Số lượng: {item.quantity}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Typography
+                                                        variant="subtitle1"
+                                                        sx={{
+                                                            color: '#ee4d2d',
+                                                            fontWeight: 'bold'
+                                                        }}
+                                                    >
+                                                        {formatPrice(item.price * item.quantity)}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </Box>
+                                    </Paper>
+                                ))}
+                            </Box>
+
+                            <Divider sx={{ my: 2 }} />
+
+                            <Box display="flex" justifyContent="space-between" mb={1}>
+                                <Typography>Tạm tính:</Typography>
+                                <Typography sx={{ color: '#ee4d2d', fontWeight: 'bold' }}>
+                                    {formatPrice(calculateTotal())}
+                                </Typography>
+                            </Box>
+
+                            <Box display="flex" justifyContent="space-between" mb={1}>
+                                <Typography>Phí vận chuyển:</Typography>
+                                <Typography sx={{ color: '#ee4d2d', fontWeight: 'bold' }}>
+                                    {formatPrice(0)}
+                                </Typography>
+                            </Box>
+
+                            <Divider sx={{ my: 2 }} />
+
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography variant="h6">Tổng cộng:</Typography>
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        color: '#ee4d2d',
+                                        fontWeight: 'bold'
+                                    }}
+                                >
+                                    {formatPrice(calculateTotal())}
+                                </Typography>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+            </Grid>
+        </Box>
     );
 };
 
