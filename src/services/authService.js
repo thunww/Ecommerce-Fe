@@ -40,6 +40,27 @@ const authService = {
       );
     }
   },
+
+  forgotPassword: async (email) => {
+    try {
+      const response = await authApi.forgotPassword(email);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Forgot password failed"
+      );
+    }
+  },
+
+  resetPassword: async (token, newPassword) => {
+    try {
+      const response = await authApi.resetPassword(token, newPassword);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Reset password failed");
+    }
+  },
 };
 
 export default authService;
