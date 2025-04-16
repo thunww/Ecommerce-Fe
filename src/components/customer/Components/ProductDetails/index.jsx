@@ -9,6 +9,8 @@ import { BsShieldCheck } from "react-icons/bs";
 import ProductZoom from "../../../../components/customer/Components/ProductZoom";
 import { useNavigate } from "react-router-dom";
 import { addToCart } from "../../../../redux/slices/cartSlice";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const formatVND = (price) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
@@ -87,31 +89,54 @@ const ProductDetailsComponent = ({ product, selectedVariant, onVariantChange }) 
   );
 
   const handleBuyNow = async () => {
-    if (!selected) return;
+    if (!selected) {
+      toast.error('Vui lòng chọn sản phẩm');
+      return;
+    }
+
+    // Kiểm tra số lượng tồn kho
+    if (qty > selected.stock) {
+      toast.error(`Số lượng tồn kho không đủ. Chỉ còn ${selected.stock} sản phẩm`);
+      return;
+    }
+
     try {
-      await dispatch(addToCart({
+      const result = await dispatch(addToCart({
         product_id: product.product_id,
         quantity: qty,
-        variant_id: selected.variant_id,
-        navigate: true
+        variant_id: selected.variant_id
       })).unwrap();
+
+      // Chuyển đến trang giỏ hàng
       navigate("/cart");
     } catch (error) {
       console.error("Lỗi khi thêm vào giỏ hàng:", error);
+      toast.error(error.message || "Có lỗi xảy ra khi thêm vào giỏ hàng");
     }
   };
 
   const handleAddToCart = async () => {
-    if (!selected) return;
+    if (!selected) {
+      toast.error('Vui lòng chọn sản phẩm');
+      return;
+    }
+
+    // Kiểm tra số lượng tồn kho
+    if (qty > selected.stock) {
+      toast.error(`Số lượng tồn kho không đủ. Chỉ còn ${selected.stock} sản phẩm`);
+      return;
+    }
+
     try {
       await dispatch(addToCart({
         product_id: product.product_id,
         quantity: qty,
-        variant_id: selected.variant_id,
-        navigate: false
+        variant_id: selected.variant_id
       })).unwrap();
+      toast.success("Đã thêm vào giỏ hàng");
     } catch (error) {
       console.error("Lỗi khi thêm vào giỏ hàng:", error);
+      toast.error(error.message || "Có lỗi xảy ra khi thêm vào giỏ hàng");
     }
   };
 

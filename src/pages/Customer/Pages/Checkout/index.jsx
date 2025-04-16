@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
     fetchCart,
     applyCoupon,
     calculateShipping,
-    checkout,
     setSelectedAddress,
     setPaymentMethod,
+    clearCart
 } from "../../../../redux/slices/cartSlice";
 import {
     Form,
@@ -20,74 +21,95 @@ import {
     Typography,
     message,
     Spin,
+    Steps,
+    Row,
+    Col
 } from "antd";
-import { FaTruck, FaCreditCard, FaWallet, FaMoneyBillWave } from "react-icons/fa";
+import { FaTruck, FaCreditCard, FaWallet, FaMoneyBillWave, FaMapMarkerAlt } from "react-icons/fa";
+import './Checkout.css';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
 const Checkout = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
-    const [couponCode, setCouponCode] = useState("");
     const [selectedPayment, setSelectedPayment] = useState("cod");
 
     const {
         cart,
         shippingFee,
         discount,
-        selectedAddress,
-        paymentMethods,
-        shippingMethods,
-        estimatedDeliveryTime,
+        total,
+        items
     } = useSelector((state) => state.cart);
 
     useEffect(() => {
-        dispatch(fetchCart());
+        // Chỉ fetch cart nếu chưa có dữ liệu
+        if (!items || items.length === 0) {
+            dispatch(fetchCart());
+        }
     }, [dispatch]);
 
-    const handleApplyCoupon = async () => {
-        if (!couponCode) {
-            message.warning("Vui lòng nhập mã giảm giá");
-            return;
+    // Kiểm tra giỏ hàng trống và chuyển hướng
+    useEffect(() => {
+        if (items && items.length === 0) {
+            navigate('/cart');
         }
-        await dispatch(applyCoupon(couponCode));
+    }, [items, navigate]);
+
+    const handlePaymentChange = (e) => {
+        setSelectedPayment(e.target.value);
+        dispatch(setPaymentMethod(e.target.value));
     };
 
-    const handleAddressChange = (values) => {
-        dispatch(setSelectedAddress(values));
-        dispatch(calculateShipping(values));
-    };
-
-    const handlePaymentChange = (value) => {
-        setSelectedPayment(value);
-        dispatch(setPaymentMethod(value));
-    };
-
-    const handleCheckout = async (values) => {
+    const handleSubmit = async (values) => {
         try {
             setLoading(true);
             const orderData = {
-                ...values,
-                cart_id: cart.cart_id,
+                shipping_address: {
+                    full_name: values.full_name,
+                    phone: values.phone,
+                    address: values.address,
+                    city: values.city,
+                    district: values.district,
+                    ward: values.ward
+                },
                 payment_method: selectedPayment,
-                shipping_address: selectedAddress,
-                shipping_fee: shippingFee,
-                discount: discount,
-                coupon_code: couponCode,
+                items: items.map(item => ({
+                    product_id: item.product_id,
+                    variant_id: item.variant_id,
+                    quantity: item.quantity
+                }))
             };
-            await dispatch(checkout(orderData)).unwrap();
-            message.success("Đặt hàng thành công!");
-            // Redirect to order confirmation page
+
+            // Gửi request tạo đơn hàng đến API
+            const response = await fetch('http://localhost:3000/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            if (response.ok) {
+                message.success('Đặt hàng thành công!');
+                dispatch(clearCart());
+                navigate('/my-account/orders');
+            } else {
+                throw new Error('Đặt hàng thất bại');
+            }
         } catch (error) {
-            message.error(error.message || "Có lỗi xảy ra khi đặt hàng");
+            message.error(error.message || 'Đặt hàng thất bại. Vui lòng thử lại!');
         } finally {
             setLoading(false);
         }
     };
 
-    if (!cart) {
+    if (!cart || loading) {
         return (
             <div className="flex justify-center items-center h-screen">
                 <Spin size="large" />
@@ -95,160 +117,182 @@ const Checkout = () => {
         );
     }
 
-    const totalPrice = cart.items.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-    );
-    const finalPrice = totalPrice + shippingFee - discount;
-
     return (
-        <div className="container mx-auto px-4 py-8">
-            <Title level={2}>Thanh toán</Title>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Thông tin giao hàng */}
-                <div className="lg:col-span-2">
-                    <Card title="Thông tin giao hàng" className="mb-6">
-                        <Form
-                            form={form}
-                            layout="vertical"
-                            onValuesChange={handleAddressChange}
-                        >
+        <div className="checkout-container">
+            <div className="checkout-header">
+                <Title level={3}>Thanh toán</Title>
+            </div>
+
+            <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleSubmit}
+                className="checkout-form"
+            >
+                <Row gutter={24}>
+                    <Col span={16}>
+                        <Card className="shipping-info-card">
+                            <div className="section-title">
+                                <FaMapMarkerAlt />
+                                <Title level={4}>Địa chỉ nhận hàng</Title>
+                            </div>
                             <Form.Item
-                                name="fullName"
+                                name="full_name"
                                 label="Họ và tên"
-                                rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+                                rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
                             >
-                                <Input />
+                                <Input placeholder="Nhập họ và tên người nhận" />
                             </Form.Item>
+
                             <Form.Item
                                 name="phone"
                                 label="Số điện thoại"
-                                rules={[
-                                    { required: true, message: "Vui lòng nhập số điện thoại" },
-                                    {
-                                        pattern: /^[0-9]{10}$/,
-                                        message: "Số điện thoại không hợp lệ",
-                                    },
-                                ]}
+                                rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
                             >
-                                <Input />
+                                <Input placeholder="Nhập số điện thoại" />
                             </Form.Item>
-                            <Form.Item
-                                name="email"
-                                label="Email"
-                                rules={[
-                                    { required: true, message: "Vui lòng nhập email" },
-                                    { type: "email", message: "Email không hợp lệ" },
-                                ]}
-                            >
-                                <Input />
-                            </Form.Item>
+
+                            <Row gutter={16}>
+                                <Col span={8}>
+                                    <Form.Item
+                                        name="city"
+                                        label="Tỉnh/Thành phố"
+                                        rules={[{ required: true, message: 'Vui lòng chọn tỉnh/thành phố' }]}
+                                    >
+                                        <Select placeholder="Chọn tỉnh/thành phố">
+                                            <Option value="hanoi">Hà Nội</Option>
+                                            <Option value="hcm">TP. Hồ Chí Minh</Option>
+                                        </Select>
+                                    </Form.Item>
+                                </Col>
+                                <Col span={8}>
+                                    <Form.Item
+                                        name="district"
+                                        label="Quận/Huyện"
+                                        rules={[{ required: true, message: 'Vui lòng chọn quận/huyện' }]}
+                                    >
+                                        <Select placeholder="Chọn quận/huyện">
+                                            <Option value="thanhxuan">Thanh Xuân</Option>
+                                            <Option value="hoankiem">Hoàn Kiếm</Option>
+                                        </Select>
+                                    </Form.Item>
+                                </Col>
+                                <Col span={8}>
+                                    <Form.Item
+                                        name="ward"
+                                        label="Phường/Xã"
+                                        rules={[{ required: true, message: 'Vui lòng chọn phường/xã' }]}
+                                    >
+                                        <Select placeholder="Chọn phường/xã">
+                                            <Option value="phuong1">Phường 1</Option>
+                                            <Option value="phuong2">Phường 2</Option>
+                                        </Select>
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+
                             <Form.Item
                                 name="address"
-                                label="Địa chỉ"
-                                rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}
+                                label="Địa chỉ cụ thể"
+                                rules={[{ required: true, message: 'Vui lòng nhập địa chỉ cụ thể' }]}
                             >
-                                <Input.TextArea rows={3} />
+                                <Input.TextArea placeholder="Số nhà, tên đường..." />
                             </Form.Item>
+                        </Card>
+
+                        <Card className="payment-method-card">
+                            <div className="section-title">
+                                <FaCreditCard />
+                                <Title level={4}>Phương thức thanh toán</Title>
+                            </div>
                             <Form.Item
-                                name="city"
-                                label="Thành phố"
-                                rules={[{ required: true, message: "Vui lòng chọn thành phố" }]}
+                                name="payment_method"
+                                initialValue="cod"
                             >
-                                <Select>
-                                    <Option value="hanoi">Hà Nội</Option>
-                                    <Option value="hcm">TP. Hồ Chí Minh</Option>
-                                    <Option value="danang">Đà Nẵng</Option>
-                                </Select>
+                                <Radio.Group onChange={handlePaymentChange} value={selectedPayment}>
+                                    <Space direction="vertical">
+                                        <Radio value="cod">
+                                            <Space>
+                                                <FaMoneyBillWave />
+                                                Thanh toán khi nhận hàng (COD)
+                                            </Space>
+                                        </Radio>
+                                        <Radio value="momo">
+                                            <Space>
+                                                <FaWallet />
+                                                Ví MoMo
+                                            </Space>
+                                        </Radio>
+                                        <Radio value="vnpay">
+                                            <Space>
+                                                <FaCreditCard />
+                                                VNPay
+                                            </Space>
+                                        </Radio>
+                                    </Space>
+                                </Radio.Group>
                             </Form.Item>
-                        </Form>
-                    </Card>
+                        </Card>
+                    </Col>
 
-                    {/* Phương thức thanh toán */}
-                    <Card title="Phương thức thanh toán">
-                        <Radio.Group
-                            value={selectedPayment}
-                            onChange={(e) => handlePaymentChange(e.target.value)}
-                            className="w-full"
-                        >
-                            <Space direction="vertical" className="w-full">
-                                <Radio value="cod" className="w-full py-2">
-                                    <Space>
-                                        <FaMoneyBillWave className="text-xl" />
-                                        <span>Thanh toán khi nhận hàng (COD)</span>
-                                    </Space>
-                                </Radio>
-                                <Radio value="credit_card" className="w-full py-2">
-                                    <Space>
-                                        <FaCreditCard className="text-xl" />
-                                        <span>Thẻ tín dụng/Thẻ ghi nợ</span>
-                                    </Space>
-                                </Radio>
-                                <Radio value="e_wallet" className="w-full py-2">
-                                    <Space>
-                                        <FaWallet className="text-xl" />
-                                        <span>Ví điện tử</span>
-                                    </Space>
-                                </Radio>
-                                <Radio value="bank_transfer" className="w-full py-2">
-                                    <Space>
-                                        <FaTruck className="text-xl" />
-                                        <span>Chuyển khoản ngân hàng</span>
-                                    </Space>
-                                </Radio>
-                            </Space>
-                        </Radio.Group>
-                    </Card>
-                </div>
+                    <Col span={8}>
+                        <Card className="order-summary-card">
+                            <Title level={4}>Tóm tắt đơn hàng</Title>
+                            <div className="order-items">
+                                {items.map(item => (
+                                    <div key={item.cart_item_id} className="order-item">
+                                        <div className="item-info">
+                                            <img src={item.image} alt={item.product_name} />
+                                            <div>
+                                                <Text>{item.product_name}</Text>
+                                                <Text type="secondary">x{item.quantity}</Text>
+                                            </div>
+                                        </div>
+                                        <Text strong>{item.total_price.toLocaleString('vi-VN')}đ</Text>
+                                    </div>
+                                ))}
+                            </div>
 
-                {/* Tổng đơn hàng */}
-                <div className="lg:col-span-1">
-                    <Card title="Tổng đơn hàng">
-                        <div className="space-y-4">
-                            <div className="flex justify-between">
-                                <Text>Tạm tính:</Text>
-                                <Text>{totalPrice.toLocaleString()}đ</Text>
-                            </div>
-                            <div className="flex justify-between">
-                                <Text>Phí vận chuyển:</Text>
-                                <Text>{shippingFee.toLocaleString()}đ</Text>
-                            </div>
-                            {discount > 0 && (
-                                <div className="flex justify-between text-green-600">
-                                    <Text>Giảm giá:</Text>
-                                    <Text>-{discount.toLocaleString()}đ</Text>
-                                </div>
-                            )}
                             <Divider />
-                            <div className="flex justify-between font-bold text-lg">
-                                <Text>Tổng cộng:</Text>
-                                <Text>{finalPrice.toLocaleString()}đ</Text>
-                            </div>
 
-                            <div className="flex gap-2">
-                                <Input
-                                    placeholder="Nhập mã giảm giá"
-                                    value={couponCode}
-                                    onChange={(e) => setCouponCode(e.target.value)}
-                                />
-                                <Button type="primary" onClick={handleApplyCoupon}>
-                                    Áp dụng
-                                </Button>
+                            <div className="price-summary">
+                                <div className="price-row">
+                                    <Text>Tạm tính</Text>
+                                    <Text>{total.toLocaleString('vi-VN')}đ</Text>
+                                </div>
+                                <div className="price-row">
+                                    <Text>Phí vận chuyển</Text>
+                                    <Text>{shippingFee.toLocaleString('vi-VN')}đ</Text>
+                                </div>
+                                {discount > 0 && (
+                                    <div className="price-row discount">
+                                        <Text>Giảm giá</Text>
+                                        <Text>-{discount.toLocaleString('vi-VN')}đ</Text>
+                                    </div>
+                                )}
+                                <Divider />
+                                <div className="price-row total">
+                                    <Text strong>Tổng cộng</Text>
+                                    <Text strong className="total-amount">
+                                        {(total + shippingFee - discount).toLocaleString('vi-VN')}đ
+                                    </Text>
+                                </div>
                             </div>
 
                             <Button
                                 type="primary"
                                 size="large"
                                 block
+                                htmlType="submit"
                                 loading={loading}
-                                onClick={() => form.submit()}
+                                className="checkout-button"
                             >
                                 Đặt hàng
                             </Button>
-                        </div>
-                    </Card>
-                </div>
-            </div>
+                        </Card>
+                    </Col>
+                </Row>
+            </Form>
         </div>
     );
 };
