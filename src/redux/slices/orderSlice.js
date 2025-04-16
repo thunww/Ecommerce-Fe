@@ -7,52 +7,39 @@ export const createOrder = createAsyncThunk(
     async (orderData, { rejectWithValue }) => {
         try {
             const response = await orderApi.createOrder(orderData);
-            return response.data;
+            return response;
         } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
+            return rejectWithValue(error.response?.data?.message || 'Đặt hàng thất bại');
         }
     }
 );
 
-export const getOrderDetails = createAsyncThunk(
-    'order/getOrderDetails',
-    async (orderId, { rejectWithValue }) => {
-        try {
-            const response = await orderApi.getOrderDetails(orderId);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
-        }
-    }
-);
-
-export const getUserOrders = createAsyncThunk(
-    'order/getUserOrders',
+export const getOrders = createAsyncThunk(
+    'order/getOrders',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await orderApi.getUserOrders();
-            return response.data;
+            const response = await orderApi.getOrders();
+            return response;
         } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
+            return rejectWithValue(error.response?.data?.message || 'Không thể lấy danh sách đơn hàng');
         }
     }
 );
-
-const initialState = {
-    order: null,
-    loading: false,
-    error: null,
-    success: false
-};
 
 const orderSlice = createSlice({
     name: 'order',
-    initialState,
+    initialState: {
+        orders: [],
+        currentOrder: null,
+        loading: false,
+        error: null,
+        success: false
+    },
     reducers: {
-        resetOrderState: (state) => {
-            state.order = null;
-            state.loading = false;
+        clearOrderError: (state) => {
             state.error = null;
+        },
+        clearOrderSuccess: (state) => {
             state.success = false;
         }
     },
@@ -65,8 +52,8 @@ const orderSlice = createSlice({
             })
             .addCase(createOrder.fulfilled, (state, action) => {
                 state.loading = false;
-                state.order = action.payload;
                 state.success = true;
+                state.currentOrder = action.payload;
                 message.success('Đặt hàng thành công!');
             })
             .addCase(createOrder.rejected, (state, action) => {
@@ -75,34 +62,20 @@ const orderSlice = createSlice({
                 state.success = false;
                 message.error(action.payload?.message || 'Đặt hàng thất bại');
             })
-            // Get Order Details
-            .addCase(getOrderDetails.pending, (state) => {
+            .addCase(getOrders.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(getOrderDetails.fulfilled, (state, action) => {
-                state.loading = false;
-                state.order = action.payload;
-            })
-            .addCase(getOrderDetails.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload;
-            })
-            // Get User Orders
-            .addCase(getUserOrders.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(getUserOrders.fulfilled, (state, action) => {
+            .addCase(getOrders.fulfilled, (state, action) => {
                 state.loading = false;
                 state.orders = action.payload;
             })
-            .addCase(getUserOrders.rejected, (state, action) => {
+            .addCase(getOrders.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });
     }
 });
 
-export const { resetOrderState } = orderSlice.actions;
+export const { clearOrderError, clearOrderSuccess } = orderSlice.actions;
 export default orderSlice.reducer; 

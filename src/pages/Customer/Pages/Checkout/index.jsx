@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { createOrder, clearOrderError, clearOrderSuccess } from '../../../../redux/slices/orderSlice';
 import {
     Box,
     Card,
@@ -32,9 +33,10 @@ import "./Checkout.css";
 
 const Checkout = () => {
     const navigate = useNavigate();
-    const { items, selectedItems } = useSelector(state => state.cart);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const dispatch = useDispatch();
+    const cartItems = useSelector(state => state.cart.items);
+    const selectedItemIds = useSelector(state => state.cart.selectedItems);
+    const { loading, error, success } = useSelector(state => state.order);
     const [phone, setPhone] = useState('');
     const [address, setAddress] = useState('');
     const [provinces, setProvinces] = useState([]);
@@ -44,13 +46,13 @@ const Checkout = () => {
     const [selectedDistrict, setSelectedDistrict] = useState('');
     const [selectedWard, setSelectedWard] = useState('');
 
-    // Lọc ra các sản phẩm đã được chọn
-    const selectedProducts = items.filter(item => selectedItems.includes(item.cart_item_id));
-
     // Log để kiểm tra dữ liệu
+    console.log('Cart Items:', cartItems);
+    console.log('Selected IDs:', selectedItemIds);
+
+    // Lọc ra các sản phẩm đã được chọn
+    const selectedProducts = cartItems.filter(item => selectedItemIds.includes(item.cart_item_id));
     console.log('Selected Products:', selectedProducts);
-    console.log('Cart Items:', items);
-    console.log('Selected Items:', selectedItems);
 
     // Tính tổng tiền
     const calculateTotal = () => {
@@ -115,49 +117,34 @@ const Checkout = () => {
         }
     }, [selectedDistrict]);
 
+    // Xử lý khi đặt hàng thành công
+    useEffect(() => {
+        if (success) {
+            navigate('/my-account/orders');
+            dispatch(clearOrderSuccess());
+        }
+    }, [success, navigate, dispatch]);
+
+    // Clear error khi component unmount
+    useEffect(() => {
+        return () => {
+            dispatch(clearOrderError());
+        };
+    }, [dispatch]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        setError(null);
+        const formData = new FormData(e.target);
+        const orderData = {
+            address: address,
+            payment_method: formData.get('payment_method'),
+            items: selectedProducts.map(item => ({
+                product_id: item.cart_item_id,
+                quantity: item.quantity
+            }))
+        };
 
-        try {
-            const formData = new FormData(e.target);
-            const orderData = {
-                phone: phone,
-                address: address,
-                province: provinces.find(p => p.code === selectedProvince)?.name,
-                district: districts.find(d => d.code === selectedDistrict)?.name,
-                ward: wards.find(w => w.code === selectedWard)?.name,
-                payment_method: formData.get('payment_method'),
-                items: selectedProducts.map(item => ({
-                    product_id: item.product_id,
-                    variant_id: item.variant_id,
-                    quantity: item.quantity
-                }))
-            };
-
-            // Gọi API tạo đơn hàng
-            const response = await fetch('http://localhost:3000/api/orders', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(orderData)
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                navigate('/my-account/orders');
-            } else {
-                setError(result.message || 'Đặt hàng thất bại. Vui lòng thử lại!');
-            }
-        } catch (err) {
-            setError('Có lỗi xảy ra. Vui lòng thử lại!');
-        } finally {
-            setLoading(false);
-        }
+        dispatch(createOrder(orderData));
     };
 
     const formatPrice = (price) => {
@@ -166,8 +153,8 @@ const Checkout = () => {
 
     if (selectedProducts.length === 0) {
         return (
-            <Box className="checkout-container">
-                <Alert severity="warning">
+            <Box className="checkout-container" sx={{ p: 3 }}>
+                <Alert severity="warning" sx={{ mb: 2 }}>
                     Không có sản phẩm nào được chọn. Vui lòng quay lại giỏ hàng để chọn sản phẩm.
                 </Alert>
                 <Button
@@ -175,7 +162,6 @@ const Checkout = () => {
                     color="primary"
                     startIcon={<CartIcon />}
                     onClick={() => navigate('/cart')}
-                    sx={{ mt: 2 }}
                 >
                     Quay lại giỏ hàng
                 </Button>
