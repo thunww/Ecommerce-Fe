@@ -209,13 +209,15 @@ const Profile = () => {
                   src={
                     selectedImage
                       ? URL.createObjectURL(selectedImage)
-                      : profileData.profile_picture || "/avatar.jpg"
+                      : profileData.profile_picture ||
+                        "https://th.bing.com/th/id/OIP.ByNwhzY5vUBvdIEfMCqDogHaHa?rs=1&pid=ImgDetMain"
                   }
                   alt="Avatar"
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = "/avatar.jpg";
+                    e.target.src =
+                      "https://th.bing.com/th/id/OIP.ByNwhzY5vUBvdIEfMCqDogHaHa?rs=1&pid=ImgDetMain";
                   }}
                 />
               </div>
