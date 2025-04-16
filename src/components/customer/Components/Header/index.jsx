@@ -17,6 +17,9 @@ import {
   FaShoppingBag,
   FaChevronDown,
   FaChevronUp,
+  FaShieldAlt,
+  FaStore,
+  FaTruck,
 } from "react-icons/fa";
 import Tooltip from "@mui/material/Tooltip";
 import Navigation from "./Navigation";
@@ -35,7 +38,7 @@ const Header = () => {
   const context = useContext(MyContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, roles } = useSelector((state) => state.auth);
   const user = useSelector((state) => state.admin.selectedUser);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const menuRef = useRef(null);
@@ -165,12 +168,16 @@ const Header = () => {
                     >
                       <div className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 overflow-hidden rounded-full border border-gray-200">
                         <img
-                          src={user?.profile_picture || "/avatar.jpg"}
+                          src={
+                            user?.profile_picture ||
+                            "https://th.bing.com/th/id/OIP.ByNwhzY5vUBvdIEfMCqDogHaHa?rs=1&pid=ImgDetMain"
+                          }
                           alt="Avatar"
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.target.onerror = null;
-                            e.target.src = "/avatar.jpg";
+                            e.target.src =
+                              "https://th.bing.com/th/id/OIP.ByNwhzY5vUBvdIEfMCqDogHaHa?rs=1&pid=ImgDetMain";
                           }}
                         />
                       </div>
@@ -189,7 +196,8 @@ const Header = () => {
                         <div className="py-3 px-4 border-b border-gray-100">
                           <p className="text-sm font-medium text-gray-800 truncate">
                             {user
-                              ? `${user.first_name || ""} ${user.last_name || ""
+                              ? `${user.first_name || ""} ${
+                                  user.last_name || ""
                                 }`.trim()
                               : "User"}
                           </p>
@@ -218,16 +226,49 @@ const Header = () => {
                               <span className="truncate">My Orders</span>
                             </Link>
                           </li>
-                          <li>
-                            <Link
-                              to="/my-account/wishlist"
-                              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
-                              onClick={() => setShowAccountMenu(false)}
-                            >
-                              <FaRegHeart className="text-blue-500 flex-shrink-0" />
-                              <span className="truncate">Wishlist</span>
-                            </Link>
-                          </li>
+
+                          {roles.includes("admin") && (
+                            <li>
+                              <Link
+                                to="/admin"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
+                                onClick={() => setShowAccountMenu(false)}
+                              >
+                                <FaShieldAlt className="text-blue-500 flex-shrink-0" />
+                                <span className="truncate">
+                                  Admin Dashboard
+                                </span>
+                              </Link>
+                            </li>
+                          )}
+                          {roles.includes("vendor") && (
+                            <li>
+                              <Link
+                                to="/vendor"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
+                                onClick={() => setShowAccountMenu(false)}
+                              >
+                                <FaStore className="text-blue-500 flex-shrink-0" />
+                                <span className="truncate">
+                                  Vendor Dashboard
+                                </span>
+                              </Link>
+                            </li>
+                          )}
+                          {roles.includes("shipper") && (
+                            <li>
+                              <Link
+                                to="/shipper"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
+                                onClick={() => setShowAccountMenu(false)}
+                              >
+                                <FaTruck className="text-blue-500 flex-shrink-0" />
+                                <span className="truncate">
+                                  Shipper Dashboard
+                                </span>
+                              </Link>
+                            </li>
+                          )}
                           <li className="border-t border-gray-100 mt-1">
                             <button
                               onClick={handleLogout}

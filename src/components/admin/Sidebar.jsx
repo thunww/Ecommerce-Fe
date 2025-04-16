@@ -104,76 +104,23 @@ const Sidebar = ({ isOpen }) => {
 
       {/* MANAGEMENT Section */}
       <SidebarSection title="Management" isOpen={isOpen}>
-        <SidebarItem
-          to="/admin/users"
-          label="Users"
-          icon={<Users size={20} />}
-          isOpen={isOpen}
-        />
-        <SidebarItem
-          to="/admin/orders"
-          icon={<ShoppingCart size={20} />}
-          label="Orders"
-          isOpen={isOpen}
-        />
-        <SidebarItem
-          to="/admin/products"
-          icon={<Package size={20} />}
-          label="Products"
-          isOpen={isOpen}
-        />
-        <SidebarItem
-          to="/admin/categories"
-          icon={<Folder size={20} />}
-          label="Categories"
-          isOpen={isOpen}
-        />
-        <SidebarItem
-          to="/admin/shops"
-          icon={<Store size={20} />}
-          label="Shops"
-          isOpen={isOpen}
-        />
-        <SidebarItem
-          to="/admin/shipping"
-          icon={<Truck size={20} />}
-          label="Shipping"
-          isOpen={isOpen}
-        />
-        <SidebarItem
-          to="/admin/transactions"
-          icon={<DollarSign size={20} />}
-          label="Transactions"
-          isOpen={isOpen}
-        />
+        <SidebarItem to="/admin/users" label="Users" icon={<Users size={20} />} isOpen={isOpen} />
+        <SidebarItem to="/admin/orders" icon={<ShoppingCart size={20} />} label="Orders" isOpen={isOpen} />
+        <SidebarItem to="/admin/products" icon={<Package size={20} />} label="Products" isOpen={isOpen} />
+        <SidebarItem to="/admin/shops" icon={<Store size={20} />} label="Shops" isOpen={isOpen} />
+        <SidebarItem to="/admin/shipping" icon={<Truck size={20} />} label="Shipping" isOpen={isOpen} />
+        <SidebarItem to="/admin/transactions" icon={<DollarSign size={20} />} label="Transactions" isOpen={isOpen} />
       </SidebarSection>
 
       {/* CONTENT Section */}
       <SidebarSection title="Content" isOpen={isOpen}>
-        <SidebarItem
-          to="/admin/chat"
-          icon={<MessageSquare size={20} />}
-          label="Chat"
-          isOpen={isOpen}
-        />
-        <SidebarItem
-          to="/admin/posts"
-          icon={<FileText size={20} />}
-          label="Posts"
-          isOpen={isOpen}
-        />
-        <SidebarItem
-          to="/admin/comments"
-          icon={<MessageSquare size={20} />}
-          label="Comments"
-          isOpen={isOpen}
-        />
-        <SidebarItem
-          to="/admin/media"
-          icon={<Image size={20} />}
-          label="Media"
-          isOpen={isOpen}
-        />
+       
+
+        <SidebarItem to="/admin/chat" icon={<MessageSquare size={20} />} label="Chat" isOpen={isOpen} />
+        <SidebarItem to="/admin/posts" icon={<FileText size={20} />} label="Posts" isOpen={isOpen} />
+        <SidebarItem to="/admin/comments" icon={<MessageSquare size={20} />} label="Comments" isOpen={isOpen} />
+        <SidebarItem to="/admin/media" icon={<Image size={20} />} label="Media" isOpen={isOpen} />
+        <SidebarItem to="/admin/categories" icon={<Folder size={20} />} label="Categories" isOpen={isOpen} />
       </SidebarSection>
 
       {/* ANALYTICS Section */}
