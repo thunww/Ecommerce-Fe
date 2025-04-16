@@ -268,6 +268,7 @@ const ShipperProfile = () => {
             <h2 className="text-xl font-semibold mb-4">Cập nhật vị trí giao hàng</h2>
             <form onSubmit={handleLocationSubmit}>
               <AddressSelector 
+                type="shipper"
                 onAddressChange={handleLocationChange}
                 defaultAddress={{
                   province: profile?.currentLocation?.province || '',

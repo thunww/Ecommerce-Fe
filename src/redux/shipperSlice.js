@@ -19,7 +19,7 @@ export const acceptOrder = createAsyncThunk(
   'shipper/acceptOrder',
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`/api/shippers/orders/${orderId}/accept`);
+      const response = await axios.post(`/api/v1/shippers/orders/${orderId}/accept`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);

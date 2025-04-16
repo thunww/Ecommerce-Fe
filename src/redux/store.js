@@ -23,6 +23,7 @@ const store = configureStore({
     wishlist: wishlistReducer,
     reviews: reviewReducer,
     categories: categoryReducer,
+    categories: categoryReducer,
   },
 });
 
