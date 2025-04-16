@@ -45,7 +45,6 @@ const SalesInformation = ({ hasCategory, productData, onInputChange }) => {
 
       setVariantList(updatedVariations);
       setShowVariations(true);
-      onInputChange("variations", updatedVariations);
     } else if (productData.weight) {
       // Nếu không có variations nhưng có weight, cập nhật variantList
       setVariantList((prevList) =>
@@ -88,155 +87,189 @@ const SalesInformation = ({ hasCategory, productData, onInputChange }) => {
     );
   };
 
-  // Tạo danh sách variants mới khi variations hoặc options thay đổi
+  // Sửa lại hàm generateCombinations để chỉ tạo combinations từ options của variation đầu tiên
+  const generateCombinations = (optionsArrays) => {
+    // Chỉ lấy options từ variation đầu tiên
+    const firstVariationOptions = optionsArrays[0] || [];
+
+    // Mỗi option sẽ tạo ra một variant
+    return firstVariationOptions.map((option) => [option]);
+  };
+
+  // Sửa lại generateVariantList để đảm bảo không tạo quá nhiều variants
   const generateVariantList = (variations) => {
-    // Nếu không có variations hoặc không có options nào, trả về biến thể mặc định với color và material
-    if (
-      variations.length === 0 ||
-      variations.every((v) => v.options.length === 0)
-    ) {
+    // Nếu không có variations hoặc không có options, trả về một variant mặc định
+    if (variations.length === 0 || !variations[0]?.options?.length) {
       return [
         {
           id: 1,
-          image: null,
-          imageUrl: null,
-          price: "",
-          stock: "0",
-          sku: "",
-          color: "Default", // Thêm giá trị mặc định cho color
-          material: "Variation1", // Thêm giá trị mặc định cho material
-          weight: productData.weight || "", // Lấy weight từ productData
-          image_url: DEFAULT_PRODUCT_IMAGE, // Thêm URL ảnh mặc định
+          color: "Default",
+          material: variations[0]?.name || "Default",
+          size: null,
+          ram: null,
+          processor: null,
+          storage: null,
+          weight: productData.weight || 1,
+          price: price || "",
+          stock: stock || "0",
+          image_url: DEFAULT_PRODUCT_IMAGE,
         },
       ];
     }
 
-    // Lấy tất cả các options từ các variations
-    const optionsArrays = variations
-      .filter((v) => v.options.length > 0)
-      .map((v) => v.options);
+    // Chỉ lấy options từ variation đầu tiên
+    const firstVariation = variations[0];
+    const variationName = firstVariation.name || "Default";
 
-    // Lấy tên các variations để sử dụng làm material
-    const variationNames = variations
-      .filter((v) => v.options.length > 0)
-      .map((v) => v.name || `Variation${v.id}`);
+    console.log(
+      `Tạo variants từ variation "${variationName}" với ${firstVariation.options.length} options`
+    );
 
-    console.log("Options arrays:", optionsArrays);
-    console.log("Variation names (for material):", variationNames);
+    // Kiểm tra xem có variantList cũ không và có đang ở chế độ hiện variations không
+    if (!showVariations) {
+      console.log("Không hiện variations, sử dụng variant mặc định");
+      return [
+        {
+          id: 1,
+          color: "Default",
+          material: variationName,
+          size: null,
+          ram: null,
+          processor: null,
+          storage: null,
+          weight: productData.weight || 1,
+          price: price || "",
+          stock: stock || "0",
+          image_url: DEFAULT_PRODUCT_IMAGE,
+        },
+      ];
+    }
 
-    // Tạo tất cả các tổ hợp có thể từ các options
-    const generateCombinations = (arrays) => {
-      const result = [];
-      const helper = (arr, i) => {
-        if (i === arrays.length) {
-          result.push(arr);
-          return;
-        }
-        for (let j = 0; j < arrays[i].length; j++) {
-          helper([...arr, arrays[i][j]], i + 1);
-        }
-      };
-      helper([], 0);
-      return result;
-    };
+    // Tạo một variant cho mỗi option và giữ lại các giá trị hiện có nếu có
+    return firstVariation.options.map((option, index) => {
+      // Tìm variant cũ nếu có
+      const existingVariant = variantList.find(
+        (v) => v.color === option || v.option === option
+      );
+      console.log(
+        `Tạo variant từ option: ${option} (${
+          existingVariant ? "đã tồn tại" : "mới"
+        })`
+      );
 
-    // Tạo tất cả các tổ hợp
-    const combinations = generateCombinations(optionsArrays);
-    console.log("Combinations:", combinations);
-
-    // Tạo variants mới từ các tổ hợp
-    const result = combinations.map((combo, index) => {
-      // Lấy chính xác material là tên của variation đầu tiên
-      const material =
-        variationNames.length > 0 ? variationNames[0] : `Variation${index + 1}`;
-
-      // Lấy color là giá trị option đầu tiên hoặc Default nếu không có
-      const color = combo.length > 0 ? combo[0] : "Default";
-
-      const variant = {
+      return {
         id: index + 1,
-        image: null,
-        imageUrl: null,
-        price: "",
-        stock: "0",
-        sku: "",
-        combination: combo,
-        option: color, // Lưu option đầu tiên làm color
-        color: color, // Thêm cả color để đảm bảo
-        material: material, // Sử dụng tên variation làm material
-        weight: productData.weight || "", // Lấy weight từ productData
-        variationName: combo.join(" - "),
-        image_url: DEFAULT_PRODUCT_IMAGE, // Thêm URL ảnh mặc định
+        color: option, // Sử dụng options làm color
+        material: variationName, // Sử dụng tên variation làm material
+        size: existingVariant?.size || null,
+        ram: existingVariant?.ram || null,
+        processor: existingVariant?.processor || null,
+        storage: existingVariant?.storage || null,
+        weight: existingVariant?.weight || productData.weight || 1,
+        price: existingVariant?.price || price || "",
+        stock: existingVariant?.stock || stock || "0",
+        image_url: existingVariant?.image_url || DEFAULT_PRODUCT_IMAGE,
+        option: option, // Giữ nguyên option để hiển thị UI
       };
-      console.log(`Tạo biến thể ${index + 1}:`, variant);
-      return variant;
     });
-
-    console.log("Final variant list:", result);
-    return result;
   };
 
-  // Cập nhật tên variation
+  // Sửa lại handleAddOption để hạn chế tạo quá nhiều variants và đảm bảo color được gán đúng
+  const handleAddOption = (variationId, value) => {
+    if (!value.trim()) return;
+
+    const trimmedValue = value.trim();
+
+    // Kiểm tra xem option đã tồn tại chưa trong variation này
+    const variationToUpdate = variations.find((v) => v.id === variationId);
+    if (variationToUpdate && variationToUpdate.options.includes(trimmedValue)) {
+      toast.warning(`Option "${trimmedValue}" đã tồn tại trong danh sách!`);
+      return;
+    }
+
+    console.log(`Thêm option "${trimmedValue}" vào variation ${variationId}`);
+
+    // Chỉ cập nhật options cho variation được chọn
+    const updatedVariations = variations.map((v) =>
+      v.id === variationId ? { ...v, options: [...v.options, trimmedValue] } : v
+    );
+
+    setVariations(updatedVariations);
+
+    // Chỉ tạo lại variants nếu đang thêm option vào variation đầu tiên
+    // Vì chỉ variation đầu tiên ảnh hưởng đến color
+    if (variationId === 1) {
+      // Tạo một variant mới từ option vừa thêm
+      // thay vì tạo lại toàn bộ variants
+      if (showVariations) {
+        // Lấy giá trị material
+        const materialValue = updatedVariations[0]?.name || "Default";
+
+        // Tạo variant mới
+        const newVariant = {
+          id: variantList.length + 1,
+          color: trimmedValue, // Sử dụng option mới thêm làm color
+          material: materialValue,
+          size: null,
+          ram: null,
+          processor: null,
+          storage: null,
+          weight: productData.weight || 1,
+          price: price || "",
+          stock: stock || "0",
+          image_url: DEFAULT_PRODUCT_IMAGE,
+          option: trimmedValue,
+        };
+
+        // Thêm variant mới vào danh sách hiện có thay vì tạo lại toàn bộ
+        const updatedList = [...variantList, newVariant];
+        console.log("Đã thêm variant mới:", newVariant);
+        console.log("Danh sách variants mới có", updatedList.length, "items");
+
+        setVariantList(updatedList);
+        onInputChange("variations", updatedList);
+      } else {
+        // Nếu chưa hiển thị variations, không cần tạo thêm variants
+        console.log("Không hiện variations, không tạo thêm variants");
+      }
+    } else {
+      // Nếu thêm option vào variation thứ 2 (không ảnh hưởng đến color)
+      console.log(
+        "Thêm option vào variation không phải đầu tiên, không cập nhật variants"
+      );
+    }
+  };
+
+  // Sửa lại handleVariationNameChange
   const handleVariationNameChange = (id, value) => {
     console.log(`Thay đổi tên variation ${id} thành "${value}"`);
 
-    // Cập nhật tên trong danh sách variations
     const updatedVariations = variations.map((v) =>
       v.id === id ? { ...v, name: value } : v
     );
     setVariations(updatedVariations);
 
-    // Cập nhật material trong variantList nếu đây là variation đầu tiên
+    // Chỉ cập nhật material khi thay đổi tên variation đầu tiên
     if (id === 1) {
-      const materialValue = value || `Variation${id}`;
-      console.log(
-        `Cập nhật material thành "${materialValue}" cho tất cả biến thể`
-      );
-
       const updatedVariantList = variantList.map((variant) => ({
         ...variant,
-        material: materialValue,
+        material: value || "Default",
       }));
 
+      console.log("Cập nhật material cho variants:", updatedVariantList);
       setVariantList(updatedVariantList);
+      // Chỉ gọi onInputChange một lần
       onInputChange("variations", updatedVariantList);
     }
   };
 
-  // Thêm option
-  const handleAddOption = (variationId, value) => {
-    if (!value.trim()) return;
-
-    const trimmedValue = value.trim();
-    console.log(`Thêm option "${trimmedValue}" vào variation ${variationId}`);
-
-    const updatedVariations = variations.map((v) =>
-      v.id === variationId ? { ...v, options: [...v.options, trimmedValue] } : v
-    );
-
-    console.log("variations sau khi cập nhật:", updatedVariations);
-    setVariations(updatedVariations);
-
-    // Tự động cập nhật variantList khi thêm option
-    const newVariantList = generateVariantList(updatedVariations);
-
-    // Kiểm tra xem các option có được truyền chính xác không
-    newVariantList.forEach((variant, index) => {
-      console.log(`Biến thể ${index + 1} sau khi thêm option:`, {
-        option: variant.option,
-        color: variant.color,
-        material: variant.material,
-      });
-    });
-
-    setVariantList(newVariantList);
-
-    // Cập nhật về component cha
-    onInputChange("variations", newVariantList);
-  };
-
-  // Xóa option
+  // Sửa lại handleRemoveOption để đảm bảo xóa đúng variant khi xóa option
   const handleRemoveOption = (variationId, optionIndex) => {
+    // Lấy giá trị option trước khi xóa
+    const optionToRemove = variations.find((v) => v.id === variationId)
+      ?.options[optionIndex];
+    console.log(`Xóa option "${optionToRemove}" từ variation ${variationId}`);
+
     const updatedVariations = variations.map((v) =>
       v.id === variationId
         ? {
@@ -247,12 +280,20 @@ const SalesInformation = ({ hasCategory, productData, onInputChange }) => {
     );
     setVariations(updatedVariations);
 
-    // Tự động cập nhật variantList khi xóa option
-    const newVariantList = generateVariantList(updatedVariations);
-    setVariantList(newVariantList);
+    // Nếu đang xóa option từ variation đầu tiên (ảnh hưởng đến color)
+    if (variationId === 1 && optionToRemove) {
+      // Xóa variant tương ứng với option đó
+      const updatedVariantList = variantList.filter(
+        (variant) =>
+          variant.color !== optionToRemove && variant.option !== optionToRemove
+      );
 
-    // Cập nhật về component cha
-    onInputChange("variations", newVariantList);
+      console.log(`Đã xóa variant với color/option "${optionToRemove}"`);
+      console.log("Danh sách variants sau khi xóa:", updatedVariantList);
+
+      setVariantList(updatedVariantList);
+      onInputChange("variations", updatedVariantList);
+    }
   };
 
   // Validate file
@@ -463,25 +504,69 @@ const SalesInformation = ({ hasCategory, productData, onInputChange }) => {
     }
   };
 
-  // Cập nhật variant khi thay đổi giá hoặc stock
+  // Sửa lại handleVariantChange
   const handleVariantChange = (variantId, field, value) => {
+    console.log(
+      `Thay đổi variant ${variantId}, trường ${field} thành ${value}`
+    );
+
     const updatedVariantList = variantList.map((variant) => {
       if (variant.id === variantId) {
-        // Tạo biến thể mới với trường được cập nhật
+        // Chỉ cập nhật trường được thay đổi
         const updatedVariant = {
           ...variant,
           [field]: value,
         };
 
-        // Đảm bảo các trường này luôn có giá trị
-        if (!updatedVariant.color) updatedVariant.color = "Default";
-        if (!updatedVariant.material)
-          updatedVariant.material = `variation${variantId}`;
-        if (!updatedVariant.weight)
-          updatedVariant.weight = productData.weight || "";
-        if (!updatedVariant.image_url)
-          updatedVariant.image_url = DEFAULT_PRODUCT_IMAGE;
+        // Chuẩn hóa các giá trị quan trọng
+        // Các giá trị mặc định không thay đổi trừ khi người dùng nhập mới
+        if (field === "price" && value) {
+          // Nếu thay đổi giá, chuẩn hóa giá trị
+          try {
+            const cleanPrice = parseFloat(value);
+            if (!isNaN(cleanPrice)) {
+              updatedVariant.price = cleanPrice;
+            }
+          } catch (e) {
+            console.error("Lỗi xử lý giá:", e);
+          }
+        }
 
+        if (field === "stock" && value) {
+          // Nếu thay đổi số lượng, chuẩn hóa giá trị
+          try {
+            const cleanStock = parseInt(value);
+            if (!isNaN(cleanStock)) {
+              updatedVariant.stock = cleanStock;
+            }
+          } catch (e) {
+            console.error("Lỗi xử lý số lượng:", e);
+          }
+        }
+
+        // Đảm bảo các trường kỹ thuật luôn có giá trị không undefined
+        updatedVariant.size = updatedVariant.size || null;
+        updatedVariant.ram = updatedVariant.ram || null;
+        updatedVariant.processor = updatedVariant.processor || null;
+        updatedVariant.storage = updatedVariant.storage || null;
+
+        // Đảm bảo color và material luôn có giá trị
+        // Nếu đang thay đổi color hoặc material, không ghi đè
+        if (field !== "color" && field !== "option") {
+          updatedVariant.color = variant.color || variant.option || "Default";
+        }
+
+        if (field !== "material") {
+          updatedVariant.material =
+            variant.material || variations[0]?.name || "Default";
+        }
+
+        updatedVariant.weight =
+          updatedVariant.weight || productData.weight || 1;
+        updatedVariant.image_url =
+          updatedVariant.image_url || DEFAULT_PRODUCT_IMAGE;
+
+        console.log(`Variant ${variantId} sau khi cập nhật:`, updatedVariant);
         return updatedVariant;
       }
       return variant;
@@ -489,25 +574,23 @@ const SalesInformation = ({ hasCategory, productData, onInputChange }) => {
 
     setVariantList(updatedVariantList);
 
-    // Nếu chỉ có 1 variant, cập nhật giá trị cho sản phẩm chính
-    if (updatedVariantList.length === 1) {
-      if (field === "price") {
-        setPrice(value);
-        onInputChange("price", value);
-      } else if (field === "stock") {
-        setStock(value);
-        onInputChange("stock", value);
-      }
+    // Nếu chỉ có 1 variant hoặc đang thay đổi giá của variant đầu tiên, cập nhật giá trị chính
+    if (
+      (updatedVariantList.length === 1 || variantId === 1) &&
+      field === "price"
+    ) {
+      setPrice(value);
+      onInputChange("price", value);
+    } else if (
+      (updatedVariantList.length === 1 || variantId === 1) &&
+      field === "stock"
+    ) {
+      setStock(value);
+      onInputChange("stock", value);
     }
 
-    // Cập nhật toàn bộ danh sách variants
+    // Cập nhật variations cho component cha
     onInputChange("variations", updatedVariantList);
-
-    // Log để kiểm tra
-    console.log(
-      `Cập nhật biến thể ${variantId}, field ${field}:`,
-      updatedVariantList
-    );
   };
 
   return (
@@ -840,6 +923,105 @@ const SalesInformation = ({ hasCategory, productData, onInputChange }) => {
                                 )
                               }
                             />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Thêm trường thông tin cho từng biến thể */}
+                    <div className="mt-4 bg-white p-4 rounded-md border">
+                      <h3 className="text-sm font-medium mb-3">
+                        Thông số kỹ thuật biến thể
+                      </h3>
+
+                      {variantList.map((variant, index) => (
+                        <div
+                          key={`specs-${index}`}
+                          className="mb-4 p-3 border rounded-md"
+                        >
+                          <h4 className="text-sm font-medium mb-2">
+                            Biến thể {index + 1}{" "}
+                            {variant.option ? `(${variant.option})` : ""}
+                          </h4>
+
+                          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            {/* Size */}
+                            <div className="flex flex-col">
+                              <label className="text-sm mb-1">
+                                Kích thước (Size)
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"
+                                placeholder="VD: 14 inch, XL, 42EU..."
+                                value={variant.size || ""}
+                                onChange={(e) =>
+                                  handleVariantChange(
+                                    variant.id,
+                                    "size",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
+
+                            {/* RAM */}
+                            <div className="flex flex-col">
+                              <label className="text-sm mb-1">RAM (GB)</label>
+                              <input
+                                type="text"
+                                className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"
+                                placeholder="VD: 8, 16, 32..."
+                                value={variant.ram || ""}
+                                onChange={(e) =>
+                                  handleVariantChange(
+                                    variant.id,
+                                    "ram",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
+
+                            {/* Processor */}
+                            <div className="flex flex-col">
+                              <label className="text-sm mb-1">
+                                Bộ xử lý (Processor)
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"
+                                placeholder="VD: Intel Core i7, Apple M2..."
+                                value={variant.processor || ""}
+                                onChange={(e) =>
+                                  handleVariantChange(
+                                    variant.id,
+                                    "processor",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
+
+                            {/* Storage */}
+                            <div className="flex flex-col">
+                              <label className="text-sm mb-1">
+                                Bộ nhớ (Storage - GB)
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"
+                                placeholder="VD: 256, 512, 1024..."
+                                value={variant.storage || ""}
+                                onChange={(e) =>
+                                  handleVariantChange(
+                                    variant.id,
+                                    "storage",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
                           </div>
                         </div>
                       ))}

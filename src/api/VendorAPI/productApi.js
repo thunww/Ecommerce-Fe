@@ -15,11 +15,85 @@ const productApi = {
 
   // Tạo sản phẩm mới
   createProduct: (productData) => {
-    return axiosClient.post("/products", productData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    console.log("productApi: Đang gọi API tạo sản phẩm");
+
+    try {
+      // Kiểm tra loại dữ liệu để ghi log
+      const dataType = productData instanceof FormData ? "FormData" : "JSON";
+      console.log(`Loại dữ liệu được gửi đi: ${dataType}`);
+
+      // Log nội dung của dữ liệu
+      if (dataType === "FormData") {
+        console.log("Nội dung FormData:");
+        for (let [key, value] of productData.entries()) {
+          if (key === "variations") {
+            try {
+              const variations = JSON.parse(value);
+              console.log(`- ${key}: `, variations);
+            } catch (e) {
+              console.log(`- ${key}: `, value);
+            }
+          } else if (value instanceof File) {
+            console.log(`- ${key}: File[${value.name}] (${value.size} bytes)`);
+          } else {
+            console.log(`- ${key}: `, value);
+          }
+        }
+      } else {
+        console.log("Nội dung JSON:", productData);
+      }
+
+      // Gọi API với header phù hợp theo từng loại dữ liệu
+      if (dataType === "FormData") {
+        console.log("Gửi request với Content-Type: multipart/form-data");
+        return axiosClient
+          .post("/products/create", productData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          })
+          .then((response) => {
+            console.log("Response từ server:", response);
+            return response;
+          })
+          .catch((error) => {
+            console.error("Lỗi từ server khi gửi FormData:", error);
+            if (error.response) {
+              console.error("Status:", error.response.status);
+              console.error("Data:", error.response.data);
+              console.error("Headers:", error.response.headers);
+            }
+            throw error;
+          });
+      } else {
+        console.log("Gửi request với Content-Type: application/json");
+        return axiosClient
+          .post("/products/create", productData)
+          .then((response) => {
+            console.log("Response từ server:", response);
+            return response;
+          })
+          .catch((error) => {
+            console.error("Lỗi từ server khi gửi JSON:", error);
+            if (error.response) {
+              console.error("Status:", error.response.status);
+              console.error("Data:", error.response.data);
+              console.error("Headers:", error.response.headers);
+            }
+            throw error;
+          });
+      }
+    } catch (error) {
+      console.error("Lỗi trước khi gửi request:", error);
+
+      // Log chi tiết lỗi
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
+
+      throw error;
+    }
   },
 
   // Cập nhật sản phẩm
