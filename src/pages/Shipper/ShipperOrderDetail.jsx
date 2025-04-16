@@ -1,245 +1,153 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { FaUser, FaPhone, FaMapMarkerAlt, FaClock, FaMoneyBillWave, FaBox, FaTruck, FaCheckCircle } from 'react-icons/fa';
+import React, { useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import {
+  getOrderDetails,
+  acceptOrder,
+  completeOrder,
+} from "../../redux/shipperSlice";
 
 const ShipperOrderDetail = () => {
-  const { id } = useParams();
+  const { orderId } = useParams();
   const navigate = useNavigate();
-  const [order, setOrder] = useState({
-    id: id,
-    customerName: "Nguyễn Văn A",
-    phone: "0901234567",
-    address: "123 Nguyễn Văn Cừ, Phường 4, Quận 5, TP.HCM",
-    time: "10:30 AM - 20/03/2024",
-    total: "150.000 đ",
-    status: "accepted", // pending, accepted, completed
-    paymentMethod: "Tiền mặt",
-    note: "Gọi điện trước khi giao 15 phút",
-    items: [
-      {
-        id: 1,
-        name: "Cơm sườn bì chả",
-        quantity: 2,
-        price: "45.000 đ",
-        total: "90.000 đ"
-      },
-      {
-        id: 2,
-        name: "Coca Cola",
-        quantity: 2,
-        price: "15.000 đ",
-        total: "30.000 đ"
-      },
-      {
-        id: 3,
-        name: "Trà sữa trân châu",
-        quantity: 2,
-        price: "15.000 đ",
-        total: "30.000 đ"
-      }
-    ],
-    timeline: [
-      {
-        time: "10:15 AM",
-        status: "Đơn hàng được tạo",
-        description: "Khách hàng đặt đơn hàng"
-      },
-      {
-        time: "10:20 AM",
-        status: "Nhà hàng xác nhận",
-        description: "Đơn hàng đã được nhà hàng xác nhận"
-      },
-      {
-        time: "10:30 AM",
-        status: "Tìm shipper",
-        description: "Hệ thống đang tìm shipper"
-      }
-    ]
-  });
+  const dispatch = useDispatch();
+  const { orderDetails, loading, error } = useSelector((state) => state.shipper);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "accepted":
-        return "bg-blue-100 text-blue-800";
-      case "completed":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+  useEffect(() => {
+    dispatch(getOrderDetails(orderId));
+  }, [dispatch, orderId]);
+
+  const handleAcceptOrder = async () => {
+    try {
+      await dispatch(acceptOrder(orderId)).unwrap();
+      toast.success("Nhận đơn hàng thành công");
+      navigate("/shipper/orders");
+    } catch (error) {
+      toast.error(error.message || "Có lỗi xảy ra khi nhận đơn hàng");
     }
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case "pending":
-        return "Chờ nhận";
-      case "accepted":
-        return "Đang giao";
-      case "completed":
-        return "Đã giao";
-      default:
-        return "Không xác định";
+  const handleCompleteOrder = async () => {
+    try {
+      await dispatch(completeOrder(orderId)).unwrap();
+      toast.success("Hoàn thành đơn hàng thành công");
+      navigate("/shipper/orders");
+    } catch (error) {
+      toast.error(error.message || "Có lỗi xảy ra khi hoàn thành đơn hàng");
     }
   };
 
-  const handleAcceptOrder = () => {
-    setOrder(prev => ({
-      ...prev,
-      status: "accepted",
-      timeline: [
-        ...prev.timeline,
-        {
-          time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-          status: "Shipper nhận đơn",
-          description: "Đơn hàng đã được shipper nhận"
-        }
-      ]
-    }));
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+      </div>
+    );
+  }
 
-  const handleCompleteOrder = () => {
-    setOrder(prev => ({
-      ...prev,
-      status: "completed",
-      timeline: [
-        ...prev.timeline,
-        {
-          time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-          status: "Đã giao hàng",
-          description: "Đơn hàng đã được giao thành công"
-        }
-      ]
-    }));
-  };
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  if (!orderDetails) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-gray-500">Không tìm thấy đơn hàng</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex justify-end">
-        <button
-          onClick={() => navigate('/shipper/orders')}
-          className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-        >
-          ← Quay lại
-        </button>
-      </div>
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <div className="bg-white shadow rounded-lg p-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">
+              Chi tiết đơn hàng #{orderDetails.id}
+            </h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Thông tin đơn hàng và khách hàng */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Thông tin khách hàng */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Thông tin khách hàng</h2>
-            <div className="space-y-3">
-              <div className="flex items-center">
-                <FaUser className="text-gray-400 mr-3" />
-                <span className="text-gray-600">{order.customerName}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Thông tin đơn hàng
+                </h2>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Trạng thái</p>
+                    <p className="font-medium">
+                      {orderDetails.status === "pending"
+                        ? "Đang chờ"
+                        : orderDetails.status === "in_transit"
+                        ? "Đang giao"
+                        : orderDetails.status === "delivered"
+                        ? "Đã giao"
+                        : "Đã hủy"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Ngày tạo</p>
+                    <p className="font-medium">
+                      {new Date(orderDetails.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Tổng tiền</p>
+                    <p className="font-medium">
+                      {orderDetails.total.toLocaleString()} VNĐ
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center">
-                <FaPhone className="text-gray-400 mr-3" />
-                <span className="text-gray-600">{order.phone}</span>
-              </div>
-              <div className="flex items-start">
-                <FaMapMarkerAlt className="text-gray-400 mr-3 mt-1" />
-                <span className="text-gray-600">{order.address}</span>
-              </div>
-              <div className="flex items-center">
-                <FaClock className="text-gray-400 mr-3" />
-                <span className="text-gray-600">{order.time}</span>
-              </div>
-            </div>
-          </div>
 
-          {/* Chi tiết đơn hàng */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Chi tiết đơn hàng</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 text-gray-600">Sản phẩm</th>
-                    <th className="text-center py-3 text-gray-600">Số lượng</th>
-                    <th className="text-right py-3 text-gray-600">Đơn giá</th>
-                    <th className="text-right py-3 text-gray-600">Thành tiền</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {order.items.map((item) => (
-                    <tr key={item.id} className="border-b">
-                      <td className="py-3 text-gray-800">{item.name}</td>
-                      <td className="py-3 text-center text-gray-800">{item.quantity}</td>
-                      <td className="py-3 text-right text-gray-800">{item.price}</td>
-                      <td className="py-3 text-right text-gray-800">{item.total}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan="3" className="py-3 text-right font-semibold">Tổng cộng:</td>
-                    <td className="py-3 text-right font-semibold text-red-600">{order.total}</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-
-          {/* Ghi chú */}
-          {order.note && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-2">Ghi chú</h2>
-              <p className="text-gray-600">{order.note}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Trạng thái và Timeline */}
-        <div className="space-y-6">
-          {/* Trạng thái và actions */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Trạng thái</h2>
-            <div className="mb-4">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                {getStatusText(order.status)}
-              </span>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center">
-                <FaMoneyBillWave className="text-gray-400 mr-3" />
-                <span className="text-gray-600">Thanh toán: {order.paymentMethod}</span>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Thông tin khách hàng
+                </h2>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Tên khách hàng</p>
+                    <p className="font-medium">{orderDetails.customerName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Số điện thoại</p>
+                    <p className="font-medium">{orderDetails.customerPhone}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Địa chỉ giao hàng</p>
+                    <p className="font-medium">{orderDetails.deliveryAddress}</p>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="mt-6 space-y-3">
-              {order.status === "pending" && (
+
+            <div className="mt-8 flex space-x-4">
+              {orderDetails.status === "pending" && (
                 <button
                   onClick={handleAcceptOrder}
-                  className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                 >
-                  Nhận đơn
+                  Nhận đơn hàng
                 </button>
               )}
-              {order.status === "accepted" && (
+              {orderDetails.status === "in_transit" && (
                 <button
                   onClick={handleCompleteOrder}
-                  className="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                 >
-                  Đánh dấu đã giao
+                  Hoàn thành đơn hàng
                 </button>
               )}
-            </div>
-          </div>
-
-          {/* Timeline */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Theo dõi đơn hàng</h2>
-            <div className="space-y-4">
-              {order.timeline.map((event, index) => (
-                <div key={index} className="relative pl-6 pb-4 border-l border-gray-200 last:pb-0">
-                  <div className="absolute left-0 top-0 -translate-x-1/2 w-3 h-3 rounded-full bg-blue-500"></div>
-                  <div className="text-sm text-gray-500">{event.time}</div>
-                  <div className="font-medium text-gray-800">{event.status}</div>
-                  <div className="text-sm text-gray-600">{event.description}</div>
-                </div>
-              ))}
+              <button
+                onClick={() => navigate("/shipper/orders")}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                Quay lại
+              </button>
             </div>
           </div>
         </div>

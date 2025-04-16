@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import ShipperStatsCards from "../../components/shipper/ShipperStatsCards";
 import OrdersTable from "../../components/shipper/OrdersTable";
 import { FaSearch } from "react-icons/fa";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const ShipperDashboard = () => {
   const [stats, setStats] = useState({
@@ -16,8 +18,46 @@ const ShipperDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Fetch dashboard data from API
-    setIsLoading(false);
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        const token = localStorage.getItem('token');
+        
+        // Lấy thống kê dashboard
+        const statsResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/shipper/dashboard/stats`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        // Lấy danh sách đơn hàng gần đây
+        const ordersResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/shipper/dashboard/recent-orders`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        // Cập nhật state
+        setStats({
+          todayOrders: statsResponse.data.todayOrders,
+          completedOrders: statsResponse.data.completedOrders,
+          pendingOrders: statsResponse.data.pendingOrders,
+          todayRevenue: new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+          }).format(statsResponse.data.todayRevenue)
+        });
+
+        setOrders(ordersResponse.data);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        toast.error('Không thể tải dữ liệu dashboard');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
   const filteredOrders = orders.filter((order) =>

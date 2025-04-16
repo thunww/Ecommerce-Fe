@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const AddressSelector = ({ onChange, value = '' }) => {
+const AddressSelector = ({ onChange, onAddressChange, value = '', type = 'full' }) => {
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
@@ -86,11 +86,31 @@ const AddressSelector = ({ onChange, value = '' }) => {
 
   // Update address when any selection changes
   useEffect(() => {
-    if (street && selectedWard && selectedDistrict && selectedProvince) {
-      const address = `${street}, ${selectedWard}, ${selectedDistrict}, ${selectedProvince}`;
-      onChange(address);
+    if (type === 'shipper') {
+      if (selectedWard && selectedDistrict && selectedProvince) {
+        const address = {
+          ward: selectedWard,
+          district: selectedDistrict,
+          province: selectedProvince,
+          fullAddress: `${selectedWard}, ${selectedDistrict}, ${selectedProvince}`
+        };
+        if (onChange) onChange(address);
+        if (onAddressChange) onAddressChange(address);
+      }
+    } else {
+      if (street && selectedWard && selectedDistrict && selectedProvince) {
+        const address = {
+          street,
+          ward: selectedWard,
+          district: selectedDistrict,
+          province: selectedProvince,
+          fullAddress: `${street}, ${selectedWard}, ${selectedDistrict}, ${selectedProvince}`
+        };
+        if (onChange) onChange(address);
+        if (onAddressChange) onAddressChange(address);
+      }
     }
-  }, [street, selectedWard, selectedDistrict, selectedProvince, onChange]);
+  }, [street, selectedWard, selectedDistrict, selectedProvince, onChange, onAddressChange, type]);
 
   return (
     <div className="space-y-4">
@@ -150,18 +170,20 @@ const AddressSelector = ({ onChange, value = '' }) => {
         </select>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-red-700">
-          Số nhà, tên đường <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={street}
-          onChange={(e) => setStreet(e.target.value)}
-          className="mt-1 block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-          placeholder="Nhập số nhà, tên đường"
-        />
-      </div>
+      {type === 'full' && (
+        <div>
+          <label className="block text-sm font-medium text-red-700">
+            Số nhà, tên đường <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={street}
+            onChange={(e) => setStreet(e.target.value)}
+            className="mt-1 block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+            placeholder="Nhập số nhà, tên đường"
+          />
+        </div>
+      )}
     </div>
   );
 };

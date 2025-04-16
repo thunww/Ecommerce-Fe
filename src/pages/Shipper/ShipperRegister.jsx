@@ -1,265 +1,194 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useDispatch, useSelector } from 'react-redux';
 import { registerShipper } from '../../redux/shipperSlice';
 import AddressSelector from '../../components/AddressSelector';
 
 const ShipperRegister = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { error } = useSelector((state) => state.shipper || {});
-  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const { userInfo } = useSelector((state) => state.user);
+  const { loading, error, success } = useSelector((state) => state.shipper);
 
   const [formData, setFormData] = useState({
-    fullName: user?.fullName || '',
-    email: user?.email || '',
-    phone: '',
-    delivery_address: '',
-    vehicle_type: 'bike',
-    license_plate: '',
+    phone: userInfo?.phone || '',
+    vehicle_type: '',
     driver_license: '',
+    province: '',
+    district: '',
+    ward: '',
   });
+
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (success) {
+      toast.success('Đăng ký thành công! Vui lòng chờ xét duyệt tài khoản.');
+      navigate('/');
+    }
+  }, [success, navigate]);
+
+  useEffect(() => {
+    if (userInfo?.shipper?.isActive) {
+      navigate('/shipper/dashboard');
+    }
+  }, [userInfo, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
+    setFormData({
+      ...formData,
       [name]: value,
-    }));
+    });
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: '',
+      });
+    }
   };
 
   const handleAddressChange = (address) => {
-    setFormData((prev) => ({
-      ...prev,
-      delivery_address: address,
-    }));
+    setFormData({
+      ...formData,
+      province: address.province,
+      district: address.district,
+      ward: address.ward,
+    });
   };
 
   const validateForm = () => {
-    if (!formData.fullName.trim()) {
-      toast.error('Vui lòng nhập họ tên');
-      return false;
-    }
-    if (!formData.email.trim()) {
-      toast.error('Vui lòng nhập email');
-      return false;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      toast.error('Email không hợp lệ');
-      return false;
-    }
-    if (!formData.phone.trim()) {
-      toast.error('Vui lòng nhập số điện thoại');
-      return false;
-    }
-    if (!/^(0[3|5|7|8|9])+([0-9]{8})\b/.test(formData.phone)) {
-      toast.error('Số điện thoại không hợp lệ');
-      return false;
-    }
-    if (!formData.delivery_address.trim()) {
-      toast.error('Vui lòng nhập địa chỉ giao hàng');
-      return false;
-    }
-    if (!formData.license_plate.trim()) {
-      toast.error('Vui lòng nhập biển số xe');
-      return false;
-    }
-    if (!formData.driver_license.trim()) {
-      toast.error('Vui lòng nhập số bằng lái xe');
-      return false;
-    }
-    return true;
+    const newErrors = {};
+    if (!formData.phone.trim()) newErrors.phone = 'Vui lòng nhập số điện thoại';
+    if (!formData.vehicle_type.trim()) newErrors.vehicle_type = 'Vui lòng chọn loại phương tiện';
+    if (!formData.driver_license.trim()) newErrors.driver_license = 'Vui lòng nhập số giấy phép lái xe';
+    if (!formData.province.trim()) newErrors.province = 'Vui lòng chọn tỉnh/thành phố';
+    if (!formData.district.trim()) newErrors.district = 'Vui lòng chọn quận/huyện';
+    if (!formData.ward.trim()) newErrors.ward = 'Vui lòng chọn phường/xã';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (validateForm()) {
+      try {
+        const shipperData = {
+          phone: formData.phone,
+          vehicle_type: formData.vehicle_type,
+          driver_license: formData.driver_license,
+          province: formData.province,
+          district: formData.district,
+          ward: formData.ward,
+        };
 
-    try {
-      const shipperData = {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        delivery_address: formData.delivery_address,
-        vehicle_type: formData.vehicle_type,
-        license_plate: formData.license_plate,
-        driver_license: formData.driver_license,
-      };
-
-      await dispatch(registerShipper(shipperData));
-      toast.success('Đăng ký thành công! Vui lòng đợi xét duyệt');
-      navigate('/shipper/dashboard');
-    } catch (error) {
-      toast.error(error?.message || 'Đăng ký thất bại. Vui lòng thử lại!');
+        await dispatch(registerShipper(shipperData));
+        toast.success('Đăng ký thành công! Vui lòng đợi xét duyệt');
+        navigate('/shipper/dashboard');
+      } catch (error) {
+        console.error('Error registering shipper:', error);
+        toast.error(error.message || 'Đăng ký thất bại');
+      }
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-red-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-red-900">
-          Đăng ký làm shipper
-        </h2>
-        <p className="mt-2 text-center text-sm text-red-600">
-          Nâng cấp tài khoản của bạn để trở thành đối tác vận chuyển
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-red-50 to-red-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-extrabold text-red-900">Đăng ký làm shipper</h2>
+          <p className="mt-2 text-lg text-red-700">
+            Hoàn thành thông tin để bắt đầu công việc giao hàng
+          </p>
+        </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-lg sm:rounded-lg sm:px-10 border-2 border-red-200">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Thông tin cá nhân */}
-            <div className="bg-red-50 p-4 rounded-lg border border-red-100">
-              <h3 className="text-lg font-semibold text-red-700 mb-4">Thông tin cá nhân</h3>
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="fullName"
-                    className="block text-sm font-medium text-red-700"
-                  >
-                    Họ và tên <span className="text-red-500">*</span>
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="fullName"
-                      name="fullName"
-                      type="text"
-                      required
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      className="appearance-none block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm placeholder-red-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-red-700"
-                  >
-                    Email <span className="text-red-500">*</span>
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="appearance-none block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm placeholder-red-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-medium text-red-700"
-                  >
-                    Số điện thoại <span className="text-red-500">*</span>
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      required
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="appearance-none block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm placeholder-red-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
+        <div className="bg-white shadow-xl rounded-lg p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Thông tin liên hệ */}
+            <div className="bg-red-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-red-900 mb-4">Thông tin liên hệ</h3>
+              <div>
+                <label className="block text-sm font-medium text-red-700">
+                  Số điện thoại <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                  required
+                />
+                {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
               </div>
             </div>
 
             {/* Thông tin địa chỉ */}
-            <div className="bg-red-50 p-4 rounded-lg border border-red-100">
-              <h3 className="text-lg font-semibold text-red-700 mb-4">Thông tin địa chỉ</h3>
+            <div className="bg-red-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-red-900 mb-4">Khu vực hoạt động</h3>
               <AddressSelector 
-                onChange={handleAddressChange}
-                value={formData.delivery_address}
+                type="shipper"
+                onAddressChange={handleAddressChange} 
               />
+              {errors.province && <p className="mt-1 text-sm text-red-600">{errors.province}</p>}
+              {errors.district && <p className="mt-1 text-sm text-red-600">{errors.district}</p>}
+              {errors.ward && <p className="mt-1 text-sm text-red-600">{errors.ward}</p>}
             </div>
 
             {/* Thông tin phương tiện */}
-            <div className="bg-red-50 p-4 rounded-lg border border-red-100">
-              <h3 className="text-lg font-semibold text-red-700 mb-4">Thông tin phương tiện</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label
-                    htmlFor="vehicle_type"
-                    className="block text-sm font-medium text-red-700"
-                  >
-                    Loại phương tiện <span className="text-red-500">*</span>
-                  </label>
-                  <div className="mt-1">
-                    <select
-                      id="vehicle_type"
-                      name="vehicle_type"
-                      required
-                      value={formData.vehicle_type}
-                      onChange={handleChange}
-                      className="appearance-none block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm placeholder-red-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-                    >
-                      <option value="bike">Xe máy</option>
-                      <option value="car">Ô tô</option>
-                      <option value="truck">Xe tải</option>
-                      <option value="van">Xe van</option>
-                    </select>
-                  </div>
-                </div>
+            <div className="bg-red-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-red-900 mb-4">Thông tin phương tiện</h3>
+              <div>
+                <label className="block text-sm font-medium text-red-700">
+                  Loại phương tiện <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="vehicle_type"
+                  value={formData.vehicle_type}
+                  onChange={handleChange}
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
+                  required
+                >
+                  <option value="">Chọn loại phương tiện</option>
+                  <option value="bike">Xe máy</option>
+                  <option value="car">Ô tô</option>
+                  <option value="truck">Xe tải</option>
+                  <option value="van">Xe van</option>
+                </select>
+                {errors.vehicle_type && <p className="mt-1 text-sm text-red-600">{errors.vehicle_type}</p>}
+              </div>
 
-                <div>
-                  <label
-                    htmlFor="license_plate"
-                    className="block text-sm font-medium text-red-700"
-                  >
-                    Biển số xe <span className="text-red-500">*</span>
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="license_plate"
-                      name="license_plate"
-                      type="text"
-                      required
-                      value={formData.license_plate}
-                      onChange={handleChange}
-                      className="appearance-none block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm placeholder-red-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="driver_license"
-                    className="block text-sm font-medium text-red-700"
-                  >
-                    Số bằng lái xe <span className="text-red-500">*</span>
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="driver_license"
-                      name="driver_license"
-                      type="text"
-                      required
-                      value={formData.driver_license}
-                      onChange={handleChange}
-                      className="appearance-none block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm placeholder-red-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-red-700">
+                  Số giấy phép lái xe <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="driver_license"
+                  value={formData.driver_license}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                  required
+                />
+                {errors.driver_license && <p className="mt-1 text-sm text-red-600">{errors.driver_license}</p>}
               </div>
             </div>
 
-            <div>
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {error}
+              </div>
+            )}
+
+            <div className="flex justify-end">
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition duration-150 ease-in-out"
+                disabled={loading}
+                className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
-                Đăng ký
+                {loading ? 'Đang xử lý...' : 'Đăng ký'}
               </button>
             </div>
           </form>

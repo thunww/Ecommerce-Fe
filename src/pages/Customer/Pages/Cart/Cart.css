@@ -133,9 +133,27 @@
 }
 
 .coupon-section {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 24px;
+    margin: 16px 0;
+}
+
+.coupon-section .ant-input-affix-wrapper {
+    margin-bottom: 8px;
+}
+
+.coupon-error {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+.summary-item .ant-space {
+    width: 100%;
+    justify-content: space-between;
+}
+
+.summary-item .ant-btn-link {
+    padding: 0;
+    height: auto;
 }
 
 .cart-summary {
