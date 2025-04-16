@@ -11,6 +11,9 @@ import Others from "./components/Others";
 import FooterButtons from "./components/FooterButtons";
 import productService from "../../../../services/productService";
 
+// Key để lưu và lấy draft từ localStorage
+const PRODUCT_DRAFT_KEY = "shopee_product_draft";
+
 const AddProduct = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Basic information");
@@ -21,6 +24,9 @@ const AddProduct = () => {
   const shippingRef = useRef(null);
   const othersRef = useRef(null);
   const productTabsRef = useRef(null);
+
+  // State để kiểm soát việc hiển thị modal gợi ý khôi phục dữ liệu nháp
+  const [showDraftModal, setShowDraftModal] = useState(false);
 
   const [productData, setProductData] = useState({
     images: [],
@@ -53,6 +59,79 @@ const AddProduct = () => {
     condition: "New",
     parentSKU: "",
   });
+
+  // Kiểm tra localStorage khi trang được tải
+  useEffect(() => {
+    const checkForDraft = () => {
+      try {
+        const savedDraft = localStorage.getItem(PRODUCT_DRAFT_KEY);
+        if (savedDraft) {
+          const draftData = JSON.parse(savedDraft);
+          // Hiển thị xác nhận nếu có dữ liệu nháp
+          setShowDraftModal(true);
+        }
+      } catch (error) {
+        console.error("Lỗi khi đọc dữ liệu nháp:", error);
+      }
+    };
+
+    checkForDraft();
+  }, []);
+
+  // Hàm khôi phục dữ liệu nháp từ localStorage
+  const restoreDraft = () => {
+    try {
+      const savedDraft = localStorage.getItem(PRODUCT_DRAFT_KEY);
+      if (savedDraft) {
+        const draftData = JSON.parse(savedDraft);
+
+        // Chỉ cập nhật các trường text và số, không phải là file
+        const newProductData = {
+          ...productData,
+          ...draftData,
+          // Giữ nguyên trường images vì không thể lưu file vào localStorage
+          images: productData.images,
+          promotionImage: productData.promotionImage,
+        };
+
+        setProductData(newProductData);
+        toast.success("Draft data has been restored successfully");
+        setShowDraftModal(false);
+      }
+    } catch (error) {
+      console.error("Lỗi khi khôi phục dữ liệu nháp:", error);
+      toast.error("Failed to restore draft data");
+    }
+  };
+
+  // Hàm từ chối khôi phục dữ liệu nháp
+  const discardDraft = () => {
+    localStorage.removeItem(PRODUCT_DRAFT_KEY);
+    setShowDraftModal(false);
+    toast.info("Draft has been discarded");
+  };
+
+  // Hàm lưu dữ liệu nháp vào localStorage
+  const saveDraft = () => {
+    try {
+      // Tạo bản sao của productData để xử lý trước khi lưu
+      const draftToSave = { ...productData };
+
+      // Xóa những trường không thể lưu vào localStorage (như File objects)
+      delete draftToSave.images;
+      delete draftToSave.promotionImage;
+
+      // Lưu vào localStorage
+      localStorage.setItem(PRODUCT_DRAFT_KEY, JSON.stringify(draftToSave));
+      toast.success("Product draft saved successfully");
+
+      // Có thể kết hợp với việc lưu lên server nếu cần
+      // handleSubmit("save");
+    } catch (error) {
+      console.error("Lỗi khi lưu dữ liệu nháp:", error);
+      toast.error("Failed to save draft data");
+    }
+  };
 
   const handleInputChange = (name, value) => {
     setProductData((prev) => ({
@@ -493,8 +572,45 @@ const AddProduct = () => {
   // Kiểm tra xem category đã được chọn chưa
   const hasCategory = Boolean(productData.category);
 
+  // Cập nhật chức năng của nút Save as Draft
+  const handleSaveAndDelist = () => {
+    // Lưu nháp vào localStorage
+    saveDraft();
+
+    // Tiếp tục với việc lưu lên server
+    handleSubmit("save");
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Modal gợi ý khôi phục dữ liệu nháp */}
+      {showDraftModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Resume Draft</h3>
+            <p className="mb-6">
+              You have an unsaved product draft. Would you like to continue
+              editing where you left off?
+            </p>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={discardDraft}
+                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+              >
+                Discard Draft
+              </button>
+              <button
+                onClick={restoreDraft}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Resume Editing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-[1500px] mx-auto">
         <div className="flex gap-4 p-4">
           {/* Left column - Filling Suggestion */}
@@ -565,7 +681,7 @@ const AddProduct = () => {
                 <FooterButtons
                   onCancel={() => navigate("/vendor/products")}
                   onSaveAndPublish={() => handleSubmit("publish")}
-                  onSaveAndDelist={() => handleSubmit("save")}
+                  onSaveAndDelist={handleSaveAndDelist}
                 />
               </div>
             </div>

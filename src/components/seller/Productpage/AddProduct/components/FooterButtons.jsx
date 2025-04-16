@@ -9,21 +9,21 @@ const FooterButtons = ({ onCancel, onSaveAndPublish, onSaveAndDelist }) => {
         onClick={onCancel}
       >
         <FaTimesCircle />
-        Hủy
+        Cancel
       </button>
       <button
         className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded hover:bg-gray-50 transition-colors flex items-center gap-2"
         onClick={onSaveAndDelist}
       >
         <FaSave />
-        Lưu nháp
+        Save as Draft
       </button>
       <button
         className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors shadow-md flex items-center gap-2"
         onClick={onSaveAndPublish}
       >
         <FaCloudUploadAlt />
-        Đăng sản phẩm
+        Publish Product
       </button>
     </div>
   );

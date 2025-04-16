@@ -10,11 +10,17 @@ const SupportPanel = ({ onClose }) => {
         </button>
       </div>
       <div className="mt-4 space-y-2">
-        <p className="text-orange-500 font-semibold">I am Sophie, your AI Assistant</p>
+        <p className="text-orange-500 font-semibold">
+          I am Sophie, your AI Assistant
+        </p>
         <div className="space-y-2">
-          <button className="w-full p-2 bg-gray-100 rounded">📦 Vận chuyển</button>
-          <button className="w-full p-2 bg-gray-100 rounded">📈 Marketing</button>
-          <button className="w-full p-2 bg-gray-100 rounded">💰 Thanh toán</button>
+          <button className="w-full p-2 bg-gray-100 rounded">
+            📦 Shipping
+          </button>
+          <button className="w-full p-2 bg-gray-100 rounded">
+            📈 Marketing
+          </button>
+          <button className="w-full p-2 bg-gray-100 rounded">💰 Payment</button>
         </div>
       </div>
     </div>

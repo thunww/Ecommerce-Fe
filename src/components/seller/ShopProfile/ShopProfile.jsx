@@ -18,7 +18,7 @@ const ShopProfile = () => {
     gender: "male",
     dob: { date: "", month: "", year: "" },
     avatar_url:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTC5qazavqTLCrmQCDwfMAdvNEE8Xa7pSzSw&s",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTG4TkxkFuXifNvLsDDaCB69Khm1LzrMFJLJA&s",
   });
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -377,7 +377,7 @@ const ShopProfile = () => {
       <div className="flex-1 bg-white m-6 shadow-sm overflow-auto h-fit max-h-[calc(100vh-4rem)]">
         <div className="p-5">
           <div className="mb-3">
-            <h1 className="text-xl font-medium">My Profile</h1>
+            <h1 className="text-xl font-medium">My Shop Profile</h1>
             <p className="text-gray-600 text-sm">
               Manage profile information to secure your account
             </p>

@@ -170,12 +170,12 @@ const Shipping = ({ hasCategory, productData, onInputChange }) => {
                 )}
 
                 {/* Hỏa Tốc */}
-                <div className="bg-gray-50 p-4 rounded">
-                  <div className="font-medium mb-2">Hỏa Tốc</div>
+                <div className="bg-red-50 p-4 rounded">
+                  <div className="text-red-600 font-medium mb-2">Hỏa Tốc</div>
                   <div className="flex items-center justify-between py-2">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm">Hỏa Tốc</span>
-                      <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded">
+                      <span className="text-sm text-red-600">Hỏa Tốc</span>
+                      <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded">
                         SHOPEE SUPPORTED ...
                       </span>
                     </div>
@@ -197,12 +197,12 @@ const Shipping = ({ hasCategory, productData, onInputChange }) => {
                 </div>
 
                 {/* Nhanh */}
-                <div className="bg-gray-50 p-4 rounded">
-                  <div className="font-medium mb-2">Nhanh</div>
+                <div className="bg-red-50 p-4 rounded">
+                  <div className="text-red-600 font-medium mb-2">Nhanh</div>
                   <div className="flex items-center justify-between py-2">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm">Nhanh</span>
-                      <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded">
+                      <span className="text-sm text-red-600">Nhanh</span>
+                      <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded">
                         SHOPEE SUPPORTED ...
                       </span>
                     </div>
@@ -224,12 +224,16 @@ const Shipping = ({ hasCategory, productData, onInputChange }) => {
                 </div>
 
                 {/* Hàng Cồng Kềnh */}
-                <div className="bg-gray-50 p-4 rounded">
-                  <div className="font-medium mb-2">Hàng Cồng Kềnh</div>
+                <div className="bg-red-50 p-4 rounded">
+                  <div className="text-red-600 font-medium mb-2">
+                    Hàng Cồng Kềnh
+                  </div>
                   <div className="flex items-center justify-between py-2">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm">Hàng Cồng Kềnh</span>
-                      <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded">
+                      <span className="text-sm text-red-600">
+                        Hàng Cồng Kềnh
+                      </span>
+                      <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded">
                         SHOPEE SUPPORTED ...
                       </span>
                     </div>
@@ -253,12 +257,12 @@ const Shipping = ({ hasCategory, productData, onInputChange }) => {
                 </div>
 
                 {/* Tiết Kiệm */}
-                <div className="bg-gray-50 p-4 rounded">
-                  <div className="font-medium mb-2">Tiết Kiệm</div>
+                <div className="bg-red-50 p-4 rounded">
+                  <div className="text-red-600 font-medium mb-2">Tiết Kiệm</div>
                   <div className="flex items-center justify-between py-2">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm">Tiết kiệm</span>
-                      <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded">
+                      <span className="text-sm text-red-600">Tiết kiệm</span>
+                      <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded">
                         SHOPEE SUPPORTED ...
                       </span>
                     </div>
