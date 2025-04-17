@@ -31,6 +31,7 @@ const Home = () => {
   const activeProducts = products.filter(
     (product) => product.status === "active"
   );
+  console.log(products);
 
   const totalPages = Math.ceil(activeProducts.length / productsPerPage);
 
@@ -197,10 +198,11 @@ const Home = () => {
               <button
                 key={index + 1}
                 onClick={() => handlePageChange(index + 1)}
-                className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === index + 1
-                  ? "bg-blue-500 text-white font-bold"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`w-9 h-9 flex items-center justify-center rounded-full border ${
+                  currentPage === index + 1
+                    ? "bg-blue-500 text-white font-bold"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 {index + 1}
               </button>
