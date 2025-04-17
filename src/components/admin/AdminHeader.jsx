@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { Bell, Search, Sun, Moon, LogOut, User, Menu, Home, Settings } from "lucide-react";
+import {
+  Bell,
+  Search,
+  Sun,
+  Moon,
+  LogOut,
+  User,
+  Menu,
+  Home,
+  Settings,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 const Header = ({ onMenuClick }) => {
   const [darkMode, setDarkMode] = useState(false);
@@ -15,7 +25,7 @@ const Header = ({ onMenuClick }) => {
       >
         <Menu size={26} />
       </button>
-      
+
       {/* Icon Home */}
       <button
         className="p-2 rounded-xl hover:bg-gray-800 transition-all"
@@ -23,7 +33,7 @@ const Header = ({ onMenuClick }) => {
       >
         <Home size={24} />
       </button>
-      
+
       {/* Thanh tìm kiếm */}
       <div className="relative hidden md:block w-80">
         <input
@@ -49,7 +59,7 @@ const Header = ({ onMenuClick }) => {
           <Bell size={24} />
           <span className="absolute top-1 right-1 bg-red-500 w-3 h-3 rounded-full animate-pulse"></span>
         </button>
-        
+
         {/* Cài đặt */}
         <button className="p-2 rounded-xl hover:bg-gray-800 transition-all">
           <Settings size={24} />
@@ -62,7 +72,7 @@ const Header = ({ onMenuClick }) => {
             className="flex items-center gap-2 p-2 rounded-xl hover:bg-gray-800 transition-all"
           >
             <img
-              src="https://via.placeholder.com/40"
+              src="https://th.bing.com/th/id/OIP.Bx50pdKGdNdT8pjhKVjn-QHaHa?rs=1&pid=ImgDetMain"
               alt="Avatar"
               className="w-10 h-10 rounded-full border-2 border-blue-500"
             />

@@ -4,7 +4,8 @@ const authService = {
   login: async (userData) => {
     try {
       const response = await authApi.login(userData);
-      const { token, user, message } = response.data; // Lấy luôn message từ API
+      const { token, user, message } = response.data;
+      console.log("res", response.data);
       localStorage.setItem("accessToken", token);
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("roles", JSON.stringify(user.roles));

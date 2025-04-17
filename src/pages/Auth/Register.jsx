@@ -3,29 +3,51 @@ import { Mail, Lock, User, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { register } from "../../redux/authSlice";
 import AddressSelector from "../../components/AddressSelector";
 
 const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { message, error, isLoading } = useSelector((state) => state.auth);
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [address, setAddress] = useState({
-    province: '',
-    district: '',
-    ward: '',
-    street: ''
-  });
+
+  // Kiểm tra định dạng email
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Kiểm tra định dạng mật khẩu (phiên bản cơ bản)
+  const validatePassword = (password) => {
+    const minLength = password.length >= 8;
+    const hasSpecialChar = /[!@#$%^&*]/.test(password);
+    return minLength && hasSpecialChar;
+  };
+
+  // Hiển thị toast khi message hoặc error từ Redux thay đổi
+  useEffect(() => {
+    if (message) {
+      toast.success(message, { position: "top-right", autoClose: 2000 });
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    }
+    if (error) {
+      toast.error(error, { position: "top-right", autoClose: 3000 });
+    }
+  }, [message, error, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Kiểm tra các trường rỗng
     if (
       !username.trim() ||
       !email.trim() ||
@@ -36,36 +58,48 @@ const Register = () => {
       !address.ward ||
       !address.street
     ) {
-      toast.error("Vui lòng nhập đầy đủ thông tin!", { position: "top-right" });
+      toast.error("Vui lòng nhập đầy đủ thông tin!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
 
+    // Kiểm tra định dạng email
+    if (!validateEmail(email)) {
+      toast.error("Email không hợp lệ! Vui lòng nhập email đúng định dạng.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    // Kiểm tra định dạng mật khẩu
+    if (!validatePassword(password)) {
+      toast.error(
+        "Mật khẩu phải có ít nhất 8 ký tự và chứa ít nhất 1 ký tự đặc biệt (!@#$%^&*)!",
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
+      return;
+    }
+
+    // Kiểm tra xác nhận mật khẩu
     if (password !== confirmPassword) {
-      toast.error("Mật khẩu xác nhận không khớp!", { position: "top-right" });
+      toast.error("Mật khẩu xác nhận không khớp!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
 
+    // Gọi action register
     try {
-      const result = await dispatch(
-        register({ 
-          username, 
-          email, 
-          password,
-          address: `${address.street}, ${address.ward}, ${address.district}, ${address.province}`
-        })
-      ).unwrap();
-
-      toast.success(result.message || "Đăng ký thành công!", {
-        position: "top-right",
-      });
-
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
-    } catch (error) {
-      toast.error(error.message || "Đăng ký thất bại!", {
-        position: "top-right",
-      });
+      await dispatch(register({ username, email, password })).unwrap();
+    } catch (err) {
+      // Lỗi đã được xử lý trong useEffect
     }
   };
 
@@ -112,7 +146,7 @@ const Register = () => {
                       placeholder="Enter your full name"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -132,7 +166,7 @@ const Register = () => {
                       placeholder="Enter your email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -152,7 +186,7 @@ const Register = () => {
                       placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -172,7 +206,7 @@ const Register = () => {
                       placeholder="Confirm your password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -188,14 +222,15 @@ const Register = () => {
                 <button
                   type="submit"
                   className="w-full py-3 px-4 flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 shadow-md"
+                  disabled={isLoading}
                 >
-                  Register
+                  {isLoading ? "Đang đăng ký..." : "Register"}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </button>
               </form>
 
               {/* Social login buttons */}
-              <div className="relative my-6 ">
+              <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200"></div>
                 </div>
