@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios from '../config/axios';
 
 // Async thunk for shipper registration
 export const registerShipper = createAsyncThunk(
   'shipper/register',
   async (shipperData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/shippers/register', shipperData);
+      const response = await axios.post('/api/v1/shippers/register', shipperData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -19,7 +19,7 @@ export const acceptOrder = createAsyncThunk(
   'shipper/acceptOrder',
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`/api/v1/shippers/orders/${orderId}/accept`);
+      const response = await axios.post(`/api/v1/shippers/sub_orders/${orderId}/accept`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -32,7 +32,7 @@ export const completeOrder = createAsyncThunk(
   'shipper/completeOrder',
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`/api/shippers/orders/${orderId}/complete`);
+      const response = await axios.post(`/api/v1/shippers/sub_orders/${orderId}/complete`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -45,7 +45,7 @@ export const getOrderDetails = createAsyncThunk(
   'shipper/getOrderDetails',
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`/api/shippers/orders/${orderId}`);
+      const response = await axios.get(`/api/v1/shippers/sub_orders/${orderId}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -58,10 +58,28 @@ export const getOrders = createAsyncThunk(
   'shipper/getOrders',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/shippers/orders');
-      return response.data;
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        throw new Error('No access token found');
+      }
+
+      const response = await axios.get(
+        `${API_URL}/api/v1/shippers/sub_orders`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log('API Response:', response.data);
+      if (response.data.success) {
+        console.log('Orders data:', response.data.data);
+        return response.data.data;
+      }
+      return rejectWithValue(response.data.message);
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -71,7 +89,7 @@ export const getShipperProfile = createAsyncThunk(
   'shipper/getProfile',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/shippers/profile');
+      const response = await axios.get('/api/v1/shippers/profile');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -87,7 +105,7 @@ export const updateAvatar = createAsyncThunk(
       const formData = new FormData();
       formData.append('avatar', avatarFile);
       
-      const response = await axios.put('/api/shippers/profile/avatar', formData, {
+      const response = await axios.put('/api/v1/shippers/profile/avatar', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

@@ -20,6 +20,20 @@ const ShipperOrders = () => {
     dispatch(getOrders());
   }, [dispatch]);
 
+  // Debug orders data
+  useEffect(() => {
+    if (orders && orders.length > 0) {
+      console.log('Raw orders from redux:', orders);
+      const firstOrder = orders[0];
+      console.log('First order data:', {
+        id: firstOrder.sub_order_id,
+        orderInfo: firstOrder.Order,
+        userInfo: firstOrder.Order?.User,
+        addressInfo: firstOrder.Order?.shipping_address
+      });
+    }
+  }, [orders]);
+
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -50,12 +64,64 @@ const ShipperOrders = () => {
     }
   };
 
-  const filteredOrders = Array.isArray(orders) ? orders.filter((order) => {
-    const matchesSearch = order.id?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredOrders = Array.isArray(orders) ? orders.map((order) => {
+    // Get nested data
+    const orderInfo = order.Order || {};
+    const userInfo = orderInfo.User || {};
+    const addressInfo = orderInfo.shipping_address || {};
+
+    console.log('Processing order:', {
+      orderId: order.sub_order_id,
+      user: userInfo,
+      address: addressInfo
+    });
+
+    // Format data
+    const formattedOrder = {
+      ...order,
+      id: order.sub_order_id,
+      customerName: userInfo.first_name && userInfo.last_name ? 
+        `${userInfo.first_name} ${userInfo.last_name}` : 
+        'Không xác định',
+      customerPhone: userInfo.phone || 'Không có SĐT',
+      customerEmail: userInfo.email || '',
+      address: addressInfo.address_line ? 
+        `${addressInfo.address_line}, ${addressInfo.city}, ${addressInfo.province}` :
+        'Không có địa chỉ',
+      total: `${Number(order.total_price).toLocaleString('vi-VN')} đ`,
+      time: new Date(order.created_at).toLocaleString('vi-VN'),
+      rawStatus: order.status,
+      status: order.status === 'processing' ? 'Chờ xử lý' :
+              order.status === 'shipped' ? 'Đang giao hàng' :
+              order.status === 'delivered' ? 'Đã hoàn thành' : 'Không xác định'
+    };
+
+    console.log('Formatted order:', formattedOrder);
+    return formattedOrder;
+  }).filter((order) => {
+    const matchesSearch = (
+      order.id?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerPhone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.address.toLowerCase().includes(searchTerm.toLowerCase())
+    );
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
     const matchesDate = dateFilter === "all" || order.date === dateFilter;
     return matchesSearch && matchesStatus && matchesDate;
   }) : [];
+
+  // Debug the filtered orders
+  useEffect(() => {
+    if (filteredOrders.length > 0) {
+      console.log('Filtered order example:', {
+        id: filteredOrders[0].id,
+        customerName: filteredOrders[0].customerName,
+        customerPhone: filteredOrders[0].customerPhone,
+        address: filteredOrders[0].address,
+        originalOrder: filteredOrders[0]
+      });
+    }
+  }, [filteredOrders]);
 
   return (
     <div className="flex-1 overflow-hidden">

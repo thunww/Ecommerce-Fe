@@ -38,6 +38,27 @@ const ShipperOrderDetail = () => {
     }
   };
 
+  // Format địa chỉ từ object thành string
+  const formatAddress = (addressObj) => {
+    if (!addressObj) return 'Không xác định';
+    const parts = [
+      addressObj.address_line,
+      addressObj.city,
+      addressObj.province,
+      addressObj.postal_code
+    ].filter(Boolean);
+    return parts.join(', ');
+  };
+
+  // Format số tiền
+  const formatCurrency = (amount) => {
+    if (!amount) return '0 VNĐ';
+    return parseFloat(amount).toLocaleString('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -68,7 +89,7 @@ const ShipperOrderDetail = () => {
         <div className="px-4 py-6 sm:px-0">
           <div className="bg-white shadow rounded-lg p-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">
-              Chi tiết đơn hàng #{orderDetails.id}
+              Chi tiết đơn hàng #{orderDetails.sub_order_id}
             </h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -79,26 +100,48 @@ const ShipperOrderDetail = () => {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-500">Trạng thái</p>
-                    <p className="font-medium">
-                      {orderDetails.status === "pending"
-                        ? "Đang chờ"
-                        : orderDetails.status === "in_transit"
-                        ? "Đang giao"
+                    <p className={`font-medium ${
+                      orderDetails.status === "processing" ? "text-yellow-600" :
+                      orderDetails.status === "shipped" ? "text-blue-600" :
+                      orderDetails.status === "delivered" ? "text-green-600" :
+                      orderDetails.status === "cancelled" ? "text-red-600" :
+                      "text-gray-600"
+                    }`}>
+                      {orderDetails.status === "processing"
+                        ? "Đang xử lý"
+                        : orderDetails.status === "shipped"
+                        ? "Đang giao hàng"
                         : orderDetails.status === "delivered"
-                        ? "Đã giao"
-                        : "Đã hủy"}
+                        ? "Đã hoàn thành"
+                        : orderDetails.status === "cancelled"
+                        ? "Đã hủy"
+                        : "Không xác định"}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Ngày tạo</p>
                     <p className="font-medium">
-                      {new Date(orderDetails.createdAt).toLocaleDateString()}
+                      {orderDetails.created_at ? new Date(orderDetails.created_at).toLocaleString() : 'Không xác định'}
                     </p>
                   </div>
+                  {orderDetails.status === "delivered" && orderDetails.shipment?.actual_delivery_date && (
+                    <div>
+                      <p className="text-sm text-gray-500">Ngày hoàn thành</p>
+                      <p className="font-medium text-green-600">
+                        {new Date(orderDetails.shipment.actual_delivery_date).toLocaleString()}
+                      </p>
+                    </div>
+                  )}
                   <div>
                     <p className="text-sm text-gray-500">Tổng tiền</p>
                     <p className="font-medium">
-                      {orderDetails.total.toLocaleString()} VNĐ
+                      {formatCurrency(orderDetails.total_price)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Phí vận chuyển</p>
+                    <p className="font-medium">
+                      {formatCurrency(orderDetails.shipping_fee)}
                     </p>
                   </div>
                 </div>
@@ -111,33 +154,33 @@ const ShipperOrderDetail = () => {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-500">Tên khách hàng</p>
-                    <p className="font-medium">{orderDetails.customerName}</p>
+                    <p className="font-medium">{orderDetails.Order?.customer_name || 'Không xác định'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Số điện thoại</p>
-                    <p className="font-medium">{orderDetails.customerPhone}</p>
+                    <p className="font-medium">{orderDetails.Order?.phone || 'Không xác định'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Địa chỉ giao hàng</p>
-                    <p className="font-medium">{orderDetails.deliveryAddress}</p>
+                    <p className="font-medium">{formatAddress(orderDetails.Order?.shipping_address)}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="mt-8 flex space-x-4">
-              {orderDetails.status === "pending" && (
+              {orderDetails.status === "processing" && !orderDetails.shipment?.shipper_id && (
                 <button
                   onClick={handleAcceptOrder}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                 >
                   Nhận đơn hàng
                 </button>
               )}
-              {orderDetails.status === "in_transit" && (
+              {orderDetails.status === "shipped" && orderDetails.shipment?.shipper_id && (
                 <button
                   onClick={handleCompleteOrder}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                 >
                   Hoàn thành đơn hàng
                 </button>
