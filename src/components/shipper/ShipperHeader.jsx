@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Menu, Bell, User, Settings, LogOut } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "../../contexts/UserContext";
+import { useDispatch } from "react-redux";
+import { logout } from "../../redux/authSlice";
+import { toast } from "react-toastify";
 
 const NotificationDropdown = ({ notifications, isOpen, onClose }) => {
   if (!isOpen) return null;
@@ -34,7 +37,16 @@ const NotificationDropdown = ({ notifications, isOpen, onClose }) => {
 
 const UserDropdown = ({ isOpen, onClose }) => {
   const { userInfo } = useUser();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   if (!isOpen) return null;
+
+  const handleLogout = () => {
+    dispatch(logout());
+    toast.success("Đăng xuất thành công");
+    navigate("/");
+  };
 
   return (
     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
@@ -61,10 +73,7 @@ const UserDropdown = ({ isOpen, onClose }) => {
         <span>Thông tin cá nhân</span>
       </Link>
       <button
-        onClick={() => {
-          // TODO: Implement logout
-          console.log("Logout clicked");
-        }}
+        onClick={handleLogout}
         className="w-full px-4 py-2 hover:bg-gray-50 flex items-center space-x-2 text-red-600"
       >
         <LogOut size={16} />
@@ -77,7 +86,6 @@ const UserDropdown = ({ isOpen, onClose }) => {
 const ShipperHeader = ({ onMenuClick, currentPath }) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isOnline, setIsOnline] = useState(true);
   const notificationRef = useRef(null);
   const userMenuRef = useRef(null);
   const { userInfo } = useUser();
@@ -144,19 +152,6 @@ const ShipperHeader = ({ onMenuClick, currentPath }) => {
 
         {/* Right side */}
         <div className="flex items-center space-x-2">
-          {/* Online Status */}
-          <button
-            onClick={() => setIsOnline(!isOnline)}
-            className={`px-3 py-1.5 rounded-full flex items-center transition-colors duration-200 ${
-              isOnline 
-                ? 'bg-green-500 text-white hover:bg-green-600' 
-                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-            }`}
-          >
-            <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-white' : 'bg-gray-600'} mr-2`}></span>
-            <span className="text-sm font-medium">Online</span>
-          </button>
-
           {/* Notifications */}
           <div className="relative" ref={notificationRef}>
             <button

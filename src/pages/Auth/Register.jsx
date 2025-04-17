@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { register } from "../../redux/authSlice";
+import AddressSelector from "../../components/AddressSelector";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -51,7 +52,11 @@ const Register = () => {
       !username.trim() ||
       !email.trim() ||
       !password.trim() ||
-      !confirmPassword.trim()
+      !confirmPassword.trim() ||
+      !address.province ||
+      !address.district ||
+      !address.ward ||
+      !address.street
     ) {
       toast.error("Vui lòng nhập đầy đủ thông tin!", {
         position: "top-right",
@@ -204,6 +209,14 @@ const Register = () => {
                       disabled={isLoading}
                     />
                   </div>
+                </div>
+
+                {/* Address */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Địa chỉ
+                  </label>
+                  <AddressSelector onAddressChange={setAddress} />
                 </div>
 
                 <button
