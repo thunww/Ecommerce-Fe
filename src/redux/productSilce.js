@@ -158,6 +158,7 @@ const productSlice = createSlice({
           (p) => p.product_id !== action.payload
         );
       })
+      
       .addCase(searchProducts.pending, (state) => {
         state.loading = true;
         state.error = null;
