@@ -1,56 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { getDetailedIncome, getStatistics } from '../../redux/shipperSlice';
+import { toast } from 'react-toastify';
 
 const ShipperIncome = () => {
+  const dispatch = useDispatch();
+  const { detailedIncome, statistics, loading, error } = useSelector((state) => state.shipper);
   const [dateRange, setDateRange] = useState({
     startDate: format(new Date(), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd'),
   });
-  
-  // Mock data - sẽ được thay thế bằng dữ liệu thực từ API
-  const mockData = {
-    total: 250000,
-    orders: 10,
-    details: [
-      {
-        id: "DH001",
-        deliveryTime: "2024-03-15 08:30",
-        customerName: "Nguyễn Văn A",
-        address: "123 Nguyễn Văn Linh, Q.7, TP.HCM",
-        amount: 50000,
-        status: "Đã giao",
-        paymentMethod: "Tiền mặt"
-      },
-      {
-        id: "DH002",
-        deliveryTime: "2024-03-15 09:15",
-        customerName: "Trần Thị B",
-        address: "456 Lê Văn Việt, Q.9, TP.HCM",
-        amount: 75000,
-        status: "Đã giao",
-        paymentMethod: "Ví điện tử"
-      },
-      {
-        id: "DH003",
-        deliveryTime: "2024-03-15 14:20",
-        customerName: "Phạm Văn C",
-        address: "789 Võ Văn Tần, Q.3, TP.HCM",
-        amount: 75000,
-        status: "Đã giao",
-        paymentMethod: "Tiền mặt"
-      },
-      {
-        id: "DH004",
-        deliveryTime: "2024-03-15 16:45",
-        customerName: "Lê Thị D",
-        address: "321 Điện Biên Phủ, Q.Bình Thạnh, TP.HCM",
-        amount: 50000,
-        status: "Đã giao",
-        paymentMethod: "Chuyển khoản"
-      }
-    ]
+
+  useEffect(() => {
+    fetchIncomeData();
+  }, [dateRange]);
+
+  const fetchIncomeData = async () => {
+    try {
+      await dispatch(getDetailedIncome({
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate
+      })).unwrap();
+    } catch (error) {
+      toast.error(error.message || 'Có lỗi xảy ra khi tải dữ liệu thu nhập');
+    }
   };
 
   const handleDateChange = (e) => {
@@ -69,9 +45,32 @@ const ShipperIncome = () => {
   };
 
   const formatDateTime = (dateTimeStr) => {
-    const date = new Date(dateTimeStr);
-    return format(date, 'HH:mm - dd/MM/yyyy', { locale: vi });
+    if (!dateTimeStr) return 'Chưa cập nhật';
+    try {
+      const date = new Date(dateTimeStr);
+      if (isNaN(date.getTime())) return 'Ngày không hợp lệ';
+      return format(date, 'HH:mm - dd/MM/yyyy', { locale: vi });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Ngày không hợp lệ';
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -114,16 +113,20 @@ const ShipperIncome = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white p-4 rounded-lg shadow">
               <h4 className="text-lg font-semibold text-gray-700">Tổng thu nhập</h4>
-              <p className="text-2xl font-bold text-red-600">{formatCurrency(mockData.total)}</p>
+              <p className="text-2xl font-bold text-red-600">
+                {formatCurrency(statistics?.totalIncome || 0)}
+              </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow">
               <h4 className="text-lg font-semibold text-gray-700">Số đơn hàng</h4>
-              <p className="text-2xl font-bold text-red-600">{mockData.orders} đơn</p>
+              <p className="text-2xl font-bold text-red-600">
+                {statistics?.totalOrders || 0} đơn
+              </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow">
               <h4 className="text-lg font-semibold text-gray-700">Trung bình/đơn</h4>
               <p className="text-2xl font-bold text-red-600">
-                {formatCurrency(mockData.total / mockData.orders)}
+                {formatCurrency(statistics?.averagePerOrder || 0)}
               </p>
             </div>
           </div>
@@ -155,33 +158,40 @@ const ShipperIncome = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {mockData.details.map((order, index) => (
-                    <tr key={order.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                  {detailedIncome?.orders?.map((order, index) => (
+                    <tr key={order.id || index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         <Link 
                           to={`/shipper/orders/${order.id}`}
                           className="text-blue-600 hover:text-blue-800 hover:underline"
                         >
-                          {order.id}
+                          {order.id || 'N/A'}
                         </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDateTime(order.deliveryTime)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {order.customerName}
+                        {order.customerName || 'Không có tên'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                        {order.address}
+                        {order.address || 'Không có địa chỉ'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {order.paymentMethod}
+                        {order.paymentMethod || 'COD'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
-                        {formatCurrency(order.amount)}
+                        {formatCurrency(order.amount || 0)}
                       </td>
                     </tr>
                   ))}
+                  {(!detailedIncome?.orders || detailedIncome.orders.length === 0) && (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                        Không có dữ liệu
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
