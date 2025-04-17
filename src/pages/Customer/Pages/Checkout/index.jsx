@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { createOrder, clearOrderError, clearOrderSuccess } from '../../../../redux/slices/orderSlice';
+import { toast } from 'react-toastify';
 import {
     Box,
     Card,
@@ -30,128 +30,122 @@ import {
     Phone as PhoneIcon
 } from '@mui/icons-material';
 import "./Checkout.css";
+import { clearCart } from '../../../../redux/slices/cartSlice';
+import orderApi from '../../../../api/orderApi';
 
 const Checkout = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const cartItems = useSelector(state => state.cart.items);
     const selectedItemIds = useSelector(state => state.cart.selectedItems);
-    const { loading, error, success } = useSelector(state => state.order);
-    const [phone, setPhone] = useState('');
-    const [address, setAddress] = useState('');
-    const [provinces, setProvinces] = useState([]);
-    const [districts, setDistricts] = useState([]);
-    const [wards, setWards] = useState([]);
-    const [selectedProvince, setSelectedProvince] = useState('');
-    const [selectedDistrict, setSelectedDistrict] = useState('');
-    const [selectedWard, setSelectedWard] = useState('');
+    const [loading, setLoading] = useState(false);
+    const user = useSelector(state => state.auth.user);
+    const cart = useSelector(state => state.cart);
 
-    // Log để kiểm tra dữ liệu
-    console.log('Cart Items:', cartItems);
-    console.log('Selected IDs:', selectedItemIds);
+    // Debug user info
+    console.log('User info from Redux:', user);
+
+    // State cho form
+    const [formData, setFormData] = useState({
+        phone: '',
+        address_line: '',
+        city: '',
+        province: '',
+        payment_method: 'cod'
+    });
 
     // Lọc ra các sản phẩm đã được chọn
-    const selectedProducts = cartItems.filter(item => selectedItemIds.includes(item.cart_item_id));
-    console.log('Selected Products:', selectedProducts);
+    const selectedProducts = useCallback(() => {
+        return cartItems.filter(item => selectedItemIds.includes(item.cart_item_id));
+    }, [cartItems, selectedItemIds]);
 
-    // Tính tổng tiền
-    const calculateTotal = () => {
-        return selectedProducts.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
-
-    // Lấy danh sách tỉnh/thành phố
-    useEffect(() => {
-        const fetchProvinces = async () => {
-            try {
-                const response = await fetch('https://provinces.open-api.vn/api/?depth=1');
-                const data = await response.json();
-                setProvinces(data);
-            } catch (err) {
-                console.error('Lỗi khi lấy danh sách tỉnh/thành phố:', err);
-            }
-        };
-        fetchProvinces();
-    }, []);
-
-    // Lấy danh sách quận/huyện khi chọn tỉnh
-    useEffect(() => {
-        if (selectedProvince) {
-            const fetchDistricts = async () => {
-                try {
-                    const response = await fetch(`https://provinces.open-api.vn/api/p/${selectedProvince}?depth=2`);
-                    const data = await response.json();
-                    setDistricts(data.districts || []);
-                    setSelectedDistrict('');
-                    setWards([]);
-                    setSelectedWard('');
-                } catch (err) {
-                    console.error('Lỗi khi lấy danh sách quận/huyện:', err);
-                }
-            };
-            fetchDistricts();
-        } else {
-            setDistricts([]);
-            setSelectedDistrict('');
-            setWards([]);
-            setSelectedWard('');
-        }
-    }, [selectedProvince]);
-
-    // Lấy danh sách phường/xã khi chọn quận
-    useEffect(() => {
-        if (selectedDistrict) {
-            const fetchWards = async () => {
-                try {
-                    const response = await fetch(`https://provinces.open-api.vn/api/d/${selectedDistrict}?depth=2`);
-                    const data = await response.json();
-                    setWards(data.wards || []);
-                    setSelectedWard('');
-                } catch (err) {
-                    console.error('Lỗi khi lấy danh sách phường/xã:', err);
-                }
-            };
-            fetchWards();
-        } else {
-            setWards([]);
-            setSelectedWard('');
-        }
-    }, [selectedDistrict]);
-
-    // Xử lý khi đặt hàng thành công
-    useEffect(() => {
-        if (success) {
-            navigate('/my-account/orders');
-            dispatch(clearOrderSuccess());
-        }
-    }, [success, navigate, dispatch]);
-
-    // Clear error khi component unmount
-    useEffect(() => {
-        return () => {
-            dispatch(clearOrderError());
-        };
-    }, [dispatch]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const formData = new FormData(e.target);
-        const orderData = {
-            address: address,
-            payment_method: formData.get('payment_method'),
-            items: selectedProducts.map(item => ({
-                product_id: item.cart_item_id,
-                quantity: item.quantity
-            }))
-        };
+        console.log('Bắt đầu xử lý đặt hàng...');
+        setLoading(true);
 
-        dispatch(createOrder(orderData));
+        try {
+            // Kiểm tra đăng nhập
+            if (!user || !user.user_id) {
+                console.log('User not logged in or missing user_id:', user);
+                toast.error('Vui lòng đăng nhập để đặt hàng');
+                navigate('/login');
+                return;
+            }
+
+            // Lấy user_id từ user object
+            const user_id = user.user_id;
+            console.log('User ID for order:', user_id);
+
+            // Lấy danh sách sản phẩm đã chọn
+            const selectedItems = selectedProducts();
+            console.log('Sản phẩm đã chọn:', selectedItems);
+
+            if (selectedItems.length === 0) {
+                toast.error('Vui lòng chọn sản phẩm để đặt hàng');
+                return;
+            }
+
+            // Tạo dữ liệu đơn hàng
+            const orderData = {
+                user_id: user_id,
+                order_items: selectedItems.map(item => ({
+                    product_id: item.product.product_id,
+                    variant_id: item.variant_id || item.variant?.variant_id || null,
+                    quantity: item.quantity,
+                    price: item.price,
+                    discount: item.discount || 0,
+                    variant_info: JSON.stringify({
+                        size: item.size || null,
+                        color: item.color || null,
+                        material: item.material || null
+                    })
+                })),
+                shipping_address: {
+                    user_id: user_id,
+                    phone: formData.phone,
+                    address_line: formData.address_line,
+                    city: formData.city,
+                    province: formData.province
+                },
+                total_amount: selectedItems.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0),
+                shipping_fee: 0,
+                payment_method: formData.payment_method
+            };
+
+            console.log('Dữ liệu đơn hàng trước khi gửi:', JSON.stringify(orderData, null, 2));
+            console.log('Đang gửi API...');
+
+            const response = await orderApi.createOrder(orderData);
+            console.log('Phản hồi từ server:', response);
+
+            if (response.data) {
+                toast.success('Đặt hàng thành công!');
+                dispatch(clearCart());
+                navigate('/customer/orders');
+            }
+        } catch (error) {
+            console.error('Lỗi khi đặt hàng:', error);
+            console.error('Chi tiết lỗi:', error.response?.data);
+            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
     };
 
-    if (selectedProducts.length === 0) {
+    if (selectedProducts().length === 0) {
         return (
             <Box className="checkout-container" sx={{ p: 3 }}>
                 <Alert severity="warning" sx={{ mb: 2 }}>
@@ -191,8 +185,9 @@ const Checkout = () => {
                                             fullWidth
                                             required
                                             label="Số điện thoại"
-                                            value={phone}
-                                            onChange={(e) => setPhone(e.target.value)}
+                                            name="phone"
+                                            value={formData.phone}
+                                            onChange={handleChange}
                                             variant="outlined"
                                             InputProps={{
                                                 startAdornment: <PhoneIcon sx={{ mr: 1, color: 'action.active' }} />
@@ -204,62 +199,33 @@ const Checkout = () => {
                                             fullWidth
                                             required
                                             label="Địa chỉ"
-                                            value={address}
-                                            onChange={(e) => setAddress(e.target.value)}
+                                            name="address_line"
+                                            value={formData.address_line}
+                                            onChange={handleChange}
                                             variant="outlined"
                                             multiline
                                             rows={2}
                                         />
                                     </Grid>
-                                    <Grid item xs={12} sm={4}>
-                                        <FormControl fullWidth>
-                                            <InputLabel>Tỉnh/Thành phố</InputLabel>
-                                            <Select
-                                                value={selectedProvince}
-                                                onChange={(e) => setSelectedProvince(e.target.value)}
-                                                label="Tỉnh/Thành phố"
-                                            >
-                                                {provinces.map(province => (
-                                                    <MenuItem key={province.code} value={province.code}>
-                                                        {province.name}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+                                    <Grid item xs={12} sm={6}>
+                                        <TextField
+                                            fullWidth
+                                            label="Thành phố"
+                                            name="city"
+                                            value={formData.city}
+                                            onChange={handleChange}
+                                            variant="outlined"
+                                        />
                                     </Grid>
-                                    <Grid item xs={12} sm={4}>
-                                        <FormControl fullWidth>
-                                            <InputLabel>Quận/Huyện</InputLabel>
-                                            <Select
-                                                value={selectedDistrict}
-                                                onChange={(e) => setSelectedDistrict(e.target.value)}
-                                                label="Quận/Huyện"
-                                                disabled={!selectedProvince}
-                                            >
-                                                {districts.map(district => (
-                                                    <MenuItem key={district.code} value={district.code}>
-                                                        {district.name}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid item xs={12} sm={4}>
-                                        <FormControl fullWidth>
-                                            <InputLabel>Phường/Xã</InputLabel>
-                                            <Select
-                                                value={selectedWard}
-                                                onChange={(e) => setSelectedWard(e.target.value)}
-                                                label="Phường/Xã"
-                                                disabled={!selectedDistrict}
-                                            >
-                                                {wards.map(ward => (
-                                                    <MenuItem key={ward.code} value={ward.code}>
-                                                        {ward.name}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+                                    <Grid item xs={12} sm={6}>
+                                        <TextField
+                                            fullWidth
+                                            label="Tỉnh"
+                                            name="province"
+                                            value={formData.province}
+                                            onChange={handleChange}
+                                            variant="outlined"
+                                        />
                                     </Grid>
                                 </Grid>
 
@@ -270,7 +236,11 @@ const Checkout = () => {
                                     </Box>
 
                                     <FormControl component="fieldset">
-                                        <RadioGroup name="payment_method" defaultValue="cod">
+                                        <RadioGroup
+                                            name="payment_method"
+                                            value={formData.payment_method}
+                                            onChange={handleChange}
+                                        >
                                             <FormControlLabel
                                                 value="cod"
                                                 control={<Radio />}
@@ -289,12 +259,6 @@ const Checkout = () => {
                                         </RadioGroup>
                                     </FormControl>
                                 </Box>
-
-                                {error && (
-                                    <Alert severity="error" sx={{ mt: 2 }}>
-                                        {error}
-                                    </Alert>
-                                )}
 
                                 <Button
                                     type="submit"
@@ -316,11 +280,11 @@ const Checkout = () => {
                     <Card>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>
-                                Đơn hàng của bạn ({selectedProducts.length} sản phẩm)
+                                Đơn hàng của bạn ({selectedProducts().length} sản phẩm)
                             </Typography>
 
                             <Box mb={2}>
-                                {selectedProducts.map(item => (
+                                {selectedProducts().map(item => (
                                     <Paper
                                         key={item.cart_item_id}
                                         elevation={0}
@@ -458,7 +422,7 @@ const Checkout = () => {
                             <Box display="flex" justifyContent="space-between" mb={1}>
                                 <Typography>Tạm tính:</Typography>
                                 <Typography sx={{ color: '#ee4d2d', fontWeight: 'bold' }}>
-                                    {formatPrice(calculateTotal())}
+                                    {formatPrice(selectedProducts().reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0))}
                                 </Typography>
                             </Box>
 
@@ -480,7 +444,7 @@ const Checkout = () => {
                                         fontWeight: 'bold'
                                     }}
                                 >
-                                    {formatPrice(calculateTotal())}
+                                    {formatPrice(selectedProducts().reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0))}
                                 </Typography>
                             </Box>
                         </CardContent>
