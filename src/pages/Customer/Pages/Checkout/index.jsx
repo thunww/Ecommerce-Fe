@@ -308,8 +308,8 @@ const Checkout = () => {
                                                 }}
                                             >
                                                 <img
-                                                    src={item.product_image || item.image_url}
-                                                    alt={item.product_name}
+                                                    src={item.variant?.image_url || item.product?.product_image || '/default-product.png'}
+                                                    alt={item.product?.product_name || 'Sản phẩm'}
                                                     style={{
                                                         width: '100%',
                                                         height: '100%',
