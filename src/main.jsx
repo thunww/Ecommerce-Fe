@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import store from "./redux/store"; // Đảm bảo đường dẫn đúng
 import App from "./App";
 import "./index.css";
+import "./config/axios"; // Import cấu hình axios
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
