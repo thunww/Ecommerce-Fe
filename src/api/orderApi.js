@@ -13,6 +13,7 @@ const orderApi = {
             throw error;
         }
     },
+    getAllOrders: () => axiosClient.get("/orders/user"),
 
     getOrder: (orderId) => {
         const url = `/api/v1/orders/${orderId}`;

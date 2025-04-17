@@ -17,6 +17,9 @@ import {
   FaShoppingBag,
   FaChevronDown,
   FaChevronUp,
+  FaShieldAlt,
+  FaStore,
+  FaTruck,
 } from "react-icons/fa";
 import Tooltip from "@mui/material/Tooltip";
 import Navigation from "./Navigation";
@@ -35,7 +38,7 @@ const Header = () => {
   const context = useContext(MyContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, roles } = useSelector((state) => state.auth);
   const user = useSelector((state) => state.admin.selectedUser);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const menuRef = useRef(null);
@@ -223,16 +226,49 @@ const Header = () => {
                               <span className="truncate">My Orders</span>
                             </Link>
                           </li>
-                          <li>
-                            <Link
-                              to="/my-account/wishlist"
-                              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
-                              onClick={() => setShowAccountMenu(false)}
-                            >
-                              <FaRegHeart className="text-blue-500 flex-shrink-0" />
-                              <span className="truncate">Wishlist</span>
-                            </Link>
-                          </li>
+
+                          {roles.includes("admin") && (
+                            <li>
+                              <Link
+                                to="/admin"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
+                                onClick={() => setShowAccountMenu(false)}
+                              >
+                                <FaShieldAlt className="text-blue-500 flex-shrink-0" />
+                                <span className="truncate">
+                                  Admin Dashboard
+                                </span>
+                              </Link>
+                            </li>
+                          )}
+                          {roles.includes("vendor") && (
+                            <li>
+                              <Link
+                                to="/vendor"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
+                                onClick={() => setShowAccountMenu(false)}
+                              >
+                                <FaStore className="text-blue-500 flex-shrink-0" />
+                                <span className="truncate">
+                                  Vendor Dashboard
+                                </span>
+                              </Link>
+                            </li>
+                          )}
+                          {roles.includes("shipper") && (
+                            <li>
+                              <Link
+                                to="/shipper"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
+                                onClick={() => setShowAccountMenu(false)}
+                              >
+                                <FaTruck className="text-blue-500 flex-shrink-0" />
+                                <span className="truncate">
+                                  Shipper Dashboard
+                                </span>
+                              </Link>
+                            </li>
+                          )}
                           <li className="border-t border-gray-100 mt-1">
                             <button
                               onClick={handleLogout}

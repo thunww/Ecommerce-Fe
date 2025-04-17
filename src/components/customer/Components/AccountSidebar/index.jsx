@@ -8,26 +8,26 @@ import { MdOutlineShoppingCart } from "react-icons/md";
 import { IoLocationOutline } from "react-icons/io5";
 import { CiHeart } from "react-icons/ci";
 import { MdOutlineLogout } from "react-icons/md";
-import { fetchUserById } from "../../../../redux/adminSlice";
+import { fetchAllOrders } from "../../../../redux/orderSlice";
 
-const AccountSidebar = () => {
+const AccountSidebar = ({ user }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  const userId = useSelector((state) => state.auth.user?.user_id); // Get user_id from auth state
-  const user = useSelector((state) => state.admin.selectedUser);
-
-  // Fetch user when dashboard is loaded
-  useEffect(() => {
-    if (userId) {
-      dispatch(fetchUserById(userId));
-    }
-  }, [dispatch, userId]);
 
   const handleLogout = () => {
     dispatch(logout());
     navigate("/login");
   };
+  const { orders, loading, error } = useSelector((state) => state.orders);
+  useEffect(() => {
+    dispatch(fetchAllOrders());
+  }, [dispatch]);
+
+  const orderCount =
+    orders?.reduce((total, order) => {
+      return total + (order.subOrders?.length || 0);
+    }, 0) || 0;
+  console.log("cnt:", orderCount);
 
   return (
     <div className="account-sidebar bg-white shadow-md rounded-md overflow-hidden">
@@ -37,12 +37,16 @@ const AccountSidebar = () => {
           <div className="avatar mb-2 sm:mb-3 relative">
             <div className="w-16 h-16 sm:w-20 sm:h-20 overflow-hidden rounded-full border-4 border-white">
               <img
-                src={user?.profile_picture || "/avatar.jpg"}
+                src={
+                  user?.profile_picture ||
+                  "/https://th.bing.com/th/id/OIP.ByNwhzY5vUBvdIEfMCqDogHaHa?rs=1&pid=ImgDetMain"
+                }
                 alt="Avatar"
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = "/avatar.jpg";
+                  e.target.src =
+                    "https://th.bing.com/th/id/OIP.ByNwhzY5vUBvdIEfMCqDogHaHa?rs=1&pid=ImgDetMain";
                 }}
               />
             </div>
@@ -59,7 +63,7 @@ const AccountSidebar = () => {
         <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-blue-400">
           <div className="flex justify-between text-center text-xs">
             <div className="px-1">
-              <p className="font-bold text-lg sm:text-xl">0</p>
+              <p className="font-bold text-lg sm:text-xl">{orderCount}</p>
               <p className="text-xs">Orders</p>
             </div>
             <div className="px-1">

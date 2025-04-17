@@ -130,7 +130,7 @@ const Checkout = () => {
             if (response.data) {
                 toast.success('Đặt hàng thành công!');
                 dispatch(clearCart());
-                navigate('/customer/orders');
+                navigate('/my-account/orders');
             }
         } catch (error) {
             console.error('Lỗi khi đặt hàng:', error);
