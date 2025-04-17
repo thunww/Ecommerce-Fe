@@ -24,7 +24,7 @@ const ShipperRoutes = () => {
         <Route element={<ShipperLayout />}>
           <Route path="/dashboard" element={<ShipperDashboard />} />
           <Route path="/orders" element={<ShipperOrders />} />
-          <Route path="/orders/:id" element={<ShipperOrderDetail />} />
+          <Route path="/orders/:orderId" element={<ShipperOrderDetail />} />
           <Route path="/profile" element={<ShipperProfile />} />
           <Route path="/income" element={<ShipperIncome />} />
         </Route>

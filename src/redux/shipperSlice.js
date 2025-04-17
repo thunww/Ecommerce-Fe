@@ -89,7 +89,13 @@ export const getShipperProfile = createAsyncThunk(
   'shipper/getProfile',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/v1/shippers/profile');
+      const response = await axios.get('/api/v1/shippers/profile', {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
+      });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -100,11 +106,8 @@ export const getShipperProfile = createAsyncThunk(
 // Async thunk for updating shipper avatar
 export const updateAvatar = createAsyncThunk(
   'shipper/updateAvatar',
-  async (avatarFile, { rejectWithValue }) => {
+  async (formData, { rejectWithValue }) => {
     try {
-      const formData = new FormData();
-      formData.append('avatar', avatarFile);
-      
       const response = await axios.put('/api/v1/shippers/profile/avatar', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -138,10 +141,31 @@ export const updateShipperProfile = createAsyncThunk(
   'shipper/updateProfile',
   async (profileData, { rejectWithValue }) => {
     try {
-      const response = await axios.put('/api/shippers/profile', profileData);
+      console.log('Sending profile update data:', profileData);
+      
+      const response = await axios.put('/api/v1/shippers/profile', {
+        vehicle_type: profileData.vehicle_type,
+        license_plate: profileData.license_plate,
+        phone: profileData.phone
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
+      });
+      
+      console.log('Profile update response:', response.data);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      console.error('Update profile error:', error.response?.data);
+      console.error('Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+      return rejectWithValue(error.response?.data || { message: 'Cập nhật thông tin thất bại' });
     }
   }
 );
@@ -151,7 +175,7 @@ export const getDetailedIncome = createAsyncThunk(
   'shipper/getDetailedIncome',
   async ({ startDate, endDate }, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/shippers/income/detailed', {
+      const response = await axios.get('/api/v1/shippers/income/filter', {
         params: {
           startDate,
           endDate
@@ -169,7 +193,7 @@ export const getStatistics = createAsyncThunk(
   'shipper/getStatistics',
   async ({ startDate, endDate }, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/shippers/statistics', {
+      const response = await axios.get('/api/v1/shippers/income/filter', {
         params: {
           startDate,
           endDate
@@ -190,7 +214,7 @@ const initialState = {
   currentOrder: null,
   orderDetails: null,
   orders: [],
-  incomeDetails: null,
+  detailedIncome: null,
   statistics: null
 };
 
@@ -206,7 +230,7 @@ const shipperSlice = createSlice({
       state.currentOrder = null;
       state.orderDetails = null;
       state.orders = [];
-      state.incomeDetails = null;
+      state.detailedIncome = null;
       state.statistics = null;
     }
   },
@@ -290,12 +314,12 @@ const shipperSlice = createSlice({
       })
       .addCase(getShipperProfile.fulfilled, (state, action) => {
         state.loading = false;
-        state.shipper = action.payload;
-        state.success = true;
+        state.shipper = action.payload.data;
+        state.error = null;
       })
       .addCase(getShipperProfile.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Không thể lấy thông tin hồ sơ';
+        state.error = action.payload?.message || 'Không thể lấy thông tin shipper';
       })
       // Update avatar
       .addCase(updateAvatar.pending, (state) => {
@@ -350,7 +374,8 @@ const shipperSlice = createSlice({
       })
       .addCase(getDetailedIncome.fulfilled, (state, action) => {
         state.loading = false;
-        state.incomeDetails = action.payload;
+        state.detailedIncome = action.payload.data;
+        state.statistics = action.payload.data.statistics;
         state.success = true;
       })
       .addCase(getDetailedIncome.rejected, (state, action) => {
@@ -364,7 +389,7 @@ const shipperSlice = createSlice({
       })
       .addCase(getStatistics.fulfilled, (state, action) => {
         state.loading = false;
-        state.statistics = action.payload;
+        state.statistics = action.payload.data.statistics;
         state.success = true;
       })
       .addCase(getStatistics.rejected, (state, action) => {

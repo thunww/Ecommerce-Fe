@@ -24,8 +24,6 @@ const ShipperIncome = () => {
         startDate: dateRange.startDate,
         endDate: dateRange.endDate
       })).unwrap();
-      
-      await dispatch(getStatistics('daily')).unwrap();
     } catch (error) {
       toast.error(error.message || 'Có lỗi xảy ra khi tải dữ liệu thu nhập');
     }
@@ -47,8 +45,15 @@ const ShipperIncome = () => {
   };
 
   const formatDateTime = (dateTimeStr) => {
-    const date = new Date(dateTimeStr);
-    return format(date, 'HH:mm - dd/MM/yyyy', { locale: vi });
+    if (!dateTimeStr) return 'Chưa cập nhật';
+    try {
+      const date = new Date(dateTimeStr);
+      if (isNaN(date.getTime())) return 'Ngày không hợp lệ';
+      return format(date, 'HH:mm - dd/MM/yyyy', { locale: vi });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Ngày không hợp lệ';
+    }
   };
 
   if (loading) {
@@ -154,32 +159,39 @@ const ShipperIncome = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {detailedIncome?.orders?.map((order, index) => (
-                    <tr key={order.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <tr key={order.id || index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         <Link 
                           to={`/shipper/orders/${order.id}`}
                           className="text-blue-600 hover:text-blue-800 hover:underline"
                         >
-                          {order.id}
+                          {order.id || 'N/A'}
                         </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDateTime(order.deliveryTime)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {order.customerName}
+                        {order.customerName || 'Không có tên'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                        {order.address}
+                        {order.address || 'Không có địa chỉ'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {order.paymentMethod}
+                        {order.paymentMethod || 'COD'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
-                        {formatCurrency(order.amount)}
+                        {formatCurrency(order.amount || 0)}
                       </td>
                     </tr>
                   ))}
+                  {(!detailedIncome?.orders || detailedIncome.orders.length === 0) && (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                        Không có dữ liệu
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

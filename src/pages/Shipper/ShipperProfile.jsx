@@ -1,63 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { getShipperProfile, updateShipperProfile, updateAvatar, updateOrderLocation } from '../../redux/shipperSlice';
-import AddressSelector from '../../components/AddressSelector';
-import axios from 'axios';
+import { getShipperProfile, updateShipperProfile, updateAvatar } from '../../redux/shipperSlice';
 
 const ShipperProfile = () => {
   const dispatch = useDispatch();
-  const { profile, loading, error, success } = useSelector((state) => state.shipper);
-  const { userInfo } = useSelector((state) => state.user);
+  const { shipper, loading, error } = useSelector((state) => state.shipper);
+  const [isEditing, setIsEditing] = useState(false);
   
   const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    email: '',
     vehicle_type: '',
-    driver_license: '',
-  });
-  
-  const [locationForm, setLocationForm] = useState({
-    province: '',
-    district: '',
-    ward: '',
+    license_plate: '',
+    phone: ''
   });
   
   const [avatar, setAvatar] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
 
   useEffect(() => {
-    dispatch(getShipperProfile());
+    dispatch(getShipperProfile())
+      .unwrap()
+      .then(response => {
+        console.log('Shipper profile response:', response);
+      })
+      .catch(error => {
+        console.error('Error fetching shipper profile:', error);
+      });
   }, [dispatch]);
 
   useEffect(() => {
-    if (profile) {
+    if (shipper) {
       setFormData({
-        fullName: userInfo?.full_name || '',
-        phone: userInfo?.phone || '',
-        email: userInfo?.email || '',
-        vehicle_type: profile.vehicle_type || '',
-        driver_license: profile.driver_license || '',
+        vehicle_type: shipper.vehicle_type || '',
+        license_plate: shipper.license_plate || '',
+        phone: shipper.phone || ''
       });
       
-      if (profile.currentLocation) {
-        setLocationForm({
-          province: profile.currentLocation.province || '',
-          district: profile.currentLocation.district || '',
-          ward: profile.currentLocation.ward || ''
-        });
+      if (shipper.avatar) {
+        setPreviewUrl(shipper.avatar);
       }
     }
-  }, [profile, userInfo]);
+  }, [shipper]);
 
   useEffect(() => {
     if (error) {
       toast.error(error);
     }
-    if (success) {
-      toast.success('Cập nhật thông tin thành công');
-    }
-  }, [error, success]);
+  }, [error]);
 
   const handleChange = (e) => {
     setFormData({
@@ -66,223 +55,264 @@ const ShipperProfile = () => {
     });
   };
 
-  const handleLocationChange = (address) => {
-    setLocationForm({
-      province: address.province,
-      district: address.district,
-      ward: address.ward,
-    });
-  };
-
-  const handleLocationSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.put(
-        `${API_URL}/shipper/update-location`,
-        locationForm,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
-      if (response.data.success) {
-        toast.success('Cập nhật vị trí thành công');
-        dispatch(getShipperProfile());
-      }
-    } catch (error) {
-      console.error('Error updating location:', error);
-      toast.error('Cập nhật vị trí thất bại');
-    }
-  };
-
   const handleAvatarChange = (e) => {
-    if (e.target.files[0]) {
-      setAvatar(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      setAvatar(file);
+      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Cập nhật thông tin user
-      await axios.put(
-        `${API_URL}/user/update-profile`,
-        {
-          full_name: formData.fullName,
-          phone: formData.phone,
-          email: formData.email,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
+      if (!formData.vehicle_type || !formData.license_plate || !formData.phone) {
+        toast.error('Vui lòng điền đầy đủ thông tin');
+        return;
+      }
 
-      // Cập nhật thông tin shipper
-      await dispatch(updateShipperProfile({
+      const result = await dispatch(updateShipperProfile({
         vehicle_type: formData.vehicle_type,
-        driver_license: formData.driver_license,
+        license_plate: formData.license_plate,
+        phone: formData.phone
       })).unwrap();
 
-      toast.success('Cập nhật thông tin thành công');
+      if (result.success) {
+        toast.success('Cập nhật thông tin thành công');
+        dispatch(getShipperProfile());
+        setIsEditing(false);
+      } else {
+        toast.error(result.message || 'Cập nhật thông tin thất bại');
+      }
     } catch (err) {
+      console.error('Error updating profile:', err);
       toast.error(err.message || 'Cập nhật thông tin thất bại');
     }
   };
 
   const handleAvatarSubmit = async (e) => {
     e.preventDefault();
-    if (!avatar) return;
+    if (!avatar) {
+      toast.error('Vui lòng chọn ảnh');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('avatar', avatar);
 
     try {
-      await dispatch(updateAvatar(formData)).unwrap();
-      setAvatar(null);
-      toast.success('Cập nhật ảnh đại diện thành công');
+      const result = await dispatch(updateAvatar(formData)).unwrap();
+      
+      if (result.success) {
+        setAvatar(null);
+        toast.success('Cập nhật ảnh đại diện thành công');
+        dispatch(getShipperProfile());
+      } else {
+        toast.error(result.message || 'Cập nhật ảnh đại diện thất bại');
+      }
     } catch (err) {
+      console.error('Error updating avatar:', err);
       toast.error(err.message || 'Cập nhật ảnh đại diện thất bại');
     }
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      </div>
+    );
   }
+
+  const getVehicleTypeText = (type) => {
+    switch (type) {
+      case 'motorcycle':
+        return 'Xe máy';
+      case 'bike':
+        return 'Xe đạp';
+      case 'car':
+        return 'Ô tô';
+      default:
+        return type;
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Thông tin cá nhân</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Form cập nhật thông tin */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Cập nhật thông tin</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Họ và tên</label>
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded"
-                required
-              />
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold text-gray-800">Thông tin cá nhân</h1>
+              {!isEditing && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                >
+                  Chỉnh sửa
+                </button>
+              )}
             </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Số điện thoại</label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Loại phương tiện</label>
-              <select
-                name="vehicle_type"
-                value={formData.vehicle_type}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded"
-                required
-              >
-                <option value="">Chọn loại phương tiện</option>
-                <option value="bike">Xe máy</option>
-                <option value="car">Ô tô</option>
-                <option value="truck">Xe tải</option>
-                <option value="van">Xe van</option>
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Bằng lái xe</label>
-              <input
-                type="text"
-                name="driver_license"
-                value={formData.driver_license}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Cập nhật
-            </button>
-          </form>
-        </div>
 
-        <div className="space-y-8">
-          {/* Form cập nhật avatar */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">Cập nhật ảnh đại diện</h2>
-            <form onSubmit={handleAvatarSubmit}>
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Chọn ảnh</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  className="w-full"
-                />
-              </div>
-              <button
-                type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                disabled={!avatar}
-              >
-                Tải lên
-              </button>
-            </form>
-            {userInfo?.avatar && (
-              <div className="mt-4">
-                <img
-                  src={userInfo.avatar}
-                  alt="Avatar"
-                  className="w-32 h-32 rounded-full object-cover"
-                />
+            {isEditing ? (
+              // Edit mode
+              <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="flex items-center space-x-6">
+                    <div className="relative">
+                      <div className="w-32 h-32 rounded-full overflow-hidden">
+                        <img 
+                          src={previewUrl || shipper?.avatar} 
+                          alt="Avatar" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <form onSubmit={handleAvatarSubmit} className="mt-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarChange}
+                          className="block w-full text-sm text-gray-500
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-red-50 file:text-red-700
+                            hover:file:bg-red-100"
+                        />
+                        {avatar && (
+                          <button
+                            type="submit"
+                            className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+                          >
+                            Cập nhật ảnh
+                          </button>
+                        )}
+                      </form>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Loại phương tiện
+                    </label>
+                    <select
+                      name="vehicle_type"
+                      value={formData.vehicle_type}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                      required
+                    >
+                      <option value="">Chọn loại phương tiện</option>
+                      <option value="motorcycle">Xe máy</option>
+                      <option value="bike">Xe đạp</option>
+                      <option value="car">Ô tô</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Biển số xe
+                    </label>
+                    <input
+                      type="text"
+                      name="license_plate"
+                      value={formData.license_plate}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Số điện thoại
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex space-x-4">
+                    <button
+                      type="submit"
+                      className="px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700"
+                    >
+                      Lưu thay đổi
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setFormData({
+                          vehicle_type: shipper.vehicle_type || '',
+                          license_plate: shipper.license_plate || '',
+                          phone: shipper.phone || ''
+                        });
+                      }}
+                      className="px-6 py-3 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                    >
+                      Hủy
+                    </button>
+                  </div>
+                </div>
+              </form>
+            ) : (
+              // View mode
+              <div className="space-y-6">
+                <div className="flex items-start space-x-6">
+                  <div className="w-32 h-32 rounded-full overflow-hidden">
+                    <img 
+                      src={shipper?.avatar} 
+                      alt="Avatar" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="space-y-4">
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-800">
+                          Họ và tên
+                        </h2>
+                        <p className="text-gray-600">
+                          {shipper?.user?.first_name} {shipper?.user?.last_name}
+                        </p>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-800">
+                          Email
+                        </h2>
+                        <p className="text-gray-600">{shipper?.user?.email}</p>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-800">
+                          Số điện thoại
+                        </h2>
+                        <p className="text-gray-600">{shipper?.phone}</p>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-800">
+                          Loại phương tiện
+                        </h2>
+                        <p className="text-gray-600">
+                          {getVehicleTypeText(shipper?.vehicle_type)}
+                        </p>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-800">
+                          Biển số xe
+                        </h2>
+                        <p className="text-gray-600">{shipper?.license_plate}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
-          </div>
-
-          {/* Form cập nhật vị trí */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">Cập nhật vị trí giao hàng</h2>
-            <form onSubmit={handleLocationSubmit}>
-              <AddressSelector 
-                type="shipper"
-                onAddressChange={handleLocationChange}
-                defaultAddress={{
-                  province: profile?.currentLocation?.province || '',
-                  district: profile?.currentLocation?.district || '',
-                  ward: profile?.currentLocation?.ward || ''
-                }}
-              />
-              <button
-                type="submit"
-                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Cập nhật vị trí
-              </button>
-            </form>
           </div>
         </div>
       </div>
