@@ -31,7 +31,7 @@ const Home = () => {
   const activeProducts = products.filter(
     (product) => product.status === "active"
   );
-  console.log(products);
+  // console.log(products);
 
   const totalPages = Math.ceil(activeProducts.length / productsPerPage);
 

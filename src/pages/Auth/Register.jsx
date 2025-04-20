@@ -1,106 +1,54 @@
 import { Link } from "react-router-dom";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { register } from "../../redux/authSlice";
-import AddressSelector from "../../components/AddressSelector";
+import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Register = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { message, error, isLoading } = useSelector((state) => state.auth);
-
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { message, error, isLoading } = useSelector((state) => state.auth);
 
-  // Kiểm tra định dạng email
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  // Kiểm tra định dạng mật khẩu (phiên bản cơ bản)
-  const validatePassword = (password) => {
-    const minLength = password.length >= 8;
-    const hasSpecialChar = /[!@#$%^&*]/.test(password);
-    return minLength && hasSpecialChar;
-  };
-
-  // Hiển thị toast khi message hoặc error từ Redux thay đổi
+  // Hiển thị toast khi message hoặc error thay đổi
   useEffect(() => {
     if (message) {
-      toast.success(message, { position: "top-right", autoClose: 2000 });
+      toast.success(message, { position: "top-right" });
       setTimeout(() => {
         navigate("/login");
-      }, 2000);
+      }, 1000); // Chuyển hướng sau 1 giây, giống Login
     }
     if (error) {
-      toast.error(error, { position: "top-right", autoClose: 3000 });
+      toast.error(error, { position: "top-right" });
     }
   }, [message, error, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Kiểm tra các trường rỗng
     if (
       !username.trim() ||
       !email.trim() ||
       !password.trim() ||
-      !confirmPassword.trim() ||
-      !address.province ||
-      !address.district ||
-      !address.ward ||
-      !address.street
+      !confirmPassword.trim()
     ) {
-      toast.error("Vui lòng nhập đầy đủ thông tin!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.error("Vui lòng nhập đầy đủ thông tin!", { position: "top-right" });
       return;
     }
 
-    // Kiểm tra định dạng email
-    if (!validateEmail(email)) {
-      toast.error("Email không hợp lệ! Vui lòng nhập email đúng định dạng.", {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      return;
-    }
-
-    // Kiểm tra định dạng mật khẩu
-    if (!validatePassword(password)) {
-      toast.error(
-        "Mật khẩu phải có ít nhất 8 ký tự và chứa ít nhất 1 ký tự đặc biệt (!@#$%^&*)!",
-        {
-          position: "top-right",
-          autoClose: 3000,
-        }
-      );
-      return;
-    }
-
-    // Kiểm tra xác nhận mật khẩu
     if (password !== confirmPassword) {
-      toast.error("Mật khẩu xác nhận không khớp!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.error("Mật khẩu xác nhận không khớp!", { position: "top-right" });
       return;
     }
 
     // Gọi action register
-    try {
-      await dispatch(register({ username, email, password })).unwrap();
-    } catch (err) {
-      // Lỗi đã được xử lý trong useEffect
-    }
+    await dispatch(register({ username, email, password }));
   };
 
   return (
@@ -111,7 +59,7 @@ const Register = () => {
           <div className="hidden md:block w-1/2 relative">
             <div className="absolute inset-0 flex items-center justify-center">
               <img
-                src="./login.png"
+                src="https://ad2cart.com/wp-content/uploads/2021/02/ecommerce-website-banners.jpg"
                 alt="Register visual"
                 className="h-full w-full object-contain hover:scale-102 transition-transform duration-700"
               />
@@ -209,14 +157,6 @@ const Register = () => {
                       disabled={isLoading}
                     />
                   </div>
-                </div>
-
-                {/* Address */}
-                <div>
-                  <label className="block text-gray-700 font-medium mb-1">
-                    Địa chỉ
-                  </label>
-                  <AddressSelector onAddressChange={setAddress} />
                 </div>
 
                 <button
