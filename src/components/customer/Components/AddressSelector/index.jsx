@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const AddressForm = () => {
+const AddressForm = ({ initialData = {}, onSubmit, onCancel }) => {
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
@@ -10,15 +10,37 @@ const AddressForm = () => {
   const [selectedWard, setSelectedWard] = useState("");
   const [specificAddress, setSpecificAddress] = useState("");
 
-  const [fullName, setFullName] = useState(""); // Họ và tên
-  const [phoneNumber, setPhoneNumber] = useState(""); // Số điện thoại
-  const [isDefault, setIsDefault] = useState(false); // Địa chỉ mặc định
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [isDefault, setIsDefault] = useState(false);
+
+  // Load initial data if provided (for updating)
+  useEffect(() => {
+    if (initialData.address_id) {
+      setFullName(initialData.recipient_name || "");
+      setPhoneNumber(initialData.phone || "");
+      setSpecificAddress(initialData.address_line || "");
+
+      // Kiểm tra nếu dữ liệu trả về là tên, cần tìm mã `code` từ danh sách tỉnh, huyện, xã
+      const province = provinces.find((p) => p.name === initialData.city);
+      const district = districts.find((d) => d.name === initialData.district);
+      const ward = wards.find((w) => w.name === initialData.ward);
+
+      setSelectedProvince(province ? province.code : "");
+      setSelectedDistrict(district ? district.code : "");
+      setSelectedWard(ward ? ward.code : "");
+
+      setIsDefault(initialData.is_default || false);
+    }
+  }, [initialData, provinces, districts, wards]);
 
   // Fetch provinces when component mounts
   useEffect(() => {
     fetch("https://provinces.open-api.vn/api/?depth=1")
       .then((res) => res.json())
-      .then((data) => setProvinces(data))
+      .then((data) => {
+        setProvinces(data);
+      })
       .catch((err) => console.error("Failed to fetch provinces:", err));
   }, []);
 
@@ -52,6 +74,19 @@ const AddressForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (
+      !fullName ||
+      !phoneNumber ||
+      !specificAddress ||
+      !selectedProvince ||
+      !selectedDistrict ||
+      !selectedWard
+    ) {
+      alert("Please fill in all the required fields.");
+      return;
+    }
+
     const selectedProvinceName =
       provinces.find((p) => p.code === +selectedProvince)?.name || "";
     const selectedDistrictName =
@@ -59,27 +94,23 @@ const AddressForm = () => {
     const selectedWardName =
       wards.find((w) => w.code === +selectedWard)?.name || "";
 
-    const fullAddress = `${specificAddress}, ${selectedWardName}, ${selectedDistrictName}, ${selectedProvinceName}`;
-
     const addressDetails = {
-      fullName,
-      phoneNumber,
-      address: fullAddress,
-      isDefault,
+      recipient_name: fullName,
+      phone: phoneNumber,
+      address_line: specificAddress,
+      ward: selectedWardName,
+      district: selectedDistrictName,
+      city: selectedProvinceName,
+      is_default: isDefault,
     };
 
-    alert("Địa chỉ đầy đủ: " + fullAddress);
-    console.log("Thông tin địa chỉ: ", addressDetails);
+    onSubmit(addressDetails);
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="p-4 bg-white rounded shadow-md max-w-xl mx-auto"
-    >
+    <form onSubmit={handleSubmit} className="p-4 bg-white rounded">
       <h2 className="text-xl font-semibold mb-4">Địa chỉ nhận hàng</h2>
 
-      {/* Họ và Tên */}
       <div className="mb-4">
         <label className="block mb-1 text-sm font-medium text-gray-700">
           Họ và Tên
@@ -197,13 +228,22 @@ const AddressForm = () => {
         </label>
       </div>
 
-      {/* Nút Submit */}
-      <button
-        type="submit"
-        className="bg-orange-500 text-white px-6 py-2 rounded hover:bg-orange-600 transition text-sm"
-      >
-        Xác nhận địa chỉ
-      </button>
+      {/* Nút Submit và Hủy */}
+      <div className="flex justify-end space-x-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+        >
+          Hủy
+        </button>
+        <button
+          type="submit"
+          className="bg-orange-500 text-white px-6 py-2 rounded hover:bg-orange-600 transition text-sm"
+        >
+          {initialData.address_id ? "Cập nhật" : "Xác nhận địa chỉ"}
+        </button>
+      </div>
     </form>
   );
 };

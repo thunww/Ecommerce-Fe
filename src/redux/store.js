@@ -11,6 +11,7 @@ import wishlistReducer from "./slices/wishlistSlice";
 import reviewReducer from "./reviewsSilce";
 import categoryReducer from "./categorySlice";
 import orderReducer from "./orderSlice";
+import addressReducer from "./addressSlice";
 const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -23,8 +24,8 @@ const store = configureStore({
     wishlist: wishlistReducer,
     reviews: reviewReducer,
     categories: categoryReducer,
-    categories: categoryReducer,
     orders: orderReducer,
+    addresses: addressReducer,
   },
 });
 
