@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { register } from "../../redux/authSlice";
+import { register, resetMessage } from "../../redux/authSlice";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -16,18 +16,30 @@ const Register = () => {
   const navigate = useNavigate();
   const { message, error, isLoading } = useSelector((state) => state.auth);
 
+  useEffect(() => {
+    dispatch(resetMessage());
+  }, [dispatch]);
+
   // Hiển thị toast khi message hoặc error thay đổi
   useEffect(() => {
     if (message) {
-      toast.success(message, { position: "top-right" });
+      toast.success(message, {
+        position: "top-right",
+        autoClose: 2000,
+        onClose: () => dispatch(resetMessage()),
+      });
       setTimeout(() => {
         navigate("/login");
-      }, 1000); // Chuyển hướng sau 1 giây, giống Login
+      }, 2000);
     }
     if (error) {
-      toast.error(error, { position: "top-right" });
+      toast.error(error, {
+        position: "top-right",
+        autoClose: 3000,
+        onClose: () => dispatch(resetMessage()),
+      });
     }
-  }, [message, error, navigate]);
+  }, [message, error, navigate, dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,7 +71,7 @@ const Register = () => {
           <div className="hidden md:block w-1/2 relative">
             <div className="absolute inset-0 flex items-center justify-center">
               <img
-                src="https://ad2cart.com/wp-content/uploads/2021/02/ecommerce-website-banners.jpg"
+                src="./login.png"
                 alt="Register visual"
                 className="h-full w-full object-contain hover:scale-102 transition-transform duration-700"
               />

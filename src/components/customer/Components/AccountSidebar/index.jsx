@@ -27,7 +27,6 @@ const AccountSidebar = ({ user }) => {
     orders?.reduce((total, order) => {
       return total + (order.subOrders?.length || 0);
     }, 0) || 0;
-  console.log("cnt:", orderCount);
 
   return (
     <div className="account-sidebar bg-white shadow-md rounded-md overflow-hidden">
