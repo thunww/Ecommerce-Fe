@@ -32,17 +32,17 @@ const SalesPerformance = () => {
         }));
         
         // Fetch shop info from API
-        console.log('Calling shopApi.getShopInfo()...');
+        
         const response = await shopApi.getShopInfo();
-        console.log('Shop info API response:', response);
-        console.log('Shop data:', response.data);
+        
+       
         
         // Use shop rating directly from shop info
         const shopInfo = response.data;
         
         // Nếu không có rating từ API, sử dụng dữ liệu mẫu
         if (!shopInfo || shopInfo.rating === undefined) {
-          console.log('Không tìm thấy rating từ API, sử dụng dữ liệu mẫu');
+          
           // Sử dụng dữ liệu mẫu
           setShopData({
             rating: 4.2,
@@ -54,12 +54,11 @@ const SalesPerformance = () => {
           return;
         }
         
-        // Confirm the data types
-        console.log('Shop rating:', shopInfo.rating, 'Type:', typeof shopInfo.rating);
+     
         
         // Format data
         const formattedRating = parseFloat(shopInfo.rating) || 0;
-        console.log('Formatted rating:', formattedRating);
+       
         
         setShopData({
           rating: formattedRating,
@@ -69,17 +68,12 @@ const SalesPerformance = () => {
           error: null
         });
         
-        console.log('ShopData set to:', {
-          rating: formattedRating,
-          totalReviews: shopInfo.totalReviews || 120,
-          responseRate: shopInfo.responseRate || 98
-        });
+       
       } catch (error) {
-        console.error("Error fetching shop data:", error);
-        console.error("Error details:", error.response || error.message);
+       
         
         // Nếu API gặp lỗi, hiển thị dữ liệu mẫu thay vì hiển thị lỗi
-        console.log('Sử dụng dữ liệu mẫu do lỗi API');
+       
         setShopData({
           rating: 4.2,
           totalReviews: 120,
@@ -126,12 +120,7 @@ const SalesPerformance = () => {
   const rank = calculateRank(shopData.rating);
   
   // Debug in render
-  console.log('Rendering SalesPerformance with:', {
-    rating: shopData.rating,
-    rank,
-    loading: shopData.loading,
-    error: shopData.error
-  });
+
 
   return (
     <Card>

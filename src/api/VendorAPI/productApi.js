@@ -144,8 +144,13 @@ const productApi = {
   },
 
   // Lấy danh sách danh mục sản phẩm
-  getCategories: () => {
-    return axiosClient.get("/vendor/shop/category");
+  getCategories: (skipCache = false) => {
+    // Thêm tham số ngẫu nhiên để vượt qua cache nếu cần
+    const url = skipCache
+      ? `/vendor/shop/category?nocache=${new Date().getTime()}`
+      : "/vendor/shop/category";
+
+    return axiosClient.get(url);
   },
 };
 

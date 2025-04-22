@@ -9,46 +9,41 @@ export const getShopOrderedProducts = async (shopId) => {
       throw new Error("shopId is required");
     }
 
-    console.log("Calling API with shopId:", shopId);
+    
     const response = await orderApi.getAllOrders_list(shopId);
-    console.log("Raw API Response:", response);
+    
 
     // Kiểm tra response
     if (!response) {
-      console.error("No response received");
+      
       throw new Error("No response from server");
     }
 
     // Lấy dữ liệu từ response
     const responseData = response.data;
-    console.log("Response data structure:", {
-      fullResponse: response,
-      data: responseData,
-      success: responseData?.success,
-      orderData: responseData?.data,
-    });
+   
 
     if (!responseData || !responseData.success) {
-      console.error("Invalid response data:", responseData);
+      
       throw new Error("Invalid response from server");
     }
 
     // Lấy mảng orders từ response
     const orderData = responseData.data;
-    console.log("Order data array:", orderData);
+    
 
     if (!Array.isArray(orderData)) {
-      console.error("Order data is not an array:", orderData);
+      
       throw new Error("Invalid data structure received from server");
     }
 
     // Xử lý và format dữ liệu trả về
     const formattedOrders = orderData
       .map((order, index) => {
-        console.log(`Processing order ${index + 1}:`, order);
+        
 
         if (!order) {
-          console.warn(`Order at index ${index} is null or undefined`);
+         
           return null;
         }
 
@@ -71,16 +66,16 @@ export const getShopOrderedProducts = async (shopId) => {
             variant_id: order.variant_id,
             size: order.size || "N/A",
           };
-          console.log(`Formatted order ${index + 1}:`, formattedOrder);
+        
           return formattedOrder;
         } catch (err) {
-          console.error(`Error processing order at index ${index}:`, err);
+        
           return null;
         }
       })
       .filter((order) => order !== null);
 
-    console.log("Final formatted orders:", formattedOrders);
+   
     return formattedOrders;
   } catch (error) {
     console.error("Error in getShopOrderedProducts:", {
@@ -105,10 +100,10 @@ export const getShopOrderedProducts = async (shopId) => {
         "Lỗi từ server";
       throw new Error(errorMessage);
     } else if (error.request) {
-      console.error("Network error details:", error.request);
+      
       throw new Error("Không thể kết nối đến server");
     } else {
-      console.error("Other error details:", error);
+      
       throw error;
     }
   }
@@ -120,19 +115,19 @@ export const getAllOrders = async (shopId) => {
     if (!response.data) {
       throw new Error("No data received from server");
     }
-    console.log("Danh sách đơn hàng:", response.data);
+    
     return response.data;
   } catch (error) {
-    console.error("Lỗi khi lấy danh sách đơn hàng:", error);
+    
     if (error.response) {
       const errorMessage = error.response.data?.message || "Lỗi từ server";
-      console.error("Server error details:", error.response.data);
+      
       throw new Error(errorMessage);
     } else if (error.request) {
-      console.error("Network error:", error.request);
+      
       throw new Error("Không thể kết nối đến server");
     } else {
-      console.error("Other error:", error);
+      
       throw error;
     }
   }
@@ -148,19 +143,19 @@ export const getRevenue = async (userId) => {
     if (!response.data) {
       throw new Error("No data received from server");
     }
-    console.log("Doanh thu:", response.data);
+    
     return response.data.revenue || 0;
   } catch (error) {
-    console.error("Lỗi khi lấy doanh thu:", error);
+    
     if (error.response) {
       const errorMessage = error.response.data?.message || "Lỗi từ server";
-      console.error("Server error details:", error.response.data);
+      
       throw new Error(errorMessage);
     } else if (error.request) {
-      console.error("Network error:", error.request);
+      
       throw new Error("Không thể kết nối đến server");
     } else {
-      console.error("Other error:", error);
+     
       throw error;
     }
   }
@@ -172,19 +167,19 @@ export const getShopInfo = async () => {
     if (!response.data) {
       throw new Error("No data received from server");
     }
-    console.log("Thông tin shop:", response.data);
+   
     return response.data;
   } catch (error) {
-    console.error("Lỗi khi lấy thông tin shop:", error);
+    
     if (error.response) {
       const errorMessage = error.response.data?.message || "Lỗi từ server";
-      console.error("Server error details:", error.response.data);
+      
       throw new Error(errorMessage);
     } else if (error.request) {
-      console.error("Network error:", error.request);
+      
       throw new Error("Không thể kết nối đến server");
     } else {
-      console.error("Other error:", error);
+     
       throw error;
     }
   }
@@ -196,10 +191,10 @@ export const getAllCategory = async () => {
     if (!response.data) {
       throw new Error("Không nhận được dữ liệu từ server");
     }
-    console.log("Danh sách danh mục:", response.data);
+   
     return response.data;
   } catch (error) {
-    console.error("Lỗi khi lấy danh sách danh mục:", error);
+    
     if (error.response) {
       const errorMessage = error.response.data?.message || "Lỗi từ server";
       throw new Error(errorMessage);
@@ -221,10 +216,8 @@ export const updateOrderStatus = async (orderId, newStatus) => {
       throw new Error("New status is required");
     }
 
-    console.log(`Updating order ${orderId} to status: ${newStatus}`);
 
     const response = await orderApi.updateOrderStatus(orderId, newStatus);
-    console.log("Order status update response:", response);
 
     // Check if response exists
     if (!response) {
@@ -260,10 +253,8 @@ export const updateOrderStatus = async (orderId, newStatus) => {
       const errorMessage = error.response.data?.message || "Server error";
       throw new Error(errorMessage);
     } else if (error.request) {
-      console.error("Network error:", error.request);
       throw new Error("Cannot connect to server");
     } else {
-      console.error("Other error:", error);
       throw error;
     }
   }

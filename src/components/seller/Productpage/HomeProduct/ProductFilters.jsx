@@ -9,10 +9,17 @@ const ProductFilters = ({ filters, onFilterChange }) => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const data = await getAllCategory();
-        setCategories(data);
+        const response = await getAllCategory();
+        
+        if (response && response.data && Array.isArray(response.data)) {
+          setCategories(response.data);
+        } else {
+          console.error("Dữ liệu danh mục không có cấu trúc mong đợi");
+          setCategories([]);
+        }
       } catch (error) {
         console.error("Lỗi khi lấy danh mục:", error);
+        setCategories([]);
       } finally {
         setLoading(false);
       }

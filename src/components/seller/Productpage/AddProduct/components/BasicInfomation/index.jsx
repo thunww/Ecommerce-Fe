@@ -8,6 +8,7 @@ const BasicInformation = ({ productData, onInputChange }) => {
   const [categories, setCategories] = useState([]); // Danh sách danh mục
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false); // Hiển thị dropdown danh mục
   const [isLoadingCategories, setIsLoadingCategories] = useState(false); // Trạng thái đang tải danh mục
+  const [categoryError, setCategoryError] = useState(null); // Lỗi khi tải danh mục
 
   // Refs cho input file
   const productImagesInputRef = useRef(null);
@@ -15,19 +16,33 @@ const BasicInformation = ({ productData, onInputChange }) => {
   const categoryDropdownRef = useRef(null);
 
   // Fetch danh sách danh mục khi component được mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setIsLoadingCategories(true);
-        const data = await productService.getCategories();
-        setCategories(data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      } finally {
-        setIsLoadingCategories(false);
-      }
-    };
+  const fetchCategories = async (skipCache = false) => {
+    try {
+      setIsLoadingCategories(true);
+      setCategoryError(null);
+      const response = await productService.getCategories(skipCache);
 
+      // Kiểm tra và lấy đúng dữ liệu categories từ response
+      if (response && response.data) {
+        setCategories(response.data);
+      } else if (Array.isArray(response)) {
+        // Trường hợp response trả về trực tiếp là mảng
+        setCategories(response);
+      } else {
+        console.error("Dữ liệu categories không đúng định dạng:", response);
+        setCategoryError("Định dạng dữ liệu không đúng");
+        setCategories([]);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      setCategoryError("Không thể tải danh mục");
+      setCategories([]);
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  };
+
+  useEffect(() => {
     fetchCategories();
   }, []);
 
@@ -352,21 +367,54 @@ const BasicInformation = ({ productData, onInputChange }) => {
                 <div className="px-3 py-2 text-sm text-gray-500">
                   Đang tải danh mục...
                 </div>
+              ) : categoryError ? (
+                <div className="p-3">
+                  <div className="text-sm text-red-500 mb-2">
+                    {categoryError}
+                  </div>
+                  <button
+                    className="text-sm bg-blue-500 text-white px-3 py-1 rounded"
+                    onClick={() => fetchCategories(true)}
+                  >
+                    Tải lại danh mục
+                  </button>
+                </div>
               ) : categories.length > 0 ? (
-                <ul className="py-1">
-                  {categories.map((category) => (
-                    <li
-                      key={category.category_id}
-                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                      onClick={() => handleCategorySelect(category)}
+                <div>
+                  <div className="flex justify-between items-center px-3 py-1 border-b">
+                    <span className="text-xs text-gray-500">
+                      Có {categories.length} danh mục
+                    </span>
+                    <button
+                      className="text-xs text-blue-500"
+                      onClick={() => fetchCategories(true)}
                     >
-                      {category.category_name}
-                    </li>
-                  ))}
-                </ul>
+                      Tải lại
+                    </button>
+                  </div>
+                  <ul className="py-1">
+                    {categories.map((category) => (
+                      <li
+                        key={category.category_id}
+                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                        onClick={() => handleCategorySelect(category)}
+                      >
+                        {category.category_name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ) : (
-                <div className="px-3 py-2 text-sm text-gray-500">
-                  Không có danh mục nào
+                <div className="p-3">
+                  <div className="text-sm text-gray-500 mb-2">
+                    Không có danh mục nào
+                  </div>
+                  <button
+                    className="text-sm bg-blue-500 text-white px-3 py-1 rounded"
+                    onClick={() => fetchCategories(true)}
+                  >
+                    Tải lại danh mục
+                  </button>
                 </div>
               )}
             </div>

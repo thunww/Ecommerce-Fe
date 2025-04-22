@@ -22,14 +22,10 @@ const ProductPage = ({
 
   useEffect(() => {
     let filtered = [...products];
-    console.log("Initial products:", filtered);
 
     // Lọc theo tab
     if (activeTab === "outOfStock") {
       filtered = filtered.filter((product) => {
-        console.log(
-          `Product ${product.name}: stock=${product.stock}, sales=${product.sales}`
-        );
         return parseInt(product.stock) === parseInt(product.sales);
       });
     } else if (activeTab === "active") {
@@ -52,22 +48,18 @@ const ProductPage = ({
 
     // Lọc theo danh mục
     if (filters.category !== "all") {
-      console.log("Filtering by category:", filters.category);
       filtered = filtered.filter(
         (product) => product.category_id === parseInt(filters.category)
       );
-      console.log("Products after category filter:", filtered);
     }
 
     // Lọc theo loại sản phẩm
     if (filters.type !== "all") {
-      console.log("Filtering by type:", filters.type);
       filtered = filtered.filter((product) => {
         const productType = product.type?.toLowerCase() || "physical";
-        console.log(`Product ${product.name} type:`, productType);
+
         return productType === filters.type.toLowerCase();
       });
-      console.log("Products after type filter:", filtered);
     }
 
     setFilteredProducts(filtered);
@@ -80,7 +72,6 @@ const ProductPage = ({
 
   // Xử lý khi bộ lọc thay đổi
   const handleFilterChange = (newFilters) => {
-    console.log("Filter changed:", newFilters);
     setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 

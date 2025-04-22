@@ -20,7 +20,7 @@ const ProductHeader = () => {
           </button>
 
           <button
-            onClick={() => navigate("/vendor/shop/profile")}
+            onClick={() => navigate("/vendor/shop-profile")}
             className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <FaCog className="mr-2" />

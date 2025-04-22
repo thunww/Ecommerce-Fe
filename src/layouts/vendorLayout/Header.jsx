@@ -69,19 +69,14 @@ const Header = () => {
     const fetchShopInfo = async () => {
       try {
         const shopData = await getShopInfo();
-        console.log("Shop data từ API:", shopData);
 
         if (shopData && shopData.data) {
           // Nếu API trả về {data: {logo: ...}}
           setShopLogo(shopData.data.logo);
-          console.log(
-            "Đã lấy logo shop từ API response.data:",
-            shopData.data.logo
-          );
+          
         } else if (shopData && shopData.logo) {
           // Nếu API trả về {logo: ...}
           setShopLogo(shopData.logo);
-          console.log("Đã lấy logo shop từ API response:", shopData.logo);
         } else {
           console.log("Không tìm thấy logo shop trong response API");
         }

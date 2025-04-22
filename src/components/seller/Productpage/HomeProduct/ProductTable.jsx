@@ -15,7 +15,7 @@ import productService from "../../../../services/productService";
 import ConfirmDialog from "../../../ui/ConfirmDialog";
 import ImageViewer from "../../../ui/ImageViewer";
 import axios from "axios";
-import { API_BASE_URL } from "../../../../config/config";
+import { API_BASE_URL, IMAGE_PLACEHOLDER } from "../../../../config/config";
 import useProductImages from "../../../../hooks/useProductImages";
 
 const ProductTable = ({ products, onProductChanged }) => {
@@ -97,8 +97,7 @@ const ProductTable = ({ products, onProductChanged }) => {
       // Để ImageViewer tự lấy ảnh từ API
       setImageViewer({
         isOpen: true,
-        imageUrl:
-          product.image || "https://via.placeholder.com/400x400?text=No+Image",
+        imageUrl: product.image || IMAGE_PLACEHOLDER,
         productName: product.name || product.product_name || "Sản phẩm",
         images: [],
         productId: productId,
@@ -298,18 +297,14 @@ const ProductTable = ({ products, onProductChanged }) => {
                     >
                       <img
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                        src={
-                          product.image ||
-                          "https://via.placeholder.com/400x400?text=No+Image"
-                        }
+                        src={product.image || IMAGE_PLACEHOLDER}
                         alt={product.name}
                         onError={(e) => {
                           console.error(
                             "Failed to load thumbnail:",
                             e.target.src
                           );
-                          e.target.src =
-                            "https://via.placeholder.com/400x400?text=No+Image";
+                          e.target.src = IMAGE_PLACEHOLDER;
                         }}
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity duration-300 flex items-center justify-center">

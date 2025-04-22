@@ -166,8 +166,10 @@ const productService = {
         else if (key === "images" || key === "imageUrls") {
           if (!jsonData.images) jsonData.images = [];
           if (value instanceof File) {
-            // Tạm thời dùng URL placeholder cho file
-            jsonData.images.push("https://via.placeholder.com/300x300");
+            // Sử dụng một base64 image đơn giản thay vì gọi đến URL placeholder
+            jsonData.images.push(
+              "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+            );
           } else {
             jsonData.images.push(value);
           }
@@ -391,10 +393,19 @@ const productService = {
   getCategories: async () => {
     try {
       const response = await productApi.getCategories();
-      return response.data;
+      // Kiểm tra cấu trúc và trả về đúng dữ liệu là mảng categories
+      if (response && response.data && response.data.data) {
+        return response.data.data; // Cấu trúc { success, message, data }
+      } else if (response.data && Array.isArray(response.data)) {
+        return response.data; // Nếu response.data đã là mảng
+      } else if (Array.isArray(response)) {
+        return response; // Nếu response đã là mảng
+      }
+      console.warn("Cấu trúc dữ liệu categories không đúng:", response);
+      return [];
     } catch (error) {
       console.error("Error fetching categories:", error);
-      throw error;
+      return [];
     }
   },
 
