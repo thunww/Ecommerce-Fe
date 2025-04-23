@@ -4,7 +4,12 @@ import axiosClient from "./axiosClient";
 const reviewsApi = {
   getReviewsByProductId: (productId) =>
     axiosClient.get(`/reviews/${productId}`),
-  createReview: (data) => axiosClient.post("/reviews", data),
+  createReview: (productId, data) =>
+    axiosClient.post(`/reviews/products/${productId}`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
 
   updateReview: (reviewId, data) =>
     axiosClient.put(`/reviews/${reviewId}`, data),

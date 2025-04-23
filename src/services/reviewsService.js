@@ -11,9 +11,10 @@ const reviewsService = {
     }
   },
 
-  createReview: async (reviewData) => {
+  // Tạo review mới
+  createReview: async (productId, data) => {
     try {
-      const response = await reviewsApi.createReview(reviewData);
+      const response = await reviewsApi.createReview(productId, data);
       return response.data;
     } catch (error) {
       throw error;

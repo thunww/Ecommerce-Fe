@@ -36,32 +36,13 @@ const ShipperDashboard = () => {
       });
       console.log('Orders Response:', ordersResponse.data);
 
-      if (ordersResponse.data.success && ordersResponse.data.data.length > 0) {
-        const firstOrder = ordersResponse.data.data[0];
-        console.log('First Order Raw Data:', firstOrder);
-        console.log('First Order Keys:', Object.keys(firstOrder));
-        console.log('First Order ID:', firstOrder.sub_order_id);
-        console.log('First Order Status:', firstOrder.status);
-        console.log('First Order User:', firstOrder.Order?.User);
-        console.log('First Order Address:', firstOrder.Order?.shipping_address);
-        
-        // Log non-null fields
-        const nonEmptyFields = {};
-        Object.entries(firstOrder).forEach(([key, value]) => {
-          if (value !== null && value !== undefined) {
-            nonEmptyFields[key] = value;
-          }
-        });
-        console.log('First Order Non-empty Fields:', nonEmptyFields);
-      }
+      const allOrders = ordersResponse.data.data || [];
+      console.log('All orders:', allOrders);
 
       // Calculate stats from orders data
-      const allOrders = ordersResponse.data.data || [];
-      const today = new Date().toISOString().split('T')[0];
-      
       const calculatedStats = {
         todayOrders: allOrders.filter(order => 
-          order.created_at?.startsWith(today)
+          order.created_at?.startsWith(new Date().toISOString().split('T')[0])
         ).length,
         completedOrders: allOrders.filter(order => 
           order.status === 'delivered'
@@ -76,7 +57,7 @@ const ShipperDashboard = () => {
           allOrders
             .filter(order => 
               order.status === 'delivered' && 
-              order.updated_at?.startsWith(today)
+              order.updated_at?.startsWith(new Date().toISOString().split('T')[0])
             )
             .reduce((sum, order) => sum + (parseFloat(order.shipping_fee) || 0), 0)
         )
@@ -84,12 +65,8 @@ const ShipperDashboard = () => {
 
       setStats(calculatedStats);
 
-      // Lọc các đơn hàng có trạng thái processing, shipped hoặc delivered
-      const recentOrders = allOrders.filter(order => 
-        order.status === 'processing' || order.status === 'shipped' || order.status === 'delivered'
-      );
-
-      const transformedOrders = recentOrders.map(order => {
+      // Không lọc đơn hàng theo trạng thái nữa
+      const transformedOrders = allOrders.map(order => {
         const formatAddress = (addressObj) => {
           if (!addressObj) return 'Không xác định';
           const parts = [
@@ -105,11 +82,18 @@ const ShipperDashboard = () => {
         const fullName = user.first_name && user.last_name ? 
           `${user.first_name} ${user.last_name}` : 'Không xác định';
 
+        console.log('User data:', {
+          fullName,
+          profile_picture: user.profile_picture,
+          user
+        });
+
         return {
           id: order.sub_order_id?.toString() || 'Không xác định',
           customerName: fullName,
           customerPhone: user.phone || 'Không có SĐT',
           customerEmail: user.email || '',
+          customerAvatar: user.profile_picture || null,
           address: formatAddress(order.Order?.shipping_address),
           time: order.created_at ? new Date(order.created_at).toLocaleString() : 'Không xác định',
           deliveredTime: order.status === 'delivered' && order.shipment?.actual_delivery_date 
@@ -125,7 +109,8 @@ const ShipperDashboard = () => {
                  : order.status === 'cancelled' ? 'Đã hủy'
                  : 'Không xác định',
           rawStatus: order.status,
-          sub_order_id: order.sub_order_id
+          sub_order_id: order.sub_order_id,
+          shipment: order.shipment
         };
       });
 

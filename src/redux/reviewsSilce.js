@@ -17,9 +17,9 @@ export const fetchReviewsByProductId = createAsyncThunk(
 // Tạo mới review
 export const createReview = createAsyncThunk(
   "reviews/createReview",
-  async (reviewData, { rejectWithValue }) => {
+  async ({ productId, reviewData }, { rejectWithValue }) => {
     try {
-      const response = await reviewsService.createReview(reviewData);
+      const response = await reviewsService.createReview(productId, reviewData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to create review");
@@ -78,8 +78,17 @@ const reviewSlice = createSlice({
       })
 
       // Create review
+      .addCase(createReview.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(createReview.fulfilled, (state, action) => {
+        state.loading = false;
         state.reviews.push(action.payload);
+      })
+      .addCase(createReview.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
 
       // Update review

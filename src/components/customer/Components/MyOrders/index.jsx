@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllOrders } from "../../../../redux/orderSlice";
+import React, { useEffect, useState } from "react";
 import {
   FiClock,
   FiSettings,
@@ -8,16 +8,25 @@ import {
   FiCheckCircle,
   FiXCircle,
 } from "react-icons/fi";
+import { Link } from "react-router-dom";
+import RateModal from "../ProductReviews";
 
 const OrdersList = () => {
   const dispatch = useDispatch();
   const { orders, loading, error } = useSelector((state) => state.orders);
-  console.log(orders);
+  const [showRateModal, setShowRateModal] = useState(false);
+  const [selectedOrderItem, setSelectedOrderItem] = useState(null);
+
   useEffect(() => {
     dispatch(fetchAllOrders());
   }, [dispatch]);
 
-  // Function to get the icon and color based on status
+  const handleRateClick = (item) => {
+    setSelectedOrderItem(item);
+    setShowRateModal(true);
+  };
+
+  // Function to get icon and color based on status
   const getStatusIconAndColor = (status) => {
     switch (status) {
       case "pending":
@@ -68,11 +77,12 @@ const OrdersList = () => {
             return (
               <div
                 key={sub.sub_order_id}
-                className={`bg-white rounded-lg shadow-md overflow-hidden ${index !==
+                className={`bg-white rounded-lg shadow-md overflow-hidden ${
+                  index !==
                   orders.flatMap((order) => order.subOrders).length - 1
-                  ? "mb-4"
-                  : ""
-                  }`}
+                    ? "mb-4"
+                    : ""
+                }`}
               >
                 {/* Sub-order Header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-300">
@@ -103,21 +113,25 @@ const OrdersList = () => {
                 {/* Sub-order Items */}
                 <div className="p-4">
                   {sub.orderItems.length === 0 ? (
-                    <p className="text-gray-500">
-                      No products in this sub-order
-                    </p>
+                    <p className="text-gray-500">No items in this order</p>
                   ) : (
                     sub.orderItems.map((item, itemIndex) => (
                       <div
                         key={item.order_item_id}
-                        className={`flex items-start space-x-4 py-4 ${itemIndex !== 0 ? "border-t border-gray-200" : ""
-                          }`}
+                        className={`flex items-start space-x-4 py-4 ${
+                          itemIndex !== 0 ? "border-t border-gray-200" : ""
+                        }`}
                       >
-                        <img
-                          src={item.productVariant.image_url}
-                          alt={item.product.product_name}
+                        <Link
+                          to={`/product/${item.product.product_id - 1}`}
                           className="w-20 h-20 rounded-md object-cover"
-                        />
+                        >
+                          <img
+                            src={item.productVariant.image_url}
+                            alt={item.product.product_name}
+                            className="w-full h-full object-cover"
+                          />
+                        </Link>
                         <div className="flex-1">
                           <p className="text-base font-medium text-gray-800">
                             {item.product.product_name}
@@ -149,19 +163,43 @@ const OrdersList = () => {
 
                 {/* Sub-order Footer */}
                 <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-2">
-                  <button className="bg-red-500 border border-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition">
-                    Rate
-                  </button>
-                  <button className="bg-blue-500 border border-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
-                    Buy Again
-                  </button>
-                  <button className="bg-blue-500 border border-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
-                    View Details
-                  </button>
+                  {sub.status === "delivered" && sub.orderItems.length > 0 && (
+                    <>
+                      <button
+                        onClick={() => handleRateClick(sub.orderItems[0])} // Gọi modal cho sản phẩm đầu tiên
+                        className="bg-red-500 border border-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition"
+                      >
+                        Rate
+                      </button>
+                      <Link
+                        to={`/product/${
+                          sub.orderItems[0].product.product_id - 1
+                        }`}
+                        className="bg-blue-500 border border-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition text-center"
+                      >
+                        Buy Again
+                      </Link>
+                    </>
+                  )}
+                  <Link
+                    to={`#`}
+                    className="bg-blue-500 border border-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
+                  >
+                    Contact Seller
+                  </Link>
                 </div>
               </div>
             );
           })
+      )}
+
+      {/* Display RateModal */}
+      {selectedOrderItem && (
+        <RateModal
+          isOpen={showRateModal}
+          onClose={() => setShowRateModal(false)}
+          orderItem={selectedOrderItem}
+        />
       )}
     </div>
   );
