@@ -26,8 +26,7 @@ const ShipperRegister = () => {
   }, []);
 
   const vehicleTypes = [
-    { value: 'motorcycle', label: 'Xe máy' },
-    { value: 'bike', label: 'Xe đạp' },
+    { value: 'bike', label: 'Xe máy' },
     { value: 'car', label: 'Ô tô' },
     { value: 'truck', label: 'Xe tải' },
     { value: 'van', label: 'Xe tải nhỏ' }

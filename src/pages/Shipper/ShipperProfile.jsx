@@ -127,10 +127,8 @@ const ShipperProfile = () => {
 
   const getVehicleTypeText = (type) => {
     switch (type) {
-      case 'motorcycle':
-        return 'Xe máy';
       case 'bike':
-        return 'Xe đạp';
+        return 'Xe máy';
       case 'car':
         return 'Ô tô';
       case 'truck':
