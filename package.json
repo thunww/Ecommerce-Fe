@@ -37,6 +37,7 @@
     "recharts": "^2.15.1",
     "styled-components": "^6.1.15",
     "sweetalert2": "^11.17.2",
+    "sweetalert2-react-content": "^5.1.0",
     "swiper": "^11.2.6"
   },
   "devDependencies": {

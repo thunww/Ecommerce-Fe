@@ -23,25 +23,26 @@ axiosClient.interceptors.request.use(
   }
 );
 
-// Response interceptor
-axiosClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    console.error("Response error:", error.response || error);
+// // Response interceptor
+// axiosClient.interceptors.response.use(
+//   (response) => {
+//     return response;
+//   },
+//   (error) => {
+//     console.error("Response error:", error.response?.data || error);
 
-    // Xử lý lỗi 401 Unauthorized
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      // Tùy chỉnh: có thể chuyển hướng đến trang đăng nhập
-    }
+//     // Xử lý lỗi 401 Unauthorized
+//     if (error.response && error.response.status === 401) {
+//       localStorage.removeItem("accessToken");
+//       localStorage.removeItem("refreshToken");
+//       // Tùy chỉnh: có thể chuyển hướng đến trang đăng nhập
+//     }
 
-    return Promise.reject(
-      error.response?.data || error.message || "Lỗi kết nối đến server"
-    );
-  }
-);
+//     // Trả về thông báo lỗi từ backend
+//     return Promise.reject(
+//       error.response?.data?.message || error.message || "Lỗi kết nối đến server"
+//     );
+//   }
+// );
 
 export default axiosClient;

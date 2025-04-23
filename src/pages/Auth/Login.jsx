@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react"; // Thêm useEffect
 import { useDispatch, useSelector } from "react-redux";
-import { login } from "../../redux/authSlice";
+import { login, resetMessage } from "../../redux/authSlice";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -12,20 +12,31 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { message, error, isLoading } = useSelector((state) => state.auth); // Lấy message và error từ Redux
+  const { message, error, isLoading } = useSelector((state) => state.auth);
 
-  // Hiển thị toast khi message hoặc error thay đổi
+  useEffect(() => {
+    dispatch(resetMessage());
+  }, [dispatch]);
+
   useEffect(() => {
     if (message) {
-      toast.success(message, { position: "top-right" });
+      toast.success(message, {
+        position: "top-right",
+        autoClose: 2000,
+        onClose: () => dispatch(resetMessage()),
+      });
       setTimeout(() => {
         navigate("/");
-      }, 1000); // Chuyển hướng sau 1 giây
+      }, 2000);
     }
     if (error) {
-      toast.error(error, { position: "top-right" });
+      toast.error(error, {
+        position: "top-right",
+        autoClose: 3000,
+        onClose: () => dispatch(resetMessage()),
+      });
     }
-  }, [message, error, navigate]);
+  }, [message, error, navigate, dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
