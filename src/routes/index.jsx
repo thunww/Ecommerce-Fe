@@ -3,6 +3,7 @@ import AdminRoutes from "./AdminRoutes";
 import CustomerRoutes from "./CustomerRoutes";
 import PrivateRoute from "./PrivateRoute";
 import ShipperRoutes from "./ShipperRoutes";
+import ShipperRegister from "../pages/Shipper/ShipperRegister";
 
 const AppRoutes = () => {
   return (
@@ -12,8 +13,10 @@ const AppRoutes = () => {
         <Route path="/admin/*" element={<AdminRoutes />} />
       </Route>
 
-      {/* Routes cho Shipper */}
+      {/* Route đăng ký shipper - không cần xác thực */}
+      <Route path="/shipper/register" element={<ShipperRegister />} />
 
+      {/* Routes cho Shipper */}
       <Route element={<PrivateRoute allowedRoles={["shipper"]} />}>
         <Route path="/shipper/*" element={<ShipperRoutes />} />
       </Route>

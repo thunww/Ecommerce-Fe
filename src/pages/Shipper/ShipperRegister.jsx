@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -7,11 +7,23 @@ import ShipperLogo from '../../components/shipper/ShipperLogo';
 const ShipperRegister = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [formData, setFormData] = useState({
     vehicle_type: '',
     license_plate: '',
     phone: ''
   });
+
+  useEffect(() => {
+    // Kiểm tra xác thực khi component mount
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      toast.warning('Vui lòng đăng nhập để đăng ký làm shipper');
+      setIsAuthenticated(false);
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   const vehicleTypes = [
     { value: 'motorcycle', label: 'Xe máy' },
@@ -48,6 +60,12 @@ const ShipperRegister = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (!isAuthenticated) {
+      toast.warning('Vui lòng đăng nhập để đăng ký làm shipper');
+      navigate('/login');
+      return;
+    }
+
     const errors = validateForm();
     if (errors.length > 0) {
       errors.forEach(error => toast.error(error));
@@ -56,11 +74,17 @@ const ShipperRegister = () => {
 
     try {
       setLoading(true);
-      const response = await axios.post('/api/v1/shippers/register', formData);
+      const token = localStorage.getItem('accessToken');
+      const response = await axios.post('/api/v1/shippers/register', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       
       if (response.data.success) {
-        toast.success('Đăng ký shipper thành công');
-        navigate('/shipper/dashboard');
+        toast.success('Đăng ký shipper thành công. Vui lòng đợi admin xét duyệt.');
+        // Chuyển về trang chủ thay vì dashboard
+        navigate('/');
       } else {
         toast.error(response.data.message || 'Đăng ký thất bại');
       }
@@ -71,6 +95,65 @@ const ShipperRegister = () => {
       setLoading(false);
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div style={{ 
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+        padding: '40px 20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ 
+          maxWidth: '400px', 
+          margin: '0 auto',
+          backgroundColor: '#fff',
+          borderRadius: '12px',
+          boxShadow: '0 8px 20px rgba(0,0,0,0.1)',
+          padding: '30px',
+          textAlign: 'center'
+        }}>
+          <div style={{ marginBottom: '20px' }}>
+            <ShipperLogo width={80} height={80} />
+          </div>
+          <h2 style={{ 
+            fontSize: '24px',
+            fontWeight: 'bold',
+            margin: '0 0 20px',
+            color: '#333'
+          }}>
+            Vui lòng đăng nhập
+          </h2>
+          <p style={{ 
+            margin: '0 0 30px',
+            color: '#666'
+          }}>
+            Bạn cần đăng nhập để đăng ký làm shipper
+          </p>
+          <button
+            onClick={() => navigate('/login')}
+            style={{
+              width: '100%',
+              padding: '14px',
+              backgroundColor: '#1890ff',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'all 0.3s',
+              boxShadow: '0 2px 8px rgba(24,144,255,0.35)'
+            }}
+          >
+            Đăng nhập ngay
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
