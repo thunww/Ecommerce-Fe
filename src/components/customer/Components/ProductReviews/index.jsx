@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FiStar, FiX, FiCamera } from "react-icons/fi";
 import { createReview } from "../../../../redux/reviewsSilce";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const RateModal = ({ isOpen, onClose, orderItem }) => {
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.reviews);
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
-  const [image, setImage] = useState(null); // Only one image
+  const [image, setImage] = useState(null);
   const [localError, setLocalError] = useState(null);
 
   const handleRating = (value) => {
@@ -17,7 +19,6 @@ const RateModal = ({ isOpen, onClose, orderItem }) => {
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    console.log(file);
     if (file) {
       if (file.type.startsWith("image/")) {
         setImage({
@@ -60,16 +61,23 @@ const RateModal = ({ isOpen, onClose, orderItem }) => {
         })
       ).unwrap();
 
-      alert("Review submitted successfully!");
+      toast.success("Review submitted successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       setRating(0);
       setReviewText("");
       setImage(null);
       onClose();
     } catch (err) {
-      console.error(err); // Log the error if any
-      setLocalError("Failed to submit review. Please try again.");
+      console.error(err);
+      toast.error("Failed to submit review. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
+
   if (!isOpen || !orderItem) return null;
 
   return (
@@ -109,8 +117,8 @@ const RateModal = ({ isOpen, onClose, orderItem }) => {
         </div>
 
         {/* Error message */}
-        {(localError || error) && (
-          <p className="text-red-500 text-sm mb-4">{localError || error}</p>
+        {localError && (
+          <p className="text-red-500 text-sm mb-4">{localError}</p>
         )}
 
         {/* Rating */}
