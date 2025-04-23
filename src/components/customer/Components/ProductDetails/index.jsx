@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import Rating from "@mui/material/Rating";
 import { Divider } from "@mui/material";
@@ -11,6 +11,8 @@ import { useNavigate } from "react-router-dom";
 import { addToCart } from "../../../../redux/slices/cartSlice";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+
 
 const formatVND = (price) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
@@ -29,13 +31,33 @@ const ProductDetailsComponent = ({ product, selectedVariant, onVariantChange }) 
   const [currentImages, setCurrentImages] = useState([]);
   const [selectedSize, setSelectedSize] = useState(null);
 
-  const allSizes = Array.from(
-    new Set(
-      product?.variants
-        ?.flatMap((variant) => variant.size?.split(",").map((s) => s.trim()))
-        .filter(Boolean)
-    )
-  );
+  const selected = product?.variants?.[selectedVariant];
+  const allowedSizes = ["S", "M", "L"];
+  const allSizes = useMemo(() => {
+    return Array.from(
+      new Set(
+        product?.variants
+          ?.flatMap((variant) => variant.size?.split(",").map((s) => s.trim()))
+          .filter((size) => allowedSizes.includes(size))
+      )
+    );
+  }, [product]);
+  const allowedColors = ["white", "brown", "bee"];
+  const allColorVariants = useMemo(() => {
+    const seenColors = new Set();
+    return product?.variants?.filter((variant) => {
+      const color = variant.color?.toLowerCase();
+      if (allowedColors.includes(color) && !seenColors.has(color)) {
+        seenColors.add(color);
+        return true;
+      }
+      return false;
+    }) || [];
+  }, [product]);
+  const isValidToBuy = Boolean(selectedSize && selectedVariant !== null && selected?.variant_id);
+
+
+
 
   useEffect(() => {
     if (product?.variants?.length > 0) {
@@ -74,7 +96,7 @@ const ProductDetailsComponent = ({ product, selectedVariant, onVariantChange }) 
     return <div>This product or variant is not active</div>;
   }
 
-  const selected = product?.variants?.[selectedVariant];
+
   const stock = selected ? selected.stock : 0;
 
   const discount = product?.discount ? parseFloat(product?.discount) : 0;
@@ -89,8 +111,8 @@ const ProductDetailsComponent = ({ product, selectedVariant, onVariantChange }) 
   );
 
   const handleBuyNow = async () => {
-    if (!selected) {
-      toast.error('Vui lòng chọn sản phẩm');
+    if (!isValidToBuy) {
+      toast.error("Vui lòng chọn đầy đủ size và màu hợp lệ trước khi mua");
       return;
     }
 
@@ -275,52 +297,65 @@ const ProductDetailsComponent = ({ product, selectedVariant, onVariantChange }) 
           {/* Variant Selection (Color + RAM + Storage) */}
           {product?.variants?.length > 0 && (
             <div className="my-4">
-              <h2 className="text-md font-medium text-gray-800 mb-2">
-                Configuration
-              </h2>
+              <h2 className="text-md font-medium text-gray-800 mb-2">Configuration</h2>
               <div className="grid grid-cols-2 gap-2">
-                {product?.variants.map((variant, index) => {
-                  const isAvailable = selectedSize === variant.size;
+                {allowedColors.map((color) => {
+                  // Tìm variant đầu tiên theo size + color (để hiển thị hình và thông tin)
+                  const matchingVariant = product.variants.find(
+                    (v) =>
+                      v.color?.toLowerCase() === color &&
+                      v.size?.split(",").map((s) => s.trim()).includes(selectedSize)
+                  );
+
+                  const fallbackVariant = product.variants.find(
+                    (v) => v.color?.toLowerCase() === color
+                  );
+
+                  const isAvailable = Boolean(matchingVariant);
+                  const variantToShow = matchingVariant || fallbackVariant;
+
+                  if (!variantToShow) return null;
+
                   return (
                     <motion.button
-                      key={variant.variant_id}
+                      key={variantToShow.variant_id}
                       whileHover={{ scale: isAvailable ? 1.03 : 1 }}
                       whileTap={{ scale: isAvailable ? 0.97 : 1 }}
-                      onClick={() => handleSelectVariant(index)}
+                      onClick={() => {
+                        if (isAvailable) {
+                          const index = product.variants.findIndex(
+                            (v) => v.variant_id === matchingVariant.variant_id
+                          );
+                          handleSelectVariant(index);
+                        }
+                      }}
                       disabled={!isAvailable}
-                      className={`p-2 rounded-lg border-2 transition-all flex items-center gap-2 ${selected?.variant_id === variant.variant_id &&
-                        isAvailable
+                      className={`p-2 rounded-lg border-2 transition-all flex items-center gap-2 ${selected?.variant_id === variantToShow.variant_id && isAvailable
                         ? "border-indigo-600 bg-indigo-50 text-indigo-700"
                         : "border-gray-200"
-                        } ${!isAvailable
-                          ? "opacity-50 cursor-not-allowed"
-                          : "hover:border-gray-300"
-                        }`}
+                        } ${!isAvailable ? "opacity-50 cursor-not-allowed" : "hover:border-gray-300"}`}
                     >
                       <img
-                        src={variant.image_url}
-                        alt={variant.color}
+                        src={variantToShow.image_url}
+                        alt={variantToShow.color}
                         className="w-8 h-8 rounded object-cover border"
                       />
                       <span className="text-sm font-medium">
-                        {variant.color}
-                        {variant.ram ? ` - ${variant.ram}GB` : ""}
-                        {variant.storage ? `/${variant.storage}GB` : ""}
+                        {variantToShow.color}
+                        {variantToShow.ram ? ` - ${variantToShow.ram}GB` : ""}
+                        {variantToShow.storage ? `/${variantToShow.storage}GB` : ""}
                       </span>
-
-                      {selected?.variant_id === variant.variant_id &&
-                        isAvailable && (
-                          <FaCheck
-                            className="text-indigo-600 ml-auto"
-                            size={12}
-                          />
-                        )}
+                      {selected?.variant_id === variantToShow.variant_id && isAvailable && (
+                        <FaCheck className="text-indigo-600 ml-auto" size={12} />
+                      )}
                     </motion.button>
                   );
                 })}
               </div>
             </div>
+
           )}
+
           <div className="my-4">
             <h2 className="text-md font-medium text-gray-800 mb-2">Quantity</h2>
             <div className="flex items-center">
@@ -377,7 +412,8 @@ const ProductDetailsComponent = ({ product, selectedVariant, onVariantChange }) 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleBuyNow}
-              disabled={!selected}
+
+              disabled={!isValidToBuy}
               className="flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Buy now
@@ -386,7 +422,8 @@ const ProductDetailsComponent = ({ product, selectedVariant, onVariantChange }) 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleAddToCart}
-              disabled={!selected}
+
+              disabled={!isValidToBuy}
               className="flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <MdOutlineShoppingCart size={20} />
