@@ -34,6 +34,8 @@ const ManageProducts = () => {
     dispatch(fetchAllShops());
   }, [dispatch]);
 
+  console.log(products);
+
   const filteredProducts =
     products?.filter((product) =>
       product.product_name?.toLowerCase().includes(search.toLowerCase())
@@ -153,13 +155,13 @@ const ManageProducts = () => {
     { header: "ID", field: "product_id" },
     {
       header: "Product Image",
-      field: "image",
-      render: (image) => (
+      field: "variants",
+      render: (_, product) => (
         <div className="flex justify-center">
           <img
             src={
-              "https://th.bing.com/th/id/OIP.G_W3gQt1J0wtOMWzPkhH4QHaHa?rs=1&pid=ImgDetMain" ||
-              image
+              product.variants?.[0]?.image_url ||
+              "https://th.bing.com/th/id/OIP.G_W3gQt1J0wtOMWzPkhH4QHaHa?rs=1&pid=ImgDetMain"
             }
             alt="Product"
             className="w-12 h-12 rounded object-cover border border-gray-300 shadow-sm"
@@ -183,24 +185,23 @@ const ManageProducts = () => {
         return product?.category_name || "Unknown";
       },
     },
-    { header: "Price", field: "price" },
     { header: "Stock", field: "stock" },
     {
       header: "Status",
       field: "status",
-      render: (status) => (
+      render: (_, product) => (
         <span
           className={`px-3 py-1 rounded-full text-xs font-medium ${
-            status === "active"
+            product?.status === "active"
               ? "bg-green-100 text-green-800"
-              : status === "inactive"
+              : product.status === "inactive"
               ? "bg-red-300 text-red-500"
-              : status === "pending"
+              : product.status === "pending"
               ? "bg-yellow-300 text-yellow-800"
               : "bg-yellow-100 text-yellow-800"
           }`}
         >
-          {status}
+          {product.status || "Unknown"}
         </span>
       ),
     },

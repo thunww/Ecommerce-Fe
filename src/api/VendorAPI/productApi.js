@@ -115,6 +115,8 @@ const productApi = {
     });
   },
 
+  
+
   // Lấy danh sách sản phẩm theo bộ lọc
   getFilteredProducts: (shopId, params) => {
     return axiosClient.get(`/vendor/products/filter`, { params });

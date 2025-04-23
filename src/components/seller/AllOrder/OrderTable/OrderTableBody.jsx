@@ -5,14 +5,7 @@ class OrderTableBody extends Component {
   render() {
     const { orders, selectedOrders, onSelectOrder, onOrderAction } = this.props;
 
-    console.log(
-      "Orders in OrderTableBody:",
-      orders.map((order) => ({
-        id: order.id,
-        product_id: order.product_id,
-        status: order.latest_order_status,
-      }))
-    );
+   
 
     return (
       <div className="border-b rounded-b-lg">

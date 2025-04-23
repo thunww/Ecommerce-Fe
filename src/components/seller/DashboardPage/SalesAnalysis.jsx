@@ -29,15 +29,15 @@ const SalesAnalytics = () => {
           throw new Error('Please login again');
         }
 
-        console.log('Token:', token);
+        
 
         // Call API to get revenue
         const revenueResponse = await revenueApi.getRevenue();
-        console.log('Revenue API Response:', revenueResponse);
+        
         
         // Call API to get shop info
         const shopResponse = await shopApi.getShopInfo();
-        console.log('Shop API Response:', shopResponse);
+        
 
         // Parse and validate numeric values
         const revenue = parseFloat(revenueResponse?.data?.totalRevenue) || 0;
@@ -69,7 +69,7 @@ const SalesAnalytics = () => {
           revenueByStatus: revenueResponse?.data?.deliveredOrders || []
         });
       } catch (error) {
-        console.error('Error fetching data:', error);
+        
         setError(error.message || 'Unable to load statistics');
       } finally {
         setLoading(false);

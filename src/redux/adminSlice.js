@@ -86,11 +86,24 @@ export const assignRoleToUser = createAsyncThunk(
     }
   }
 );
+
+export const uploadAvatar = createAsyncThunk(
+  "admin/uploadAvatar",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await adminService.uploadAvatar(formData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Lỗi khi upload avatar");
+    }
+  }
+);
 const adminSlice = createSlice({
   name: "admin",
   initialState: {
     users: [],
     selectedUser: null,
+    avatar: null,
     loading: false,
     error: null,
   },
@@ -187,6 +200,21 @@ const adminSlice = createSlice({
             ? { ...user, roles: [...user.roles, action.payload.role] }
             : user
         );
+      })
+
+      // Handle upload avatar
+      .addCase(uploadAvatar.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(uploadAvatar.fulfilled, (state, action) => {
+        state.loading = false;
+        // You can store the uploaded avatar URL or path if needed
+        state.avatar = action.payload.avatar;
+      })
+      .addCase(uploadAvatar.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

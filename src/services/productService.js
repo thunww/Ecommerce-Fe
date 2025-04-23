@@ -1,5 +1,7 @@
 import productApi from "../api/VendorAPI/productApi";
+import productApi1 from "../api/productApi";
 import axiosClient from "../api/axiosClient";
+import axios from "axios";
 
 const productService = {
   // Lấy danh sách sản phẩm theo shopId
@@ -20,6 +22,58 @@ const productService = {
       return response.data;
     } catch (error) {
       console.error("Error fetching product details:", error);
+      throw error;
+    }
+  },
+  updateProductStatus: async (productId, status) => {
+    try {
+      const response = await productApi.updateProductStatus(productId, status);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getProductRelated: async (categoryId) => {
+    try {
+      const response = await productApi.getProductRelated(categoryId);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  searchProduct: async ({
+    keyword = "",
+    categoryId,
+    minPrice,
+    maxPrice,
+    sort,
+  } = {}) => {
+    try {
+      const response = await productApi.searchProduct({
+        keyword,
+        categoryId,
+        minPrice,
+        maxPrice,
+        sort,
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  searchSuggest: async (keyword, limit = 5) => {
+    try {
+      const response = await productApi.searchSuggest(keyword, limit);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  deleteProductById: async (productId) => {
+    try {
+      const response = await productApi.deleteProduct(productId);
+      return response.data;
+    } catch (error) {
       throw error;
     }
   },
@@ -53,65 +107,67 @@ const productService = {
       "weight",
     ];
 
-    // Kiểm tra và thêm các trường còn thiếu với giá trị mặc định
-    for (const field of requiredFields) {
-      if (!existingKeys.includes(field)) {
-        console.warn(`Trường ${field} bị thiếu, thêm giá trị mặc định`);
-
-        // Thêm giá trị mặc định tùy theo trường
-        switch (field) {
-          case "productName":
-            formData.append("productName", "Sản phẩm mới");
-            break;
-          case "price":
-            formData.append("price", "0");
-            break;
-          case "stock":
-            formData.append("stock", "1");
-            break;
-          case "category":
-            formData.append("category", "3"); // Mặc định là Computers
-            break;
-          case "description":
-            formData.append("description", "Chưa có mô tả");
-            break;
-          case "status":
-            formData.append("status", "pending");
-            break;
-          case "parcelSize":
-            formData.append("parcelSize", "medium");
-            break;
-          case "weight":
-            formData.append("weight", "0.5");
-            break;
-          default:
-            formData.append(field, "");
-        }
-      }
+    // Kiểm tra các trường bắt buộc
+    const missingFields = requiredFields.filter(
+      (field) => !existingKeys.includes(field)
+    );
+    if (missingFields.length > 0) {
+      console.error("Thiếu các trường bắt buộc:", missingFields);
+      throw new Error(`Thiếu các trường bắt buộc: ${missingFields.join(", ")}`);
     }
 
-    // Lấy userId từ localStorage
-    const userDataStr = localStorage.getItem("user");
-    let shopId = "1"; // Giá trị mặc định
+    // Lấy shopId bằng cách gọi trực tiếp API với đường dẫn chính xác
+    let shopId = null; // Ban đầu không có giá trị
 
-    if (userDataStr) {
-      try {
-        const userData = JSON.parse(userDataStr);
-        const userId = userData.id;
-        console.log("Đã lấy được userId từ localStorage:", userId);
+    try {
+      console.log("Bắt đầu lấy thông tin shop...");
 
-        // Map userId với shopId tương ứng
-        // Giả sử có một mapping đơn giản
-        shopId = userId.toString();
-        console.log("ShopId được map:", shopId);
-      } catch (error) {
-        console.error("Lỗi khi parse userData từ localStorage:", error);
+      // Lấy token từ localStorage
+      const token = localStorage.getItem("token");
+      console.log("Token hiện tại:", token ? "Có token" : "Không có token");
+
+      // Đường dẫn API chính xác như trong screenshot
+      const apiUrl = "http://localhost:8080/api/v1/vendor/my-shop";
+      console.log("Gọi API:", apiUrl);
+
+      // Gọi API với token đầy đủ
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      // Kiểm tra status code
+      console.log("API Status Code:", response.status);
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
       }
-    } else {
-      console.warn("Không tìm thấy thông tin user trong localStorage");
+
+      // Parse JSON response
+      const data = await response.json();
+      console.log("API Response Data:", data);
+
+      // Lấy shop_id từ response
+      if (data && data.shop_id !== undefined) {
+        shopId = data.shop_id.toString();
+        console.log("Lấy được shopId từ API:", shopId);
+      } else {
+        console.error("Không tìm thấy shop_id trong phản hồi API:", data);
+      }
+    } catch (error) {
+      console.error("Lỗi khi gọi API lấy shop:", error);
     }
 
-    // Thêm hoặc cập nhật shopId trong formData
+    // Nếu không lấy được shopId từ API, sử dụng giá trị cố định từ screenshot
+    if (!shopId) {
+      shopId = "2"; // Giá trị từ screenshot API
+      console.log("Sử dụng shopId mặc định:", shopId);
+    }
+
+    // Đảm bảo thêm shopId vào formData
     formData.set("shopId", shopId);
     console.log("Đã set shopId trong formData:", shopId);
 
@@ -166,10 +222,8 @@ const productService = {
         else if (key === "images" || key === "imageUrls") {
           if (!jsonData.images) jsonData.images = [];
           if (value instanceof File) {
-            // Sử dụng một base64 image đơn giản thay vì gọi đến URL placeholder
-            jsonData.images.push(
-              "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-            );
+            // Tạm thời dùng URL placeholder cho file
+            jsonData.images.push("https://via.placeholder.com/300x300");
           } else {
             jsonData.images.push(value);
           }
@@ -393,25 +447,17 @@ const productService = {
   getCategories: async () => {
     try {
       const response = await productApi.getCategories();
-      // Kiểm tra cấu trúc và trả về đúng dữ liệu là mảng categories
-      if (response && response.data && response.data.data) {
-        return response.data.data; // Cấu trúc { success, message, data }
-      } else if (response.data && Array.isArray(response.data)) {
-        return response.data; // Nếu response.data đã là mảng
-      } else if (Array.isArray(response)) {
-        return response; // Nếu response đã là mảng
-      }
-      console.warn("Cấu trúc dữ liệu categories không đúng:", response);
-      return [];
+      return response.data;
     } catch (error) {
       console.error("Error fetching categories:", error);
-      return [];
+      throw error;
     }
   },
 
   getAllProducts: async () => {
     try {
-      const response = await productApi.getAllProducts();
+      const response = await productApi1.getAllProducts();
+      console.log(response);
       return response.data;
     } catch (error) {
       throw error;

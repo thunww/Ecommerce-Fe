@@ -28,11 +28,9 @@ const ShopProfile = () => {
   useEffect(() => {
     // Get user info from localStorage
     const user = JSON.parse(localStorage.getItem("user"));
-    console.log("User from localStorage:", user);
 
     if (user && (user.id || user.user_id)) {
       const userId = user.id || user.user_id;
-      console.log("Using user ID:", userId);
       fetchUserData(userId);
     } else {
       toast.error("User information not found, please login again");
@@ -45,23 +43,19 @@ const ShopProfile = () => {
     try {
       setLoading(true);
       const response = await getShopInfo();
-      console.log("Shop info fetched:", response);
 
       // API returns the correct format { shop_id, shop_name, logo, ... }
       if (response) {
         // Response structure can be response or response.data depending on API
         const shopData = response.data || response;
-        console.log("Shop data processed:", shopData);
         setShopInfo(shopData);
 
         // Update avatar using shop logo
         if (shopData.logo) {
-          console.log("Using shop logo as avatar:", shopData.logo);
           setPreviewUrl(shopData.logo);
         }
       }
     } catch (error) {
-      console.error("Error fetching shop info:", error);
       toast.error("Unable to retrieve shop information");
     } finally {
       setLoading(false);
@@ -72,13 +66,10 @@ const ShopProfile = () => {
   const fetchUserData = async (userId) => {
     try {
       setLoading(true);
-      console.log("Fetching user data for ID:", userId);
       const response = await authService.getUserById(userId);
-      console.log("User data FULL response:", response);
 
       if (response && response.success === true && response.user) {
         const user = response.user;
-        console.log("User data object EXTRACTED:", user);
 
         // Assign user info directly
         setUserData(user);
@@ -109,18 +100,15 @@ const ShopProfile = () => {
             dob: dobObj,
             // Don't update avatar_url from user anymore, prioritize shop logo
           };
-          console.log("Updated shop data with user info:", updatedData);
           return updatedData;
         });
 
         // DON'T update avatar from user.profile_picture anymore
         // Only update from shop logo in fetchShopInfo function
       } else {
-        console.error("Invalid user data structure:", response);
         toast.error("Invalid user data format");
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
       toast.error("Unable to retrieve user information");
     } finally {
       setLoading(false);
@@ -162,7 +150,6 @@ const ShopProfile = () => {
             : undefined,
       };
 
-      console.log("Updating user with data:", updateData);
 
       // Call API to update user information - edit API path
       const response = await fetch(`/users/${userId}`, {
@@ -185,7 +172,7 @@ const ShopProfile = () => {
         toast.error(data.message || "Failed to update information");
       }
     } catch (error) {
-      console.error("Error updating user info:", error);
+      
       toast.error(
         "Error updating information: " + (error.message || "Unknown error")
       );
@@ -244,7 +231,7 @@ const ShopProfile = () => {
         toast.error(data.message || "Failed to update shop logo");
       }
     } catch (error) {
-      console.error("Error uploading shop logo:", error);
+     
       toast.error("Error uploading shop logo");
     } finally {
       setLoading(false);

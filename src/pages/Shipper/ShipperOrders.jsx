@@ -1,139 +1,192 @@
-import { useState } from "react";
-import { FaAngleLeft, FaAngleRight } from "react-icons/fa";
-import { Link } from "react-router-dom"; // Import Link
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import OrdersTable from "../../components/shipper/OrdersTable";
+import { FaSearch, FaFilter } from "react-icons/fa";
+import { toast } from "react-toastify";
+import axios from 'axios';
 
-const statusClasses = {
-  "Chờ xác nhận": "bg-yellow-100 text-yellow-700",
-  "Đang giao": "bg-blue-100 text-blue-700",
-  "Đã hoàn thành": "bg-green-100 text-green-700",
-  "Đã hủy": "bg-red-100 text-red-700"
-};
+const ShipperOrders = () => {
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
-const tabs = ["Tất cả", "Chờ xác nhận", "Đang giao", "Đã hoàn thành", "Đã hủy"];
-const itemsPerPage = 10;
+  const fetchOrders = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        toast.error('Vui lòng đăng nhập lại');
+        return;
+      }
 
-const sampleOrders = [
-  { id: "ORD0012345", name: "Nguyễn Văn A", phone: "0912345678", price: 150000, date: "2025-03-07T10:30", address: "23 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh", status: "Chờ xác nhận" },
-  { id: "ORD0012344", name: "Trần Thị B", phone: "0987654321", price: 200000, date: "2025-03-07T09:45", address: "45 Lê Lợi, Quận 3, TP. Hồ Chí Minh", status: "Đang giao" },
-  { id: "ORD0012343", name: "Phạm Văn C", phone: "0909123456", price: 350000, date: "2025-03-06T16:20", address: "12 Trần Phú, Quận 5, TP. Hồ Chí Minh", status: "Đã hoàn thành" },
-  { id: "ORD0012342", name: "Lê Thị D", phone: "0976543210", price: 120000, date: "2025-03-06T14:15", address: "78 Võ Văn Tần, Quận 10, TP. Hồ Chí Minh", status: "Đã hủy" }
-];
+      const API_URL = 'http://localhost:8080';
+      const response = await axios.get(
+        `${API_URL}/api/v1/shippers/sub_orders`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
 
-export default function Orders() {
-  const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("Tất cả");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [ordersData] = useState(sampleOrders);
+      if (response.data.success) {
+        const transformedOrders = response.data.data.map(order => {
+          const formatAddress = (addressObj) => {
+            if (!addressObj) return 'Không xác định';
+            const parts = [
+              addressObj.address_line,
+              addressObj.city,
+              addressObj.province,
+              addressObj.postal_code
+            ].filter(Boolean);
+            return parts.join(', ');
+          };
 
-  const filteredOrders = ordersData
-    .filter(order =>
-      (activeTab === "Tất cả" || order.status === activeTab) &&
-      (order.id.includes(search) || order.name.includes(search)) &&
-      (!startDate || new Date(order.date) >= new Date(startDate)) &&
-      (!endDate || new Date(order.date) <= new Date(endDate))
-    );
+          const user = order.Order?.User || {};
+          const fullName = user.first_name && user.last_name ? 
+            `${user.first_name} ${user.last_name}` : 'Không xác định';
 
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  const displayedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+          return {
+            id: order.sub_order_id?.toString() || 'Không xác định',
+            sub_order_id: order.sub_order_id,
+            customerName: fullName,
+            customerPhone: user.phone || 'Không có SĐT',
+            customerEmail: user.email || '',
+            address: formatAddress(order.Order?.shipping_address),
+            time: order.created_at ? new Date(order.created_at).toLocaleString() : 'Không xác định',
+            deliveredTime: order.status === 'delivered' && order.shipment?.actual_delivery_date 
+              ? new Date(order.shipment.actual_delivery_date).toLocaleString() 
+              : null,
+            total: parseFloat(order.shipping_fee || 0).toLocaleString('vi-VN', {
+              style: 'currency',
+              currency: 'VND'
+            }),
+            status: order.status === 'processing' ? 'Đang xử lý' 
+                   : order.status === 'shipped' ? 'Đang giao hàng'
+                   : order.status === 'delivered' ? 'Đã hoàn thành'
+                   : order.status === 'cancelled' ? 'Đã hủy'
+                   : 'Không xác định',
+            rawStatus: order.status
+          };
+        });
+        setOrders(transformedOrders);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      toast.error(error.response?.data?.message || 'Không thể tải danh sách đơn hàng');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = 
+      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerPhone.includes(searchTerm) ||
+      order.address.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = 
+      statusFilter === 'all' || 
+      order.rawStatus === statusFilter;
+
+    // Implement date filtering if needed
+    const matchesDate = true; // For now, we'll skip date filtering
+
+    return matchesSearch && matchesStatus && matchesDate;
+  });
+
+  const filterOptions = [
+    { value: 'all', label: 'Tất cả đơn' },
+    { value: 'processing', label: 'Đang xử lý' },
+    { value: 'shipped', label: 'Đang giao' },
+    { value: 'delivered', label: 'Đã hoàn thành' },
+    { value: 'cancelled', label: 'Đã hủy' }
+  ];
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-md">
-        {/* Tabs */}
-        <div className="flex space-x-4 border-b pb-2 mb-4">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              className={`px-4 py-2 rounded-t-md ${activeTab === tab ? "border-b-2 border-red-500 text-red-500" : "text-gray-500"}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-        
-        {/* Search Bar & Filters */}
-        <div className="mb-4 flex space-x-2">
-          <input
-            type="text"
-            placeholder="Tìm kiếm theo mã đơn hàng, tên khách hàng..."
-            className="p-2 border rounded flex-grow"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <input
-            type="date"
-            className="p-2 border rounded"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-          <input
-            type="date"
-            className="p-2 border rounded"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
-        
-        {/* Order Table */}
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2">Mã đơn</th>
-              <th className="border p-2">Khách hàng</th>
-              <th className="border p-2">Số điện thoại</th>
-              <th className="border p-2">Giá trị</th>
-              <th className="border p-2">Ngày tạo</th>
-              <th className="border p-2">Địa chỉ</th>
-              <th className="border p-2">Trạng thái</th>
-              <th className="border p-2">Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayedOrders.length > 0 ? (
-              displayedOrders.map((order) => (
-                <tr key={order.id} className="border">
-                  <td className="border p-2 text-blue-600 font-semibold">#{order.id}</td>
-                  <td className="border p-2">{order.name}</td>
-                  <td className="border p-2">{order.phone}</td>
-                  <td className="border p-2">{order.price.toLocaleString()}đ</td>
-                  <td className="border p-2">{new Date(order.date).toLocaleString()}</td>
-                  <td className="border p-2">{order.address}</td>
-                  <td className={`border p-2 rounded ${statusClasses[order.status]}`}>{order.status}</td>
-                  <td className="border p-2">
-                    <Link to={`/shipper/orders/${order.id}`} className="bg-red-500 text-white px-3 py-1 rounded">Chi tiết</Link>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="8" className="border p-2 text-center">Không có đơn hàng nào được tìm thấy.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="p-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <h1 className="text-2xl font-semibold text-gray-800">Danh sách đơn hàng</h1>
+            
+            <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+              {/* Search Box */}
+              <div className="relative flex-1 md:flex-none md:w-64">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm đơn hàng..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
 
-        {/* Pagination */}
-        <div className="flex justify-between mt-4">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="bg-gray-300 text-gray-700 px-3 py-1 rounded disabled:opacity-50"
-          >
-            <FaAngleLeft />
-          </button>
-          <span>{`Trang ${currentPage} / ${totalPages}`}</span>
-          <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="bg-gray-300 text-gray-700 px-3 py-1 rounded disabled:opacity-50"
-          >
-            <FaAngleRight />
-          </button>
+              {/* Filter Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowFilterMenu(!showFilterMenu)}
+                  className="flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-gray-50"
+                >
+                  <FaFilter className="text-gray-500" />
+                  <span>
+                    {filterOptions.find(option => option.value === statusFilter)?.label}
+                  </span>
+                </button>
+
+                {showFilterMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
+                    {filterOptions.map(option => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setStatusFilter(option.value);
+                          setShowFilterMenu(false);
+                        }}
+                        className={`block w-full text-left px-4 py-2 text-sm ${
+                          statusFilter === option.value 
+                            ? 'bg-red-50 text-red-700' 
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">Không tìm thấy đơn hàng nào</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <OrdersTable 
+                orders={filteredOrders} 
+                onOrderUpdate={fetchOrders}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ShipperOrders;

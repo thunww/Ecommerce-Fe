@@ -10,6 +10,7 @@ import Shipping from "./components/Shipping";
 import Others from "./components/Others";
 import FooterButtons from "./components/FooterButtons";
 import productService from "../../../../services/productService";
+import { getShopInfo } from "../../../../services/vendorService";
 
 // Key để lưu và lấy draft từ localStorage
 const PRODUCT_DRAFT_KEY = "shopee_product_draft";
@@ -17,6 +18,7 @@ const PRODUCT_DRAFT_KEY = "shopee_product_draft";
 const AddProduct = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Basic information");
+  const [shopId, setShopId] = useState(null);
 
   const fillingSuggestionRef = useRef(null);
   const basicInfoRef = useRef(null);
@@ -76,6 +78,25 @@ const AddProduct = () => {
     };
 
     checkForDraft();
+  }, []);
+
+  // Lấy thông tin shop khi component được tải
+  useEffect(() => {
+    const fetchShopInfo = async () => {
+      try {
+        const response = await getShopInfo();
+        if (response && response.shop_id) {
+          setShopId(response.shop_id);
+        } else {
+          toast.error("Không thể lấy thông tin cửa hàng");
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy thông tin shop:", error);
+        toast.error("Lỗi khi lấy thông tin cửa hàng");
+      }
+    };
+
+    fetchShopInfo();
   }, []);
 
   // Hàm khôi phục dữ liệu nháp từ localStorage
@@ -225,20 +246,20 @@ const AddProduct = () => {
   }, []);
 
   const handleSubmit = async (action) => {
-    console.log("Thực hiện hành động:", action);
-    console.log("Dữ liệu sản phẩm chi tiết:", productData);
-
     try {
       toast.dismiss();
-      toast.info("Đang xử lý...", { autoClose: 3000 });
+      toast.info("Processing...", { autoClose: 3000 });
+
+      // Kiểm tra nếu shopId chưa được lấy
+      if (!shopId) {
+        toast.error("Thông tin cửa hàng chưa sẵn sàng, vui lòng thử lại sau");
+        return;
+      }
 
       // Tạo FormData mới
       const formData = new FormData();
 
-      // Kiểm tra và thêm các trường bắt buộc với giá trị hợp lệ
-      // Nếu giá trị không hợp lệ, sử dụng giá trị mặc định
-
-      // Tên sản phẩm - Nếu trống, sử dụng "Sản phẩm mới"
+      
       formData.append(
         "productName",
         productData.productName?.trim() || "Sản phẩm mới"
@@ -268,8 +289,8 @@ const AddProduct = () => {
       // Danh mục - Nếu trống, sử dụng ID danh mục mặc định
       formData.append("category", productData.category || "1");
 
-      // Shop ID luôn cố định
-      formData.append("shopId", "1");
+      // Sử dụng shopId từ API thay vì giá trị cố định
+      formData.append("shopId", shopId.toString());
 
       // Cân nặng - Nếu không hợp lệ, sử dụng 0.5
       const weight =
@@ -485,9 +506,9 @@ const AddProduct = () => {
           // Trường hợp có product_id trong data
           if (response.data && response.data.product_id) {
             toast.success(
-              `Sản phẩm đã được ${
-                action === "save" ? "lưu nháp" : "đăng"
-              } thành công!`
+              `Product has been ${
+                action === "save" ? "saved as draft" : "published"
+              } successfully!`
             );
             // Chuyển hướng đến trang danh sách sản phẩm
             setTimeout(() => {
@@ -502,9 +523,9 @@ const AddProduct = () => {
             (response.data.message || response.data.success)
           ) {
             toast.success(
-              `Sản phẩm đã được tạo thành công! Đang chuyển hướng...`
+              `Product has been created successfully! Redirecting...`
             );
-            // Vẫn chuyển hướng dù không có ID
+            
             setTimeout(() => {
               window.location.href = "/vendor/products";
             }, 1500);
@@ -513,7 +534,7 @@ const AddProduct = () => {
 
           // Trường hợp có success ở cấp cao nhất
           if (response.success === true) {
-            toast.success(`Sản phẩm đã được tạo thành công!`);
+            toast.success(`Product has been created successfully!`);
             setTimeout(() => {
               window.location.href = "/vendor/products";
             }, 1500);
@@ -524,7 +545,7 @@ const AddProduct = () => {
         // Nếu đã nhận được response nhưng không phù hợp các trường hợp trên, hiển thị thông báo
         if (productCreated) {
           toast.warning(
-            "Đã nhận phản hồi từ server nhưng không tìm thấy ID sản phẩm. Sản phẩm có thể đã được tạo thành công."
+            "Response received but product ID not found. Product may have been created successfully."
           );
           // Vẫn chuyển hướng sau 3 giây
           setTimeout(() => {
@@ -537,7 +558,7 @@ const AddProduct = () => {
         // Nếu đã nhận được phản hồi từ server (có thể là sản phẩm đã được tạo)
         if (productCreated) {
           toast.warning(
-            "Đã nhận phản hồi từ server nhưng xảy ra lỗi khi xử lý. Sản phẩm có thể đã được tạo."
+            "Response received but an error occurred during processing. Product may have been created."
           );
           // Vẫn chuyển hướng sau 3 giây
           setTimeout(() => {
@@ -555,9 +576,11 @@ const AddProduct = () => {
 
           // Hiển thị thông báo lỗi cụ thể từ API nếu có
           if (error.response.data && error.response.data.message) {
-            toast.error(`Lỗi API: ${error.response.data.message}`);
+            toast.error(`API Error: ${error.response.data.message}`);
           } else {
-            toast.error(`Lỗi API: ${error.response.status} - ${error.message}`);
+            toast.error(
+              `API Error: ${error.response.status} - ${error.message}`
+            );
           }
         } else {
           toast.error(error.message);
@@ -565,7 +588,7 @@ const AddProduct = () => {
       }
     } catch (outerError) {
       console.error("Lỗi ngoại vi:", outerError);
-      toast.error(`Có lỗi xảy ra: ${outerError.message}`);
+      toast.error(`An error occurred: ${outerError.message}`);
     }
   };
 

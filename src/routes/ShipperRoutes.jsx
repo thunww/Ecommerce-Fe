@@ -8,9 +8,8 @@ import ShipperProfile from "../pages/Shipper/ShipperProfile";
 import ShipperOrderDetail from "../pages/Shipper/ShipperOrderDetail";
 import ShipperLanding from "../pages/Shipper/ShipperLanding";
 import ShipperIncome from "../pages/Shipper/ShipperIncome";
-import ShipperRegister from '../pages/ShipperRegister';
+import ShipperRegister from '../pages/Shipper/ShipperRegister';
 import NotFound from "../pages/NotFound";
-
 
 const ShipperRoutes = () => {
   return (
@@ -18,15 +17,14 @@ const ShipperRoutes = () => {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<ShipperLanding />} />
-       
+        <Route path="/register" element={<ShipperRegister />} />
         {/* <Route path="/login" element={<ShipperLogin />} /> */}
 
         {/* Protected routes with layout */}
         <Route element={<ShipperLayout />}>
-        <Route path="/register" element={<ShipperRegister />} />
           <Route path="/dashboard" element={<ShipperDashboard />} />
           <Route path="/orders" element={<ShipperOrders />} />
-          <Route path="/orders/:id" element={<ShipperOrderDetail />} />
+          <Route path="/orders/:orderId" element={<ShipperOrderDetail />} />
           <Route path="/profile" element={<ShipperProfile />} />
           <Route path="/income" element={<ShipperIncome />} />
         </Route>

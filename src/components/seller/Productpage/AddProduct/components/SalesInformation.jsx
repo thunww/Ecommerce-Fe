@@ -468,7 +468,7 @@ const SalesInformation = ({ hasCategory, productData, onInputChange }) => {
       sku: "",
     });
 
-    toast.success("Đã áp dụng giá trị cho tất cả variations");
+    toast.success("Values applied to all variations successfully");
   };
 
   // Xử lý khi thay đổi giá cơ bản

@@ -26,11 +26,9 @@ const UserProfile = () => {
   useEffect(() => {
     // Get user info from localStorage
     const user = JSON.parse(localStorage.getItem("user"));
-    console.log("User from localStorage:", user);
 
     if (user && (user.id || user.user_id)) {
       const userId = user.id || user.user_id;
-      console.log("Using user ID:", userId);
       fetchUserData(userId);
     } else {
       toast.error("User information not found, please login again");
@@ -41,13 +39,10 @@ const UserProfile = () => {
   const fetchUserData = async (userId) => {
     try {
       setLoading(true);
-      console.log("Fetching user data for ID:", userId);
       const response = await authService.getUserById(userId);
-      console.log("User data FULL response:", response);
 
       if (response && response.success === true && response.user) {
         const user = response.user;
-        console.log("User data object EXTRACTED:", user);
 
         // Assign user info directly
         setUserData(user);
@@ -78,7 +73,6 @@ const UserProfile = () => {
             gender: user.gender || "male",
             dob: dobObj,
           };
-          console.log("Updated user form data:", updatedData);
           return updatedData;
         });
 
@@ -87,11 +81,9 @@ const UserProfile = () => {
           setPreviewUrl(user.profile_picture);
         }
       } else {
-        console.error("Invalid user data structure:", response);
         toast.error("Invalid user data format");
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
       toast.error("Unable to retrieve user information");
     } finally {
       setLoading(false);
@@ -136,7 +128,6 @@ const UserProfile = () => {
             : undefined,
       };
 
-      console.log("Updating user with data:", updateData);
 
       // Call API to update user information
       const response = await fetch(`/users/${userId}`, {
@@ -159,7 +150,6 @@ const UserProfile = () => {
         toast.error(data.message || "Failed to update information");
       }
     } catch (error) {
-      console.error("Error updating user info:", error);
       toast.error(
         "Error updating information: " + (error.message || "Unknown error")
       );
@@ -243,10 +233,7 @@ const UserProfile = () => {
             // Save back to localStorage
             localStorage.setItem("user", JSON.stringify(currentUser));
 
-            console.log(
-              "Avatar updated in localStorage:",
-              currentUser.profile_picture
-            );
+            
           }
         } else if (data.profile_picture) {
           // Case where API only returns image URL
@@ -255,10 +242,7 @@ const UserProfile = () => {
             currentUser.profile_picture = data.profile_picture;
             localStorage.setItem("user", JSON.stringify(currentUser));
 
-            console.log(
-              "Avatar updated in localStorage:",
-              data.profile_picture
-            );
+            
           }
         }
 
@@ -268,7 +252,6 @@ const UserProfile = () => {
         toast.error(data.message || "Failed to update profile picture");
       }
     } catch (error) {
-      console.error("Error uploading profile picture:", error);
       toast.error(
         "Error uploading image: " + (error.message || "Unknown error")
       );

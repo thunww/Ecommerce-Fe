@@ -10,6 +10,34 @@ const productApi = {
     }),
 
   deleteProduct: (productId) => axiosClient.delete(`/products/${productId}`),
+
+  getProductById: (productId) => axiosClient.get(`/products/${productId}`),
+
+  getProductRelated: (categoryId) =>
+    axiosClient.get(`/products/related/${categoryId}`),
+  searchProduct: ({
+    keyword = "",
+    categoryId,
+    minPrice,
+    maxPrice,
+    sort,
+  } = {}) =>
+    axiosClient.get("/products/search", {
+      params: {
+        q: keyword,
+        category_id: categoryId,
+        min_price: minPrice,
+        max_price: maxPrice,
+        sort,
+      },
+    }),
+  searchSuggest: (keyword, limit = 5) =>
+    axiosClient.get("/products/suggest", {
+      params: {
+        q: keyword,
+        limit,
+      },
+    }),
 };
 
 export default productApi;

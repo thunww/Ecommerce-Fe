@@ -1,204 +1,277 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { FaCheckCircle, FaTimesCircle, FaSpinner } from "react-icons/fa";
+import ShipperStatsCards from "../../components/shipper/ShipperStatsCards";
+import OrdersTable from "../../components/shipper/OrdersTable";
+import { FaSearch } from "react-icons/fa";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const ShipperDashboard = () => {
   const [stats, setStats] = useState({
-    todayOrders: 124,
-    completedOrders: 104,
-    pendingOrders: 24,
-    todayRevenue: "50.004 đ"
+    todayOrders: 0,
+    completedOrders: 0,
+    pendingOrders: 0,
+    todayRevenue: "0 đ",
   });
 
-  const [orders, setOrders] = useState([
-    {
-      id: "DH001",
-      customerName: "Nguyễn Văn A",
-      address: "123 Nguyễn Văn Cừ, Quận 5, TP.HCM",
-      phone: "0901234567",
-      total: "150.000 đ",
-      status: "pending", // pending, accepted, completed
-      time: "10:30 AM"
-    },
-    {
-      id: "DH002",
-      customerName: "Trần Thị B",
-      address: "456 Lê Lợi, Quận 1, TP.HCM",
-      phone: "0907654321",
-      total: "200.000 đ",
-      status: "pending",
-      time: "11:00 AM"
-    },
-    {
-      id: "DH003",
-      customerName: "Phạm Văn C",
-      address: "789 Cách Mạng Tháng 8, Quận 3, TP.HCM",
-      phone: "0909876543",
-      total: "180.000 đ",
-      status: "accepted",
-      time: "11:30 AM"
-    }
-  ]);
+  const [orders, setOrders] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleAcceptOrder = (orderId) => {
-    setOrders(orders.map(order => 
-      order.id === orderId 
-        ? { ...order, status: "accepted" }
-        : order
-    ));
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('accessToken');
+      console.log('Token:', token);
+      
+      if (!token) {
+        toast.error('Vui lòng đăng nhập lại');
+        return;
+      }
+
+      const API_URL = 'http://localhost:8080';
+      
+      // Lấy danh sách đơn hàng gần đây
+      const ordersResponse = await axios.get(`${API_URL}/api/v1/shippers/sub_orders`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log('Orders Response:', ordersResponse.data);
+
+      if (ordersResponse.data.success && ordersResponse.data.data.length > 0) {
+        const firstOrder = ordersResponse.data.data[0];
+        console.log('First Order Raw Data:', firstOrder);
+        console.log('First Order Keys:', Object.keys(firstOrder));
+        console.log('First Order ID:', firstOrder.sub_order_id);
+        console.log('First Order Status:', firstOrder.status);
+        console.log('First Order User:', firstOrder.Order?.User);
+        console.log('First Order Address:', firstOrder.Order?.shipping_address);
+        
+        // Log non-null fields
+        const nonEmptyFields = {};
+        Object.entries(firstOrder).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            nonEmptyFields[key] = value;
+          }
+        });
+        console.log('First Order Non-empty Fields:', nonEmptyFields);
+      }
+
+      // Calculate stats from orders data
+      const allOrders = ordersResponse.data.data || [];
+      const today = new Date().toISOString().split('T')[0];
+      
+      const calculatedStats = {
+        todayOrders: allOrders.filter(order => 
+          order.created_at?.startsWith(today)
+        ).length,
+        completedOrders: allOrders.filter(order => 
+          order.status === 'delivered'
+        ).length,
+        pendingOrders: allOrders.filter(order => 
+          order.status === 'processing' || order.status === 'shipped'
+        ).length,
+        todayRevenue: new Intl.NumberFormat('vi-VN', {
+          style: 'currency',
+          currency: 'VND'
+        }).format(
+          allOrders
+            .filter(order => 
+              order.status === 'delivered' && 
+              order.updated_at?.startsWith(today)
+            )
+            .reduce((sum, order) => sum + (parseFloat(order.shipping_fee) || 0), 0)
+        )
+      };
+
+      setStats(calculatedStats);
+
+      // Lọc các đơn hàng có trạng thái processing, shipped hoặc delivered
+      const recentOrders = allOrders.filter(order => 
+        order.status === 'processing' || order.status === 'shipped' || order.status === 'delivered'
+      );
+
+      const transformedOrders = recentOrders.map(order => {
+        const formatAddress = (addressObj) => {
+          if (!addressObj) return 'Không xác định';
+          const parts = [
+            addressObj.address_line,
+            addressObj.city,
+            addressObj.province,
+            addressObj.postal_code
+          ].filter(Boolean);
+          return parts.join(', ');
+        };
+
+        const user = order.Order?.User || {};
+        const fullName = user.first_name && user.last_name ? 
+          `${user.first_name} ${user.last_name}` : 'Không xác định';
+
+        return {
+          id: order.sub_order_id?.toString() || 'Không xác định',
+          customerName: fullName,
+          customerPhone: user.phone || 'Không có SĐT',
+          customerEmail: user.email || '',
+          address: formatAddress(order.Order?.shipping_address),
+          time: order.created_at ? new Date(order.created_at).toLocaleString() : 'Không xác định',
+          deliveredTime: order.status === 'delivered' && order.shipment?.actual_delivery_date 
+            ? new Date(order.shipment.actual_delivery_date).toLocaleString() 
+            : null,
+          total: parseFloat(order.total_price || 0).toLocaleString('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+          }),
+          status: order.status === 'processing' ? 'Đang xử lý' 
+                 : order.status === 'shipped' ? 'Đang giao hàng'
+                 : order.status === 'delivered' ? 'Đã hoàn thành'
+                 : order.status === 'cancelled' ? 'Đã hủy'
+                 : 'Không xác định',
+          rawStatus: order.status,
+          sub_order_id: order.sub_order_id
+        };
+      });
+
+      setOrders(transformedOrders);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      console.error('Error response:', error.response);
+      toast.error('Không thể tải dữ liệu đơn hàng');
+      
+      // Set default stats on error
+      setStats({
+        todayOrders: 0,
+        completedOrders: 0,
+        pendingOrders: 0,
+        todayRevenue: "0 đ",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleCompleteOrder = (orderId) => {
-    setOrders(orders.map(order => 
-      order.id === orderId 
-        ? { ...order, status: "completed" }
-        : order
-    ));
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-    // Cập nhật thống kê
-    setStats(prev => ({
-      ...prev,
-      completedOrders: prev.completedOrders + 1,
-      pendingOrders: prev.pendingOrders - 1
-    }));
-  };
+  const handleAcceptOrder = async (orderId) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        toast.error('Vui lòng đăng nhập lại');
+        return;
+      }
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "accepted":
-        return "bg-blue-100 text-blue-800";
-      case "completed":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      const API_URL = 'http://localhost:8080';
+      const response = await axios.post(
+        `${API_URL}/api/v1/shippers/sub_orders/${orderId}/accept`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data.success) {
+        toast.success('Nhận đơn hàng thành công');
+        fetchDashboardData(); // Refresh data
+      }
+    } catch (error) {
+      console.error('Error accepting order:', error);
+      toast.error(error.response?.data?.message || 'Không thể nhận đơn hàng');
     }
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case "pending":
-        return "Chờ nhận";
-      case "accepted":
-        return "Đang giao";
-      case "completed":
-        return "Đã giao";
-      default:
-        return "Không xác định";
+  const handleCompleteOrder = async (orderId) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        toast.error('Vui lòng đăng nhập lại');
+        return;
+      }
+
+      const API_URL = 'http://localhost:8080';
+      const response = await axios.post(
+        `${API_URL}/api/v1/shippers/sub_orders/${orderId}/complete`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data.success) {
+        toast.success('Hoàn thành đơn hàng thành công');
+        fetchDashboardData(); // Refresh data
+      }
+    } catch (error) {
+      console.error('Error completing order:', error);
+      toast.error(error.response?.data?.message || 'Không thể hoàn thành đơn hàng');
     }
+  };
+
+  const filteredOrders = orders.filter((order) =>
+    order.id?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const renderActionButtons = (order) => {
+    if (order.rawStatus === 'processing') {
+      return (
+        <button
+          onClick={() => handleAcceptOrder(order.sub_order_id)}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2"
+        >
+          Nhận đơn
+        </button>
+      );
+    } else if (order.rawStatus === 'shipped') {
+      return (
+        <button
+          onClick={() => handleCompleteOrder(order.sub_order_id)}
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+        >
+          Hoàn thành
+        </button>
+      );
+    }
+    return null;
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-4">
-          Xin chào, đây là bảng điều khiển giao hàng của bạn
-        </h1>
-        
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-500">Đơn hàng hôm nay</div>
-            <div className="text-2xl font-bold text-gray-800">{stats.todayOrders}</div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-500">Đã giao thành công</div>
-            <div className="text-2xl font-bold text-green-600">{stats.completedOrders}</div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-500">Đang chờ giao</div>
-            <div className="text-2xl font-bold text-yellow-600">{stats.pendingOrders}</div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-500">Tổng doanh thu hôm nay</div>
-            <div className="text-2xl font-bold text-blue-600">{stats.todayRevenue}</div>
-          </div>
+    <div className="flex-1 overflow-hidden">
+      <div className="h-full flex flex-col p-4 md:p-6 space-y-6">
+        {/* Stats Section */}
+        <div className="w-full">
+          <ShipperStatsCards stats={stats} />
         </div>
-      </div>
 
-      {/* Orders Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Danh sách đơn hàng</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Mã đơn
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Khách hàng
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Địa chỉ
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thời gian
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tổng tiền
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trạng thái
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thao tác
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {orders.map((order) => (
-                  <tr key={order.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Link 
-                        to={`/shipper/orders/${order.id}`}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        {order.id}
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{order.customerName}</div>
-                      <div className="text-sm text-gray-500">{order.phone}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{order.address}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{order.time}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{order.total}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                        {getStatusText(order.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      {order.status === "pending" && (
-                        <button
-                          onClick={() => handleAcceptOrder(order.id)}
-                          className="text-blue-600 hover:text-blue-900 mr-4"
-                        >
-                          Nhận đơn
-                        </button>
-                      )}
-                      {order.status === "accepted" && (
-                        <button
-                          onClick={() => handleCompleteOrder(order.id)}
-                          className="text-green-600 hover:text-green-900"
-                        >
-                          Đánh dấu đã giao
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Recent Orders Section */}
+        <div className="flex-1 bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+              <h2 className="text-xl font-semibold text-gray-800">Đơn hàng gần đây</h2>
+              <div className="relative w-full md:w-64">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm đơn hàng..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
+            </div>
+
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <OrdersTable orders={filteredOrders} onOrderUpdate={fetchDashboardData} />
+              </div>
+            )}
           </div>
         </div>
       </div>

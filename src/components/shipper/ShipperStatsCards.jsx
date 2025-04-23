@@ -1,14 +1,18 @@
 import React from 'react';
+import { FaBox, FaCheckCircle, FaClock, FaMoneyBillWave } from 'react-icons/fa';
 
 // Component hiển thị từng thẻ thống kê
-const StatCard = ({ title, value, bgColor = "bg-white" }) => {
-  return (
-    <div className={`${bgColor} rounded-lg shadow-md p-4 text-center transform transition-transform duration-300 hover:scale-105`}>
-      <p className="text-sm text-gray-500 font-medium">{title}</p>
-      <p className="text-2xl font-semibold text-gray-700">{value}</p>
+const StatsCard = ({ title, value, icon: Icon, color }) => (
+  <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex items-center">
+    <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${color}`}>
+      <Icon className="text-white text-xl" />
     </div>
-  );
-};
+    <div className="ml-4 flex-1 min-w-0">
+      <p className="text-sm text-gray-500 truncate">{title}</p>
+      <p className="text-xl font-semibold text-gray-900 truncate">{value}</p>
+    </div>
+  </div>
+);
 
 // Hàm định dạng tiền tệ
 const formatCurrency = (amount) => {
@@ -22,16 +26,36 @@ const formatCurrency = (amount) => {
 // Component chính hiển thị bảng thống kê
 const ShipperStatsCards = ({ stats }) => {
   const statsData = [
-    { title: "Đơn hàng hôm nay", value: (stats?.totalOrders ?? 0) + 2, bgColor: "bg-blue-50" },
-    { title: "Đã giao thành công", value: (stats?.completedOrders ?? 0) + 2, bgColor: "bg-green-50" },
-    { title: "Đang chờ giao", value: (stats?.pendingOrders ?? 0) + 2, bgColor: "bg-yellow-50" },
-    { title: "Tổng doanh thu hôm nay", value: formatCurrency((stats?.totalRevenue ?? 0) + 2), bgColor: "bg-purple-50" }
+    {
+      title: 'Đơn hàng hôm nay',
+      value: stats.todayOrders,
+      icon: FaBox,
+      color: 'bg-blue-500'
+    },
+    {
+      title: 'Đã giao thành công',
+      value: stats.completedOrders,
+      icon: FaCheckCircle,
+      color: 'bg-green-500'
+    },
+    {
+      title: 'Đang chờ giao',
+      value: stats.pendingOrders,
+      icon: FaClock,
+      color: 'bg-yellow-500'
+    },
+    {
+      title: 'Tổng doanh thu hôm nay',
+      value: stats.todayRevenue,
+      icon: FaMoneyBillWave,
+      color: 'bg-red-500'
+    }
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
       {statsData.map((stat, index) => (
-        <StatCard key={index} title={stat.title} value={stat.value} bgColor={stat.bgColor} />
+        <StatsCard key={index} {...stat} />
       ))}
     </div>
   );

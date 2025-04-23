@@ -22,7 +22,7 @@ const SalesPerformance = () => {
   useEffect(() => {
     const fetchShopData = async () => {
       try {
-        console.log('Fetching shop data...');
+        
         
         // Update loading state directly in shopData
         setShopData(prev => ({

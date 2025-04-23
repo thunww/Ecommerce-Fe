@@ -5,25 +5,16 @@ const axiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 10000, // 10 seconds
 });
 
-// Thêm Interceptor nếu cần
+// Request interceptor
 axiosClient.interceptors.request.use(
   (config) => {
-    // Kiểm tra cả hai trường hợp tên token
-    const token =
-      localStorage.getItem("accessToken") || localStorage.getItem("token");
-
+    const token = localStorage.getItem("accessToken");
     if (token) {
-      console.log(
-        "Using token from localStorage:",
-        token.substring(0, 20) + "..."
-      );
-      config.headers["Authorization"] = `Bearer ${token}`;
-    } else {
-      console.log("No token found in localStorage");
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
   (error) => {
@@ -32,50 +23,26 @@ axiosClient.interceptors.request.use(
   }
 );
 
-// Interceptors Response
-axiosClient.interceptors.response.use(
-  (response) => {
-    // Xử lý response thành công
-    return response;
-  },
-  async (error) => {
-    // Xử lý lỗi (ví dụ: token hết hạn)
-    const originalRequest = error.config;
+// // Response interceptor
+// axiosClient.interceptors.response.use(
+//   (response) => {
+//     return response;
+//   },
+//   (error) => {
+//     console.error("Response error:", error.response?.data || error);
 
-    if (error.response) {
-      console.error(
-        "Response error:",
-        error.response.status,
-        error.response.data
-      );
+//     // Xử lý lỗi 401 Unauthorized
+//     if (error.response && error.response.status === 401) {
+//       localStorage.removeItem("accessToken");
+//       localStorage.removeItem("refreshToken");
+//       // Tùy chỉnh: có thể chuyển hướng đến trang đăng nhập
+//     }
 
-      // Xử lý lỗi 401 (Unauthorized)
-      if (error.response.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-
-        try {
-          // Thử lấy token mới (nếu có refresh token)
-          // const refreshToken = localStorage.getItem("refreshToken");
-          // const res = await axios.post("/auth/refresh-token", { refreshToken });
-          // const newToken = res.data.accessToken;
-          // localStorage.setItem("accessToken", newToken);
-          // originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
-          // return axiosClient(originalRequest);
-
-          // Nếu không có refresh token flow, đăng xuất
-          console.error("Token expired or invalid - logging out");
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("user");
-          localStorage.removeItem("roles");
-          window.location.href = "/login";
-        } catch (refreshError) {
-          console.error("Error refreshing token:", refreshError);
-        }
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
+//     // Trả về thông báo lỗi từ backend
+//     return Promise.reject(
+//       error.response?.data?.message || error.message || "Lỗi kết nối đến server"
+//     );
+//   }
+// );
 
 export default axiosClient;

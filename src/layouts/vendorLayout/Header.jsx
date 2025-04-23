@@ -73,7 +73,6 @@ const Header = () => {
         if (shopData && shopData.data) {
           // Nếu API trả về {data: {logo: ...}}
           setShopLogo(shopData.data.logo);
-          
         } else if (shopData && shopData.logo) {
           // Nếu API trả về {logo: ...}
           setShopLogo(shopData.logo);
@@ -149,11 +148,12 @@ const Header = () => {
       localStorage.removeItem("user");
       localStorage.removeItem("roles");
 
-      // Gọi action logout từ Redux
-      await dispatch(logout()).unwrap();
+     
 
-      // Chuyển hướng về trang login
-      navigate("/login");
+      // Thêm một timeout trước khi chuyển hướng để đảm bảo Redux state được cập nhật đầy đủ
+      setTimeout(() => {
+        navigate("/login");
+      }, 300);
     } catch (error) {
       console.error("Đăng xuất thất bại:", error);
     }

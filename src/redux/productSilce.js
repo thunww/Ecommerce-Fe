@@ -43,10 +43,64 @@ export const deleteProductById = createAsyncThunk(
   }
 );
 
+export const getProductById = createAsyncThunk(
+  "products/getProductById",
+  async (productId, { rejectWithValue }) => {
+    try {
+      const response = await productService.getProductById(productId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to fetch product by ID"
+      );
+    }
+  }
+);
+
+export const getProductRelated = createAsyncThunk(
+  "products/getProductRelated",
+  async (categoryId, { rejectWithValue }) => {
+    try {
+      const response = await productService.getProductRelated(categoryId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to fetch related products"
+      );
+    }
+  }
+);
+
+export const searchProducts = createAsyncThunk(
+  "products/searchProducts",
+  async (
+    { keyword = "", categoryId, minPrice, maxPrice, sort } = {},
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await productService.searchProduct({
+        keyword,
+        categoryId,
+        minPrice,
+        maxPrice,
+        sort,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to search products"
+      );
+    }
+  }
+);
+
 const productSlice = createSlice({
   name: "products",
   initialState: {
     products: [],
+    relatedProducts: [],
+    searchResults: [],
+    product: null,
     loading: false,
     error: null,
   },
@@ -66,6 +120,19 @@ const productSlice = createSlice({
         state.error = action.payload;
       })
 
+      .addCase(getProductById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getProductById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.product = action.payload;
+      })
+      .addCase(getProductById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       .addCase(updateProductStatus.fulfilled, (state, action) => {
         const { productId, status } = action.payload;
         const product = state.products.find((p) => p.product_id === productId);
@@ -73,11 +140,36 @@ const productSlice = createSlice({
           product.status = status;
         }
       })
+      .addCase(getProductRelated.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getProductRelated.fulfilled, (state, action) => {
+        state.loading = false;
+        state.relatedProducts = action.payload;
+      })
+      .addCase(getProductRelated.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
 
       .addCase(deleteProductById.fulfilled, (state, action) => {
         state.products = state.products.filter(
           (p) => p.product_id !== action.payload
         );
+      })
+      
+      .addCase(searchProducts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(searchProducts.fulfilled, (state, action) => {
+        state.loading = false;
+        state.searchResults = action.payload;
+      })
+      .addCase(searchProducts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

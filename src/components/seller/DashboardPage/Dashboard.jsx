@@ -16,7 +16,6 @@ class Dashboard extends Component {
     return (
       <div className="flex flex-col min-h-screen p-6 bg-gray-100 w-full h-full ">
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full h-full">
-          
           {/* Cột 1 */}
           <div className="col-span-2 space-y-4 w-full">
             <div className="p-4 bg-white rounded-lg shadow w-full overflow-hidden break-words">

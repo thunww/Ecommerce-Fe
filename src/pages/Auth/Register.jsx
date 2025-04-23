@@ -1,20 +1,45 @@
 import { Link } from "react-router-dom";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { register, resetMessage } from "../../redux/authSlice";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { register } from "../../redux/authSlice";
 
 const Register = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { message, error, isLoading } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(resetMessage());
+  }, [dispatch]);
+
+  // Hiển thị toast khi message hoặc error thay đổi
+  useEffect(() => {
+    if (message) {
+      toast.success(message, {
+        position: "top-right",
+        autoClose: 2000,
+        onClose: () => dispatch(resetMessage()),
+      });
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    }
+    if (error) {
+      toast.error(error, {
+        position: "top-right",
+        autoClose: 3000,
+        onClose: () => dispatch(resetMessage()),
+      });
+    }
+  }, [message, error, navigate, dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,23 +59,8 @@ const Register = () => {
       return;
     }
 
-    try {
-      const result = await dispatch(
-        register({ username, email, password })
-      ).unwrap();
-
-      toast.success(result.message || "Đăng ký thành công!", {
-        position: "top-right",
-      });
-
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
-    } catch (error) {
-      toast.error(error.message || "Đăng ký thất bại!", {
-        position: "top-right",
-      });
-    }
+    // Gọi action register
+    await dispatch(register({ username, email, password }));
   };
 
   return (
@@ -61,7 +71,7 @@ const Register = () => {
           <div className="hidden md:block w-1/2 relative">
             <div className="absolute inset-0 flex items-center justify-center">
               <img
-                src="https://ad2cart.com/wp-content/uploads/2021/02/ecommerce-website-banners.jpg"
+                src="./login.png"
                 alt="Register visual"
                 className="h-full w-full object-contain hover:scale-102 transition-transform duration-700"
               />
@@ -96,7 +106,7 @@ const Register = () => {
                       placeholder="Enter your full name"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -116,7 +126,7 @@ const Register = () => {
                       placeholder="Enter your email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -136,7 +146,7 @@ const Register = () => {
                       placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -156,7 +166,7 @@ const Register = () => {
                       placeholder="Confirm your password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -164,14 +174,15 @@ const Register = () => {
                 <button
                   type="submit"
                   className="w-full py-3 px-4 flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 shadow-md"
+                  disabled={isLoading}
                 >
-                  Register
+                  {isLoading ? "Đang đăng ký..." : "Register"}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </button>
               </form>
 
               {/* Social login buttons */}
-              <div className="relative my-6 ">
+              <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200"></div>
                 </div>

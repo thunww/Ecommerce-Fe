@@ -42,9 +42,8 @@ const ToDoList = () => {
           throw new Error('You do not have permission to access this page');
         }
 
-        console.log("Fetching orders for user:", user.user_id);
         const response = await getAllOrders(user.user_id);
-        console.log("Orders response:", response);
+        
         
         // Get revenue
         const revenue = await getRevenue(user.user_id);
@@ -78,11 +77,11 @@ const ToDoList = () => {
           cancelled: 0
         });
 
-        console.log("Status counts:", counts);
+        
         setOrderCounts(counts);
 
       } catch (error) {
-        console.error("Error getting order list:", error);
+        
         setError(error.message || 'Error loading data');
         setDebug({ 
           error: error.message,

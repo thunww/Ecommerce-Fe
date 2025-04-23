@@ -1,9 +1,9 @@
 import React, { useState, useContext, useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { checkAuthStatus } from "../redux/authSlice";
 import CustomerLayout from "../layouts/CustomerLayout";
-import Home from "../Pages/Customer/Pages/Home";
+import Home from "../pages/Customer/Pages/Home";
 import ProductListing from "../Pages/Customer/Pages/ProductListing";
 import Login from "../Pages/Auth/Login";
 import { ToastContainer } from "react-toastify";
@@ -23,13 +23,15 @@ import DialogTitle from "@mui/material/DialogTitle";
 import ProductZoom from "../components/customer/Components/ProductZoom";
 import { IoCloseSharp } from "react-icons/io5";
 import ProductDetailsComponent from "../components/customer/Components/ProductDetails";
-import UserInfo from "../pages/Customer/Pages/MyAccount/test";
 import MyContext from "../context/MyContext";
-import CartPage from "../Pages/Customer/Pages/Cart";
-import AccountSidebar from "../components/customer/Components/AccountSidebar";
+import Cart from "../pages/Customer/Pages/Cart";
+import SearchResults from "../components/customer/Components/Search/SearchResult";
+import ResetPassword from "../pages/Auth/ResetPassword";
+import ForgotPassword from "../pages/Auth/ForgotPassword";
+import OrdersList from "../components/customer/Components/MyOrders";
+import AddressList from "../pages/Customer/Pages/Address/AddressList";
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
   const [maxWidth, setMaxWidth] = useState("lg");
   const [fullWidth, setFullWidth] = useState(true);
@@ -62,29 +64,36 @@ const CustomerRoutes = () => {
           {/* Bọc tất cả route con trong CustomerLayout */}
           <Route path="/" element={<CustomerLayout />}>
             <Route index element={<Home />} />
-            <Route
-              path="/productListing"
-              exact={true}
-              element={<ProductListing />}
-            />
+
+            <Route path="/search" element={<SearchResults />} />
+
             <Route path="/login" exact={true} element={<Login />} />
             <Route path="register" exact={true} element={<Register />} />
+            <Route
+              path="forgot-password"
+              exact={true}
+              element={<ForgotPassword />}
+            />
+            <Route
+              path="reset-password"
+              exact={true}
+              element={<ResetPassword />}
+            />
             <Route
               path="/product/:id"
               exact={true}
               element={<ProductDetails />}
             />
-            <Route path="/cart" exact={true} element={<CartPage />} />
+            <Route path="/cart" exact={true} element={<Cart />} />
 
             {/* Thêm routes cho My Account */}
             <Route path="/my-account" element={<MyAccount />}>
               {/* Thay Dashboard bằng trang khác bạn muốn, ví dụ Profile */}
               <Route index element={<Dashboard />} />
               <Route path="profile/:user_id" element={<Profile />} />
-              <Route path="test" element={<UserInfo />} />
               {/* Thêm các routes con khác như Orders, Addresses nếu cần */}
-              {/* <Route path="orders" element={<Orders />} /> */}
-              {/* <Route path="addresses" element={<Addresses />} /> */}
+              /* <Route path="orders" element={<OrdersList />} />
+              <Route path="addresses" element={<AddressList />} />
               {/* <Route path="wishlist" element={<Wishlist />} /> */}
             </Route>
           </Route>

@@ -10,6 +10,7 @@ import IconButton from "@mui/material/IconButton";
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { FaRegHeart } from "react-icons/fa";
 import { MdNotificationsNone } from "react-icons/md";
+import { fetchAllOrders } from "../../../../redux/orderSlice";
 import {
   FaUser,
   FaSignOutAlt,
@@ -17,6 +18,9 @@ import {
   FaShoppingBag,
   FaChevronDown,
   FaChevronUp,
+  FaShieldAlt,
+  FaStore,
+  FaTruck,
 } from "react-icons/fa";
 import Tooltip from "@mui/material/Tooltip";
 import Navigation from "./Navigation";
@@ -35,9 +39,21 @@ const Header = () => {
   const context = useContext(MyContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { isAuthenticated, roles } = useSelector((state) => state.auth);
+  const user = useSelector((state) => state.admin.selectedUser);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const menuRef = useRef(null);
+
+  const { orders, loading, error } = useSelector((state) => state.orders);
+
+  useEffect(() => {
+    dispatch(fetchAllOrders());
+  }, [dispatch]);
+
+  const orderCount =
+    orders?.reduce((total, order) => {
+      return total + (order.subOrders?.length || 0);
+    }, 0) || 0;
 
   const handleLogout = () => {
     dispatch(logout());
@@ -45,7 +61,6 @@ const Header = () => {
     setShowAccountMenu(false);
   };
 
-  // Đóng menu khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -113,7 +128,7 @@ const Header = () => {
 
             {/* Icons */}
             <div className="flex items-center gap-1 sm:gap-3 order-2 sm:order-3">
-              <ul className="flex items-center gap-1 sm:gap-3">
+              <ul className="flex items-center gap-3 sm:gap-6">
                 <li>
                   <Tooltip title="Cart">
                     <IconButton
@@ -143,15 +158,17 @@ const Header = () => {
                 </li>
                 <li>
                   <Tooltip title="Notification">
-                    <IconButton
-                      aria-label="notification"
-                      size="small"
-                      className="p-1 sm:p-2"
-                    >
-                      <StyledBadge badgeContent={69} color="secondary">
-                        <MdNotificationsNone className="text-base sm:text-lg" />
-                      </StyledBadge>
-                    </IconButton>
+                    <Link to="/shipper/register">
+                      <IconButton
+                        aria-label="notification"
+                        size="small"
+                        className="p-1 sm:p-2"
+                      >
+                        <StyledBadge badgeContent={69} color="secondary">
+                          <MdNotificationsNone className="text-base sm:text-lg" />
+                        </StyledBadge>
+                      </IconButton>
+                    </Link>
                   </Tooltip>
                 </li>
 
@@ -163,12 +180,16 @@ const Header = () => {
                     >
                       <div className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 overflow-hidden rounded-full border border-gray-200">
                         <img
-                          src={user?.avatar || "/avatar.jpg"}
+                          src={
+                            user?.profile_picture ||
+                            "https://th.bing.com/th/id/OIP.ByNwhzY5vUBvdIEfMCqDogHaHa?rs=1&pid=ImgDetMain"
+                          }
                           alt="Avatar"
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.target.onerror = null;
-                            e.target.src = "/avatar.jpg";
+                            e.target.src =
+                              "https://th.bing.com/th/id/OIP.ByNwhzY5vUBvdIEfMCqDogHaHa?rs=1&pid=ImgDetMain";
                           }}
                         />
                       </div>
@@ -186,7 +207,11 @@ const Header = () => {
                       <div className="absolute right-0 mt-2 w-[220px] bg-white border border-gray-200 rounded-md shadow-lg z-50 max-w-[calc(100vw-2rem)]">
                         <div className="py-3 px-4 border-b border-gray-100">
                           <p className="text-sm font-medium text-gray-800 truncate">
-                            {user?.name || "Người dùng"}
+                            {user
+                              ? `${user.first_name || ""} ${
+                                  user.last_name || ""
+                                }`.trim()
+                              : "User"}
                           </p>
                           <p className="text-xs text-gray-500 truncate">
                             {user?.email || "user@example.com"}
@@ -200,7 +225,7 @@ const Header = () => {
                               onClick={() => setShowAccountMenu(false)}
                             >
                               <FaUser className="text-blue-500 flex-shrink-0" />
-                              <span className="truncate">Hồ sơ của tôi</span>
+                              <span className="truncate">My Profile</span>
                             </Link>
                           </li>
                           <li>
@@ -210,28 +235,59 @@ const Header = () => {
                               onClick={() => setShowAccountMenu(false)}
                             >
                               <FaShoppingBag className="text-blue-500 flex-shrink-0" />
-                              <span className="truncate">Đơn hàng của tôi</span>
+                              <span className="truncate">My Orders</span>
                             </Link>
                           </li>
-                          <li>
-                            <Link
-                              to="/my-account/wishlist"
-                              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
-                              onClick={() => setShowAccountMenu(false)}
-                            >
-                              <FaRegHeart className="text-blue-500 flex-shrink-0" />
-                              <span className="truncate">
-                                Danh sách yêu thích
-                              </span>
-                            </Link>
-                          </li>
+
+                          {roles.includes("admin") && (
+                            <li>
+                              <Link
+                                to="/admin"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
+                                onClick={() => setShowAccountMenu(false)}
+                              >
+                                <FaShieldAlt className="text-blue-500 flex-shrink-0" />
+                                <span className="truncate">
+                                  Admin Dashboard
+                                </span>
+                              </Link>
+                            </li>
+                          )}
+                          {roles.includes("vendor") && (
+                            <li>
+                              <Link
+                                to="/vendor"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
+                                onClick={() => setShowAccountMenu(false)}
+                              >
+                                <FaStore className="text-blue-500 flex-shrink-0" />
+                                <span className="truncate">
+                                  Vendor Dashboard
+                                </span>
+                              </Link>
+                            </li>
+                          )}
+                          {roles.includes("shipper") && (
+                            <li>
+                              <Link
+                                to="/shipper"
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
+                                onClick={() => setShowAccountMenu(false)}
+                              >
+                                <FaTruck className="text-blue-500 flex-shrink-0" />
+                                <span className="truncate">
+                                  Shipper Dashboard
+                                </span>
+                              </Link>
+                            </li>
+                          )}
                           <li className="border-t border-gray-100 mt-1">
                             <button
                               onClick={handleLogout}
                               className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left"
                             >
                               <FaSignOutAlt className="text-red-500 flex-shrink-0" />
-                              <span className="truncate">Đăng xuất</span>
+                              <span className="truncate">Logout</span>
                             </button>
                           </li>
                         </ul>
@@ -246,13 +302,6 @@ const Header = () => {
                         className="text-black link font-[500] transition"
                       >
                         Login
-                      </Link>
-                      <span className="px-1">|</span>
-                      <Link
-                        to="/register"
-                        className="text-black link font-[500] transition"
-                      >
-                        SignUp
                       </Link>
                     </div>
                   </li>

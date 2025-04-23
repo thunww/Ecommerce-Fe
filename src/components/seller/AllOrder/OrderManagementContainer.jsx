@@ -27,20 +27,16 @@ const OrderManagementContainer = () => {
       try {
         setLoading(true);
         const shopData = await getShopInfo();
-        console.log("Shop Info Response:", shopData);
+      
 
         if (shopData) {
           // Log để kiểm tra cấu trúc dữ liệu
-          console.log("Shop Data Structure:", {
-            fullData: shopData,
-            id: shopData.shop_id,
-          });
+       
 
           setShopInfo(shopData); // Set trực tiếp shopData
         }
       } catch (err) {
         setError("Could not get shop information: " + err.message);
-        console.error("Error fetching shop info:", err);
       } finally {
         setLoading(false);
       }
@@ -55,34 +51,31 @@ const OrderManagementContainer = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       // Log để debug
-      console.log("Current Shop Info in fetchOrders:", shopInfo);
 
       // Lấy shop_id từ shopInfo
       const currentShopId = shopInfo?.shop_id;
-      console.log("Current Shop ID:", currentShopId);
+    
 
       if (!currentShopId) {
-        console.log("No shop_id available", shopInfo);
+        
         return;
       }
 
       try {
         setLoading(true);
         setError(null);
-        console.log("Fetching orders for shop:", currentShopId);
         const ordersData = await getShopOrderedProducts(currentShopId);
-        console.log("Orders Data:", ordersData);
+       
 
         if (Array.isArray(ordersData)) {
-          console.log("Setting orders:", ordersData);
+          
           setOrders(ordersData);
         } else {
-          console.error("Invalid orders data structure:", ordersData);
           setError("Invalid order data structure");
         }
       } catch (err) {
         setError(err.message);
-        console.error("Error fetching orders:", err);
+       
       } finally {
         setLoading(false);
       }
@@ -96,7 +89,7 @@ const OrderManagementContainer = () => {
 
   // Xử lý thay đổi tab và status
   const handleStatusChange = (status) => {
-    console.log("Changing status to:", status);
+    
     setActiveStatus(status);
   };
 
@@ -107,20 +100,17 @@ const OrderManagementContainer = () => {
         setLoading(true);
         setError(null);
 
-        console.log("Refreshing orders after status update...");
         const refreshedOrders = await getShopOrderedProducts(shopInfo.shop_id);
 
         if (Array.isArray(refreshedOrders)) {
           setOrders(refreshedOrders);
-          console.log("Orders refreshed successfully:", refreshedOrders);
         } else {
-          console.error("Invalid orders data structure:", refreshedOrders);
           setError("Invalid order data structure");
         }
       }
     } catch (err) {
       setError(err.message);
-      console.error("Error refreshing orders:", err);
+      
     } finally {
       setLoading(false);
     }
@@ -131,12 +121,7 @@ const OrderManagementContainer = () => {
     // Lọc theo trạng thái
     if (activeStatus === "all") return true;
 
-    console.log(
-      "Filtering by status:",
-      activeStatus,
-      "Order status:",
-      order.latest_order_status
-    );
+    
     return order.latest_order_status === activeStatus;
   });
 
