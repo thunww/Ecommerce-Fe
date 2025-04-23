@@ -9,41 +9,31 @@ export const getShopOrderedProducts = async (shopId) => {
       throw new Error("shopId is required");
     }
 
-    
     const response = await orderApi.getAllOrders_list(shopId);
-    
 
     // Kiểm tra response
     if (!response) {
-      
       throw new Error("No response from server");
     }
 
     // Lấy dữ liệu từ response
     const responseData = response.data;
-   
 
     if (!responseData || !responseData.success) {
-      
       throw new Error("Invalid response from server");
     }
 
     // Lấy mảng orders từ response
     const orderData = responseData.data;
-    
 
     if (!Array.isArray(orderData)) {
-      
       throw new Error("Invalid data structure received from server");
     }
 
     // Xử lý và format dữ liệu trả về
     const formattedOrders = orderData
       .map((order, index) => {
-        
-
         if (!order) {
-         
           return null;
         }
 
@@ -66,16 +56,14 @@ export const getShopOrderedProducts = async (shopId) => {
             variant_id: order.variant_id,
             size: order.size || "N/A",
           };
-        
+
           return formattedOrder;
         } catch (err) {
-        
           return null;
         }
       })
       .filter((order) => order !== null);
 
-   
     return formattedOrders;
   } catch (error) {
     console.error("Error in getShopOrderedProducts:", {
@@ -100,10 +88,8 @@ export const getShopOrderedProducts = async (shopId) => {
         "Lỗi từ server";
       throw new Error(errorMessage);
     } else if (error.request) {
-      
       throw new Error("Không thể kết nối đến server");
     } else {
-      
       throw error;
     }
   }
@@ -115,19 +101,16 @@ export const getAllOrders = async (shopId) => {
     if (!response.data) {
       throw new Error("No data received from server");
     }
-    
+
     return response.data;
   } catch (error) {
-    
     if (error.response) {
       const errorMessage = error.response.data?.message || "Lỗi từ server";
-      
+
       throw new Error(errorMessage);
     } else if (error.request) {
-      
       throw new Error("Không thể kết nối đến server");
     } else {
-      
       throw error;
     }
   }
@@ -143,19 +126,16 @@ export const getRevenue = async (userId) => {
     if (!response.data) {
       throw new Error("No data received from server");
     }
-    
+
     return response.data.revenue || 0;
   } catch (error) {
-    
     if (error.response) {
       const errorMessage = error.response.data?.message || "Lỗi từ server";
-      
+
       throw new Error(errorMessage);
     } else if (error.request) {
-      
       throw new Error("Không thể kết nối đến server");
     } else {
-     
       throw error;
     }
   }
@@ -167,19 +147,16 @@ export const getShopInfo = async () => {
     if (!response.data) {
       throw new Error("No data received from server");
     }
-   
+
     return response.data;
   } catch (error) {
-    
     if (error.response) {
       const errorMessage = error.response.data?.message || "Lỗi từ server";
-      
+
       throw new Error(errorMessage);
     } else if (error.request) {
-      
       throw new Error("Không thể kết nối đến server");
     } else {
-     
       throw error;
     }
   }
@@ -191,10 +168,9 @@ export const getAllCategory = async () => {
     if (!response.data) {
       throw new Error("Không nhận được dữ liệu từ server");
     }
-   
+
     return response.data;
   } catch (error) {
-    
     if (error.response) {
       const errorMessage = error.response.data?.message || "Lỗi từ server";
       throw new Error(errorMessage);
@@ -205,7 +181,6 @@ export const getAllCategory = async () => {
     }
   }
 };
-
 export const updateOrderStatus = async (orderId, newStatus) => {
   try {
     if (!orderId) {
@@ -215,7 +190,6 @@ export const updateOrderStatus = async (orderId, newStatus) => {
     if (!newStatus) {
       throw new Error("New status is required");
     }
-
 
     const response = await orderApi.updateOrderStatus(orderId, newStatus);
 
@@ -250,6 +224,50 @@ export const updateOrderStatus = async (orderId, newStatus) => {
         status: error.response.status,
         data: error.response.data,
       });
+      const errorMessage = error.response.data?.message || "Server error";
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      throw new Error("Cannot connect to server");
+    } else {
+      throw error;
+    }
+  }
+};
+
+// Xử lý đơn hàng (process suborder)
+export const processOrder = async (productId) => {
+  try {
+    if (!productId) {
+      throw new Error("Product ID is required");
+    }
+
+    const response = await orderApi.processOrder(productId);
+
+    if (!response || !response.data) {
+      throw new Error("No response received from server");
+    }
+
+    const responseData = response.data;
+
+    // Kiểm tra kết quả từ server
+    if (!responseData.success) {
+      throw new Error(responseData.message || "Failed to process order");
+    }
+
+    console.log("Order processed successfully:", {
+      productId,
+      response: responseData,
+    });
+
+    return responseData;
+  } catch (error) {
+    console.error("Error processing order:", {
+      error,
+      message: error.message,
+      productId,
+    });
+
+    if (error.response) {
       const errorMessage = error.response.data?.message || "Server error";
       throw new Error(errorMessage);
     } else if (error.request) {

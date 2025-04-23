@@ -3,7 +3,10 @@ import OrderTableHeader from "./OrderTableHeader";
 import OrderTableBody from "./OrderTableBody";
 import EmptyState from "./EmptyState";
 import { toast } from "react-toastify";
-import { updateOrderStatus } from "../../../../services/vendorService";
+import {
+  updateOrderStatus,
+  processOrder,
+} from "../../../../services/vendorService";
 import { format } from "date-fns";
 
 class OrderTable extends Component {
@@ -214,52 +217,25 @@ class OrderTable extends Component {
   };
 
   // Process selected orders
-  handleProcessOrders = async () => {
-    const { orders, onOrderUpdated } = this.props;
-    const { selectedOrders } = this.state;
-
-    if (selectedOrders.length === 0) {
-      toast.warning("No orders selected");
-      return;
-    }
-
+  handleProcessOrders = async (productId) => {
     try {
-      // Filter to get only pending orders
-      const pendingOrders = orders.filter(
-        (order) =>
-          order.latest_order_status === "pending" &&
-          selectedOrders.includes(
-            order.id || order.product_id || order.variant_id
-          )
-      );
-
-      if (pendingOrders.length === 0) {
-        toast.warning("No pending orders selected");
-        return;
+      if (!productId) {
+        throw new Error("Product ID is required");
       }
 
-      // For each pending order, update status to "processing"
-      const updatePromises = pendingOrders.map((order) =>
-        updateOrderStatus(
-          order.id || order.product_id || order.variant_id,
-          "processing"
-        )
-      );
+      // Gọi API để xử lý đơn hàng
+      await processOrder(productId);
 
-      await Promise.all(updatePromises);
+      // Hiển thị thông báo thành công
+      toast.success("Đơn hàng đã được xử lý thành công");
 
-      toast.success(`${pendingOrders.length} orders updated to Processing`);
-
-      // Reset selected orders
-      this.setState({ selectedOrders: [] });
-
-      // Refresh the order list
-      if (onOrderUpdated) {
-        onOrderUpdated();
+      // Cập nhật lại danh sách đơn hàng
+      if (this.props.onOrderUpdated) {
+        await this.props.onOrderUpdated();
       }
     } catch (error) {
-      console.error("Error processing orders:", error);
-      toast.error("Failed to update order status");
+      console.error("Error processing order:", error);
+      toast.error(error.message || "Không thể xử lý đơn hàng");
     }
   };
 
@@ -362,181 +338,40 @@ class OrderTable extends Component {
   };
 
   render() {
-    const { orders, onOrderUpdated } = this.props;
-    const { selectedOrders, filters, showFilterPanel, showExportOptions } =
-      this.state;
+    const {
+      orders,
+      onOrderUpdated,
+      loading,
+      error,
+      showFilterPanel,
+      showExportOptions,
+    } = this.props;
 
+    const { selectedOrders, filters, sortField, sortDirection } = this.state;
+
+    // Get filtered and sorted orders
     const filteredOrders = this.getFilteredOrders(orders);
 
     return (
-      <div className="mt-4">
-        {/* Filter Panel */}
-        <div className="mb-4 bg-white p-4 rounded-lg shadow-sm border">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-lg font-medium">Orders Management</h3>
-            <div className="flex space-x-2">
-              <button
-                className="px-3 py-1 bg-gray-100 rounded text-sm hover:bg-gray-200 flex items-center"
-                onClick={this.toggleFilterPanel}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Filter
-              </button>
-              <button
-                className="px-3 py-1 bg-green-50 text-green-600 rounded text-sm hover:bg-green-100 flex items-center"
-                onClick={() => this.handleBatchAction("export")}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Export
-              </button>
-            </div>
-          </div>
-
-          {/* Expandable Filter Controls */}
-          {showFilterPanel && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 pt-3 border-t">
-              {/* Status Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <select
-                  className="w-full border rounded py-1.5 px-3 text-sm"
-                  value={filters.status}
-                  onChange={(e) =>
-                    this.handleFilterChange("status", e.target.value)
-                  }
-                >
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending Confirmation</option>
-                  <option value="processing">Processing</option>
-                  <option value="shipped">Shipped</option>
-                  <option value="delivered">Delivered</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </div>
-
-              {/* Search Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Search
-                </label>
-                <input
-                  type="text"
-                  placeholder="Search by product, ID, color..."
-                  className="w-full border rounded py-1.5 px-3 text-sm"
-                  value={filters.searchTerm}
-                  onChange={(e) =>
-                    this.handleFilterChange("searchTerm", e.target.value)
-                  }
-                />
-              </div>
-
-              {/* Date Range Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Date Range
-                </label>
-                <select
-                  className="w-full border rounded py-1.5 px-3 text-sm"
-                  value={filters.dateRange}
-                  onChange={(e) =>
-                    this.handleFilterChange("dateRange", e.target.value)
-                  }
-                >
-                  <option value="all">All Time</option>
-                  <option value="today">Today</option>
-                  <option value="week">Last 7 Days</option>
-                  <option value="month">Last 30 Days</option>
-                </select>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Results Summary */}
-        <div className="text-sm text-gray-500 mb-2">
-          Showing {filteredOrders.length}{" "}
-          {filteredOrders.length === 1 ? "order" : "orders"}
-          {filters.status !== "all" && ` with status: ${filters.status}`}
-          {filters.searchTerm && ` matching: "${filters.searchTerm}"`}
-        </div>
-
+      <div className="bg-white rounded-lg shadow overflow-hidden">
         <OrderTableHeader
+          selectedCount={selectedOrders.length}
+          totalCount={filteredOrders.length}
           onSelectAll={this.handleSelectAll}
-          allSelected={
-            filteredOrders.length > 0 &&
-            selectedOrders.length === filteredOrders.length
-          }
-          hasSelectedItems={selectedOrders.length > 0}
-          onProcessOrders={this.handleProcessOrders}
+          onSortChange={this.handleSortChange}
+          sortField={sortField}
+          sortDirection={sortDirection}
         />
 
-        {filteredOrders && filteredOrders.length > 0 ? (
-          <OrderTableBody
-            orders={filteredOrders}
-            selectedOrders={selectedOrders}
-            onSelectOrder={this.handleSelectOrder}
-            onOrderAction={this.handleOrderAction}
-            onOrderUpdated={onOrderUpdated}
-          />
-        ) : (
-          <div className="border rounded-b-lg p-8 text-center text-gray-500">
-            No orders match your filters. Try adjusting your search criteria.
-          </div>
-        )}
+        <OrderTableBody
+          orders={filteredOrders}
+          selectedOrders={selectedOrders}
+          onSelectOrder={this.handleSelectOrder}
+          onOrderAction={this.handleProcessOrders}
+        />
 
-        {/* Export Options */}
-        {showExportOptions && (
-          <div className="p-4 bg-gray-50 border-b">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-sm font-medium">Export Options</h3>
-                <p className="text-xs text-gray-500">
-                  {selectedOrders.length > 0
-                    ? `Exporting ${selectedOrders.length} selected orders`
-                    : `Exporting all ${filteredOrders.length} filtered orders`}
-                </p>
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  className="px-3 py-1 text-sm border rounded hover:bg-gray-200"
-                  onClick={this.hideExportOptions}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                  onClick={this.exportToCSV}
-                >
-                  Export to CSV
-                </button>
-              </div>
-            </div>
-          </div>
+        {filteredOrders.length === 0 && !loading && !error && (
+          <EmptyState message="No orders found matching your criteria" />
         )}
       </div>
     );

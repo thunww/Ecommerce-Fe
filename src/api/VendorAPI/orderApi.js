@@ -29,8 +29,16 @@ const orderApi = {
   addShippingInfo: (orderId, data) =>
     axiosClient.post(`/vendor/orders/${orderId}/shipping`, data),
 
-  // Lấy thống kê đơn hàng theo trạng thái
+  // Lấy thống kê đơn hàng
   getOrderStats: () => axiosClient.get("/vendor/order-stats"),
+
+  // Xử lý đơn hàng (process)
+  processOrder: (productId) => {
+    if (!productId) {
+      return Promise.reject(new Error("Product ID is required"));
+    }
+    return axiosClient.post(`/vendor/products/${productId}/process`);
+  },
 
   // Hủy đơn hàng
   cancelOrder: (orderId, reason) =>

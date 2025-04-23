@@ -123,6 +123,26 @@ class OrderRow extends Component {
     }
   };
 
+  handleProcess = async () => {
+    const { order, onActionClick } = this.props;
+
+    if (!order.product_id) {
+      toast.error("Product ID is missing");
+      return;
+    }
+
+    try {
+      // Gọi hàm xử lý từ parent component
+      await onActionClick(order.product_id);
+
+      // Đóng menu action nếu đang mở
+      this.setState({ isActionMenuOpen: false });
+    } catch (error) {
+      console.error("Error processing order:", error);
+      toast.error(error.message || "Không thể xử lý đơn hàng");
+    }
+  };
+
   // Convert status to readable text
   getStatusText(status) {
     switch (status) {
@@ -242,83 +262,57 @@ class OrderRow extends Component {
         </div>
 
         {/* Actions Column */}
-        <div className="flex items-center justify-center relative">
+        <div className="flex items-center justify-end relative">
+          {/* Process Button */}
           <button
-            className="p-1 rounded-full hover:bg-gray-100"
+            onClick={this.handleProcess}
+            className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 mr-2"
+            disabled={order.latest_order_status !== "pending"}
+          >
+            Process
+          </button>
+
+          {/* Action Menu Button */}
+          <button
             onClick={this.toggleActionMenu}
+            className="p-2 hover:bg-gray-100 rounded-full"
+            ref={(ref) => (this.actionMenuRef = ref)}
           >
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-gray-500"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+              className="w-5 h-5 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+              />
             </svg>
           </button>
 
-          {/* Action Menu */}
+          {/* Action Menu Dropdown */}
           {isActionMenuOpen && (
-            <div
-              ref={(ref) => (this.actionMenuRef = ref)}
-              className="absolute right-0 top-full mt-1 bg-white border rounded shadow-lg z-10 w-48"
-            >
+            <div className="absolute right-0 top-full mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
               <div className="py-1">
                 <button
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                   onClick={this.handleViewDetails}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2 text-gray-500"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                    <path
-                      fillRule="evenodd"
-                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
                   View Details
                 </button>
-
                 <button
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                   onClick={this.handlePrintInvoice}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2 text-gray-500"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
                   Print Invoice
                 </button>
-
                 <button
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                   onClick={this.handleAddNote}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2 text-gray-500"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
                   Add Note
                 </button>
               </div>
