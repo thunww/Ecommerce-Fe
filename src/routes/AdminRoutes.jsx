@@ -9,6 +9,8 @@ import AdminOverview from "../pages/Admin/AdminOverview";
 import ViewUserDetails from "../pages/Admin/ViewUserDetails";
 import ManageShops from "../pages/Admin/ManageShops";
 import ManageCategory from "../pages/Admin/ManageCategory";
+import ManageShippers from "../pages/Admin/ManageShipper";
+
 const AdminRoutes = () => {
   return (
     <Routes>
@@ -23,6 +25,7 @@ const AdminRoutes = () => {
         <Route path="view-user/:user_id" element={<ViewUserDetails />} />
         <Route path="shops" element={<ManageShops />} />
         <Route path="categories" element={<ManageCategory />} />
+        <Route path="shippers" element={<ManageShippers />} />
       </Route>
     </Routes>
   );
