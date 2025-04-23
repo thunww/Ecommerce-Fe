@@ -80,6 +80,10 @@ const authSlice = createSlice({
       state.isAuthenticated = !!token;
       state.token = token;
     },
+    resetMessage: (state) => {
+      state.message = null;
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -94,7 +98,7 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.roles = action.payload.user?.roles || [];
         state.token = action.payload.token;
-        state.isAuthenticated = true;
+        state.isAuthenticated = false;
         state.message = action.payload.message; // Lưu message
         localStorage.setItem("user", JSON.stringify(action.payload.user));
         localStorage.setItem("accessToken", action.payload.token);
@@ -105,7 +109,7 @@ const authSlice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload; // Lưu message lỗi
+        state.error = action.payload;
       })
 
       // Đăng nhập
@@ -166,5 +170,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { checkAuthStatus } = authSlice.actions;
+export const { checkAuthStatus, resetMessage } = authSlice.actions;
 export default authSlice.reducer;

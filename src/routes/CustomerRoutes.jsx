@@ -30,6 +30,7 @@ import ResetPassword from "../pages/Auth/ResetPassword";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import Checkout from "../pages/Customer/Pages/Checkout";
 import OrdersList from "../components/customer/Components/MyOrders";
+import AddressList from "../pages/Customer/Pages/Address/AddressList";
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
@@ -93,8 +94,8 @@ const CustomerRoutes = () => {
               <Route path="profile/:user_id" element={<Profile />} />
 
               {/* Thêm các routes con khác như Orders, Addresses nếu cần */}
-              <Route path="orders" element={<OrdersList />} />
-              {/* <Route path="addresses" element={<Addresses />} /> */}
+              /* <Route path="orders" element={<OrdersList />} />
+              <Route path="addresses" element={<AddressList />} />
               {/* <Route path="wishlist" element={<Wishlist />} /> */}
 
             </Route>

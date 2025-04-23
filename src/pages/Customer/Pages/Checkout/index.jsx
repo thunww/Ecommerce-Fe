@@ -1,27 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import {
-    Box,
-    Card,
-    CardContent,
-    Typography,
-    TextField,
-    Button,
-    Grid,
-    Divider,
-    FormControlLabel,
-    Radio,
-    RadioGroup,
-    FormControl,
-    FormLabel,
-    Alert,
-    CircularProgress,
-    Select,
-    MenuItem,
-    InputLabel,
-    Paper
+    Box, Card, CardContent, Typography, TextField, Button, Grid, Divider,
+    FormControlLabel, Radio, RadioGroup, FormControl, CircularProgress, Alert
 } from '@mui/material';
 import {
     LocalShipping as ShippingIcon,
@@ -29,35 +12,55 @@ import {
     ShoppingCart as CartIcon,
     Phone as PhoneIcon
 } from '@mui/icons-material';
-import "./Checkout.css";
 import { clearCart } from '../../../../redux/slices/cartSlice';
+import { fetchAllAddresses } from '../../../../redux/addressSlice';
+import AddressList from '../Address/AddressList';
 import orderApi from '../../../../api/orderApi';
+import './Checkout.css';
 
 const Checkout = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const cartItems = useSelector(state => state.cart.items);
     const selectedItemIds = useSelector(state => state.cart.selectedItems);
-    const [loading, setLoading] = useState(false);
     const user = useSelector(state => state.auth.user);
-    const cart = useSelector(state => state.cart);
+    const allAddresses = useSelector(state => state.addresses.addresses);
 
-    // Debug user info
-    console.log('User info from Redux:', user);
-
-    // State cho form
+    const [loading, setLoading] = useState(false);
+    const [selectedAddress, setSelectedAddress] = useState(null);
     const [formData, setFormData] = useState({
+        recipient_name: '',
         phone: '',
         address_line: '',
+        ward: '',
+        district: '',
         city: '',
-        province: '',
         payment_method: 'cod'
     });
 
-    // Lọc ra các sản phẩm đã được chọn
     const selectedProducts = useCallback(() => {
         return cartItems.filter(item => selectedItemIds.includes(item.cart_item_id));
     }, [cartItems, selectedItemIds]);
+
+    useEffect(() => {
+        dispatch(fetchAllAddresses());
+    }, [dispatch]);
+
+    useEffect(() => {
+        const defaultAddr = allAddresses.find(addr => addr.is_default);
+        if (defaultAddr) {
+            setSelectedAddress(defaultAddr);
+            setFormData(prev => ({
+                ...prev,
+                recipient_name: defaultAddr.recipient_name || '',
+                phone: defaultAddr.phone,
+                address_line: defaultAddr.address_line,
+                ward: defaultAddr.ward,
+                district: defaultAddr.district,
+                city: defaultAddr.city
+            }));
+        }
+    }, [allAddresses]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -69,34 +72,23 @@ const Checkout = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Bắt đầu xử lý đặt hàng...');
         setLoading(true);
 
         try {
-            // Kiểm tra đăng nhập
             if (!user || !user.user_id) {
-                console.log('User not logged in or missing user_id:', user);
                 toast.error('Vui lòng đăng nhập để đặt hàng');
                 navigate('/login');
                 return;
             }
 
-            // Lấy user_id từ user object
-            const user_id = user.user_id;
-            console.log('User ID for order:', user_id);
-
-            // Lấy danh sách sản phẩm đã chọn
             const selectedItems = selectedProducts();
-            console.log('Sản phẩm đã chọn:', selectedItems);
-
             if (selectedItems.length === 0) {
                 toast.error('Vui lòng chọn sản phẩm để đặt hàng');
                 return;
             }
 
-            // Tạo dữ liệu đơn hàng
             const orderData = {
-                user_id: user_id,
+                user_id: user.user_id,
                 order_items: selectedItems.map(item => ({
                     product_id: item.product.product_id,
                     variant_id: item.variant_id || item.variant?.variant_id || null,
@@ -110,22 +102,20 @@ const Checkout = () => {
                     })
                 })),
                 shipping_address: {
-                    user_id: user_id,
+                    user_id: user.user_id,
+                    recipient_name: formData.recipient_name,
                     phone: formData.phone,
                     address_line: formData.address_line,
-                    city: formData.city,
-                    province: formData.province
+                    ward: formData.ward,
+                    district: formData.district,
+                    city: formData.city
                 },
                 total_amount: selectedItems.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0),
                 shipping_fee: 0,
                 payment_method: formData.payment_method
             };
 
-            console.log('Dữ liệu đơn hàng trước khi gửi:', JSON.stringify(orderData, null, 2));
-            console.log('Đang gửi API...');
-
             const response = await orderApi.createOrder(orderData);
-            console.log('Phản hồi từ server:', response);
 
             if (response.data) {
                 toast.success('Đặt hàng thành công!');
@@ -133,8 +123,6 @@ const Checkout = () => {
                 navigate('/my-account/orders');
             }
         } catch (error) {
-            console.error('Lỗi khi đặt hàng:', error);
-            console.error('Chi tiết lỗi:', error.response?.data);
             toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!');
         } finally {
             setLoading(false);
@@ -151,12 +139,7 @@ const Checkout = () => {
                 <Alert severity="warning" sx={{ mb: 2 }}>
                     Không có sản phẩm nào được chọn. Vui lòng quay lại giỏ hàng để chọn sản phẩm.
                 </Alert>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<CartIcon />}
-                    onClick={() => navigate('/cart')}
-                >
+                <Button variant="contained" color="primary" startIcon={<CartIcon />} onClick={() => navigate('/cart')}>
                     Quay lại giỏ hàng
                 </Button>
             </Box>
@@ -165,287 +148,78 @@ const Checkout = () => {
 
     return (
         <Box className="checkout-container">
-            <Typography variant="h4" gutterBottom>
-                Thanh toán
-            </Typography>
-
+            <Typography variant="h4" gutterBottom>Thanh toán</Typography>
             <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                     <Card>
                         <CardContent>
-                            <Box display="flex" alignItems="center" mb={2}>
-                                <ShippingIcon sx={{ mr: 1 }} />
-                                <Typography variant="h6">Thông tin giao hàng</Typography>
-                            </Box>
-
-                            <form onSubmit={handleSubmit}>
-                                <Grid container spacing={2}>
-                                    <Grid item xs={12}>
-                                        <TextField
-                                            fullWidth
-                                            required
-                                            label="Số điện thoại"
-                                            name="phone"
-                                            value={formData.phone}
-                                            onChange={handleChange}
-                                            variant="outlined"
-                                            InputProps={{
-                                                startAdornment: <PhoneIcon sx={{ mr: 1, color: 'action.active' }} />
-                                            }}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        <TextField
-                                            fullWidth
-                                            required
-                                            label="Địa chỉ"
-                                            name="address_line"
-                                            value={formData.address_line}
-                                            onChange={handleChange}
-                                            variant="outlined"
-                                            multiline
-                                            rows={2}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} sm={6}>
-                                        <TextField
-                                            fullWidth
-                                            label="Thành phố"
-                                            name="city"
-                                            value={formData.city}
-                                            onChange={handleChange}
-                                            variant="outlined"
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} sm={6}>
-                                        <TextField
-                                            fullWidth
-                                            label="Tỉnh"
-                                            name="province"
-                                            value={formData.province}
-                                            onChange={handleChange}
-                                            variant="outlined"
-                                        />
-                                    </Grid>
+                            <Typography variant="h6" gutterBottom>Chọn địa chỉ giao hàng</Typography>
+                            <AddressList onSelectAddress={(addr) => {
+                                setSelectedAddress(addr);
+                                setFormData({
+                                    recipient_name: addr.recipient_name || '',
+                                    phone: addr.phone,
+                                    address_line: addr.address_line,
+                                    ward: addr.ward,
+                                    district: addr.district,
+                                    city: addr.city
+                                });
+                            }} />
+                            <Grid container spacing={2} mt={2}>
+                                <Grid item xs={12}>
+                                    <TextField fullWidth required label="Tên người nhận" name="recipient_name" value={formData.recipient_name} onChange={handleChange} variant="outlined" />
                                 </Grid>
-
-                                <Box mt={4}>
-                                    <Box display="flex" alignItems="center" mb={2}>
-                                        <PaymentIcon sx={{ mr: 1 }} />
-                                        <Typography variant="h6">Phương thức thanh toán</Typography>
-                                    </Box>
-
-                                    <FormControl component="fieldset">
-                                        <RadioGroup
-                                            name="payment_method"
-                                            value={formData.payment_method}
-                                            onChange={handleChange}
-                                        >
-                                            <FormControlLabel
-                                                value="cod"
-                                                control={<Radio />}
-                                                label="Thanh toán khi nhận hàng (COD)"
-                                            />
-                                            <FormControlLabel
-                                                value="momo"
-                                                control={<Radio />}
-                                                label="Ví điện tử MoMo"
-                                            />
-                                            <FormControlLabel
-                                                value="vnpay"
-                                                control={<Radio />}
-                                                label="VNPay"
-                                            />
-                                        </RadioGroup>
-                                    </FormControl>
-                                </Box>
-
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    color="primary"
-                                    size="large"
-                                    fullWidth
-                                    disabled={loading}
-                                    sx={{ mt: 3 }}
-                                >
-                                    {loading ? <CircularProgress size={24} /> : 'Đặt hàng'}
-                                </Button>
-                            </form>
+                                <Grid item xs={12}>
+                                    <TextField fullWidth required label="Số điện thoại" name="phone" value={formData.phone} onChange={handleChange} variant="outlined" InputProps={{ startAdornment: <PhoneIcon sx={{ mr: 1, color: 'action.active' }} /> }} />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField fullWidth required label="Địa chỉ" name="address_line" value={formData.address_line} onChange={handleChange} variant="outlined" multiline rows={2} />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField fullWidth label="Phường/Xã" name="ward" value={formData.ward} onChange={handleChange} variant="outlined" />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField fullWidth label="Quận/Huyện" name="district" value={formData.district} onChange={handleChange} variant="outlined" />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField fullWidth label="Thành phố" name="city" value={formData.city} onChange={handleChange} variant="outlined" />
+                                </Grid>
+                            </Grid>
+                            <Box mt={4}>
+                                <Typography variant="h6">Phương thức thanh toán</Typography>
+                                <FormControl component="fieldset">
+                                    <RadioGroup name="payment_method" value={formData.payment_method} onChange={handleChange}>
+                                        <FormControlLabel value="cod" control={<Radio />} label="Thanh toán khi nhận hàng (COD)" />
+                                        <FormControlLabel value="momo" control={<Radio />} label="Ví điện tử MoMo" />
+                                        <FormControlLabel value="vnpay" control={<Radio />} label="VNPay" />
+                                    </RadioGroup>
+                                </FormControl>
+                            </Box>
+                            <Button type="submit" variant="contained" color="primary" size="large" fullWidth onClick={handleSubmit} disabled={loading} sx={{ mt: 3 }}>
+                                {loading ? <CircularProgress size={24} /> : 'Đặt hàng'}
+                            </Button>
                         </CardContent>
                     </Card>
                 </Grid>
-
                 <Grid item xs={12} md={6}>
                     <Card>
                         <CardContent>
-                            <Typography variant="h6" gutterBottom>
-                                Đơn hàng của bạn ({selectedProducts().length} sản phẩm)
-                            </Typography>
-
-                            <Box mb={2}>
-                                {selectedProducts().map(item => (
-                                    <Paper
-                                        key={item.cart_item_id}
-                                        elevation={0}
-                                        sx={{
-                                            p: 2,
-                                            mb: 2,
-                                            border: '1px solid #e0e0e0',
-                                            borderRadius: 1,
-                                            backgroundColor: '#fff'
-                                        }}
-                                    >
-                                        <Box display="flex" alignItems="flex-start">
-                                            <Box
-                                                sx={{
-                                                    width: 120,
-                                                    height: 120,
-                                                    mr: 2,
-                                                    borderRadius: 1,
-                                                    overflow: 'hidden',
-                                                    border: '1px solid #e0e0e0'
-                                                }}
-                                            >
-                                                <img
-                                                    src={item.variant?.image_url || item.product?.product_image || '/default-product.png'}
-                                                    alt={item.product?.product_name || 'Sản phẩm'}
-                                                    style={{
-                                                        width: '100%',
-                                                        height: '100%',
-                                                        objectFit: 'cover'
-                                                    }}
-                                                />
-                                            </Box>
-                                            <Box flex={1}>
-                                                <Typography
-                                                    variant="h6"
-                                                    sx={{
-                                                        fontWeight: 'bold',
-                                                        mb: 1,
-                                                        fontSize: '1rem'
-                                                    }}
-                                                >
-                                                    {item.product_name}
-                                                </Typography>
-                                                <Box sx={{ mb: 1 }}>
-                                                    {item.size && (
-                                                        <Typography
-                                                            component="span"
-                                                            sx={{
-                                                                mr: 2,
-                                                                bgcolor: '#e3f2fd',
-                                                                px: 1,
-                                                                py: 0.5,
-                                                                borderRadius: 1,
-                                                                fontSize: '0.875rem'
-                                                            }}
-                                                        >
-                                                            Size: {item.size}
-                                                        </Typography>
-                                                    )}
-                                                    {item.color && (
-                                                        <Typography
-                                                            component="span"
-                                                            sx={{
-                                                                mr: 2,
-                                                                bgcolor: '#e8f5e9',
-                                                                px: 1,
-                                                                py: 0.5,
-                                                                borderRadius: 1,
-                                                                fontSize: '0.875rem'
-                                                            }}
-                                                        >
-                                                            Màu: {item.color}
-                                                        </Typography>
-                                                    )}
-                                                    {item.material && (
-                                                        <Typography
-                                                            component="span"
-                                                            sx={{
-                                                                bgcolor: '#f3e5f5',
-                                                                px: 1,
-                                                                py: 0.5,
-                                                                borderRadius: 1,
-                                                                fontSize: '0.875rem'
-                                                            }}
-                                                        >
-                                                            Chất liệu: {item.material}
-                                                        </Typography>
-                                                    )}
-                                                </Box>
-                                                <Box
-                                                    display="flex"
-                                                    justifyContent="space-between"
-                                                    alignItems="center"
-                                                    mt={2}
-                                                >
-                                                    <Box display="flex" alignItems="center">
-                                                        <Typography
-                                                            variant="body1"
-                                                            sx={{
-                                                                color: '#ee4d2d',
-                                                                fontWeight: 'bold',
-                                                                fontSize: '1.1rem'
-                                                            }}
-                                                        >
-                                                            {formatPrice(item.price)}
-                                                        </Typography>
-                                                        <Typography
-                                                            sx={{
-                                                                mx: 2,
-                                                                color: '#757575',
-                                                                fontSize: '0.9rem'
-                                                            }}
-                                                        >
-                                                            Số lượng: {item.quantity}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Typography
-                                                        variant="subtitle1"
-                                                        sx={{
-                                                            color: '#ee4d2d',
-                                                            fontWeight: 'bold'
-                                                        }}
-                                                    >
-                                                        {formatPrice(item.price * item.quantity)}
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                        </Box>
-                                    </Paper>
-                                ))}
-                            </Box>
-
+                            <Typography variant="h6" gutterBottom>Đơn hàng của bạn ({selectedProducts().length} sản phẩm)</Typography>
+                            {selectedProducts().map(item => (
+                                <Box key={item.cart_item_id} display="flex" my={2}>
+                                    <img src={item.variant?.image_url || item.product?.product_image || '/default-product.png'} alt={item.product?.product_name || 'Sản phẩm'} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, marginRight: 12 }} />
+                                    <Box flex={1}>
+                                        <Typography fontWeight="bold">{item.product_name}</Typography>
+                                        <Typography variant="body2" color="text.secondary">Số lượng: {item.quantity}</Typography>
+                                        <Typography variant="body2" color="text.secondary">Giá: {formatPrice(item.price)}</Typography>
+                                    </Box>
+                                    <Typography color="error" fontWeight="bold">{formatPrice(item.price * item.quantity)}</Typography>
+                                </Box>
+                            ))}
                             <Divider sx={{ my: 2 }} />
-
-                            <Box display="flex" justifyContent="space-between" mb={1}>
-                                <Typography>Tạm tính:</Typography>
-                                <Typography sx={{ color: '#ee4d2d', fontWeight: 'bold' }}>
-                                    {formatPrice(selectedProducts().reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0))}
-                                </Typography>
-                            </Box>
-
-                            <Box display="flex" justifyContent="space-between" mb={1}>
-                                <Typography>Phí vận chuyển:</Typography>
-                                <Typography sx={{ color: '#ee4d2d', fontWeight: 'bold' }}>
-                                    {formatPrice(0)}
-                                </Typography>
-                            </Box>
-
-                            <Divider sx={{ my: 2 }} />
-
                             <Box display="flex" justifyContent="space-between">
-                                <Typography variant="h6">Tổng cộng:</Typography>
-                                <Typography
-                                    variant="h6"
-                                    sx={{
-                                        color: '#ee4d2d',
-                                        fontWeight: 'bold'
-                                    }}
-                                >
-                                    {formatPrice(selectedProducts().reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0))}
-                                </Typography>
+                                <Typography>Tổng cộng:</Typography>
+                                <Typography color="error" fontWeight="bold">{formatPrice(selectedProducts().reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0))}</Typography>
                             </Box>
                         </CardContent>
                     </Card>
@@ -455,4 +229,4 @@ const Checkout = () => {
     );
 };
 
-export default Checkout; 
+export default Checkout;

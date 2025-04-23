@@ -10,9 +10,7 @@ const RelatedProducts = ({ categoryId, currentProductId }) => {
   const { relatedProducts, loading, error } = useSelector(
     (state) => state.products
   );
-  const { product } = useSelector((state) => state.products);
 
-  console.log(relatedProducts);
   useEffect(() => {
     if (categoryId && relatedProducts.length === 0) {
       dispatch(getProductRelated(categoryId));

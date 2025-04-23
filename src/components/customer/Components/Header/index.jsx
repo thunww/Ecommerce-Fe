@@ -10,6 +10,7 @@ import IconButton from "@mui/material/IconButton";
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { FaRegHeart } from "react-icons/fa";
 import { MdNotificationsNone } from "react-icons/md";
+import { fetchAllOrders } from "../../../../redux/orderSlice";
 import {
   FaUser,
   FaSignOutAlt,
@@ -42,6 +43,17 @@ const Header = () => {
   const user = useSelector((state) => state.admin.selectedUser);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const menuRef = useRef(null);
+
+  const { orders, loading, error } = useSelector((state) => state.orders);
+
+  useEffect(() => {
+    dispatch(fetchAllOrders());
+  }, [dispatch]);
+
+  const orderCount =
+    orders?.reduce((total, order) => {
+      return total + (order.subOrders?.length || 0);
+    }, 0) || 0;
 
   const handleLogout = () => {
     dispatch(logout());

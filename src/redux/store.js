@@ -10,6 +10,8 @@ import cartReducer from "./slices/cartSlice";
 import wishlistReducer from "./slices/wishlistSlice";
 import reviewReducer from "./reviewsSilce";
 import categoryReducer from "./categorySlice";
+
+import addressReducer from "./addressSlice";
 import orderReducer from './slices/orderSlice';
 import ordersReducer from './orderSlice';
 
@@ -24,6 +26,9 @@ const store = configureStore({
     cart: cartReducer,
     wishlist: wishlistReducer,
     reviews: reviewReducer,
+    categories: categoryReducer,
+    orders: orderReducer,
+    addresses: addressReducer,
     categories: categoryReducer,
     order: orderReducer,
     orders: ordersReducer

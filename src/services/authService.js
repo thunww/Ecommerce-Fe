@@ -1,4 +1,5 @@
 import authApi from "../api/authApi";
+import { register } from "../redux/authSlice";
 
 const authService = {
   login: async (userData) => {
@@ -19,7 +20,7 @@ const authService = {
       const response = await authApi.register(userData);
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data.message || "Registration failed");
+      throw new Error(error.response?.data?.message || "Registration failed");
     }
   },
   logout: async () => {

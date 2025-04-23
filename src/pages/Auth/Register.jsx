@@ -1,20 +1,45 @@
 import { Link } from "react-router-dom";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { register, resetMessage } from "../../redux/authSlice";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { register } from "../../redux/authSlice";
 
 const Register = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { message, error, isLoading } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(resetMessage());
+  }, [dispatch]);
+
+  // Hiển thị toast khi message hoặc error thay đổi
+  useEffect(() => {
+    if (message) {
+      toast.success(message, {
+        position: "top-right",
+        autoClose: 2000,
+        onClose: () => dispatch(resetMessage()),
+      });
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    }
+    if (error) {
+      toast.error(error, {
+        position: "top-right",
+        autoClose: 3000,
+        onClose: () => dispatch(resetMessage()),
+      });
+    }
+  }, [message, error, navigate, dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,23 +59,8 @@ const Register = () => {
       return;
     }
 
-    try {
-      const result = await dispatch(
-        register({ username, email, password })
-      ).unwrap();
-
-      toast.success(result.message || "Đăng ký thành công!", {
-        position: "top-right",
-      });
-
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
-    } catch (error) {
-      toast.error(error.message || "Đăng ký thất bại!", {
-        position: "top-right",
-      });
-    }
+    // Gọi action register
+    await dispatch(register({ username, email, password }));
   };
 
   return (
