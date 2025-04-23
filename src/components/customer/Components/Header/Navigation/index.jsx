@@ -173,10 +173,12 @@ const Navigation = () => {
             </ul>
           </div>
           <div className="col3 w-full md:w-1/5 lg:w-1/5 hidden lg:block">
-            <p className="text-[12px] md:text-[13px] lg:text-[14px] font-[500] flex items-center gap-2 mb-0 mt-0 justify-end">
-              <MdDeliveryDining className="text-[16px] flex-shrink-0" />
-              <span className="truncate">FREE NATIONAL DELIVERY</span>
-            </p>
+            <Link to="/shipper/register">
+              <p className="text-[12px] md:text-[13px] lg:text-[14px] font-[500] flex items-center gap-2 mb-0 mt-0 justify-end free-delivery-link">
+                <MdDeliveryDining className="text-[16px] flex-shrink-0" />
+                <span className="truncate">Go Shipper</span>
+              </p>
+            </Link>
           </div>
         </div>
 

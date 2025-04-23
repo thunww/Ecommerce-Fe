@@ -1,194 +1,370 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { registerShipper } from '../../redux/shipperSlice';
-import AddressSelector from '../../components/AddressSelector';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
+import ShipperLogo from "../../components/shipper/ShipperLogo";
 
 const ShipperRegister = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { userInfo } = useSelector((state) => state.user);
-  const { loading, error, success } = useSelector((state) => state.shipper);
-
+  const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [formData, setFormData] = useState({
-    phone: userInfo?.phone || '',
-    vehicle_type: '',
-    driver_license: '',
-    province: '',
-    district: '',
-    ward: '',
+    vehicle_type: "",
+    license_plate: "",
+    phone: "",
   });
 
-  const [errors, setErrors] = useState({});
-
   useEffect(() => {
-    if (success) {
-      toast.success('Đăng ký thành công! Vui lòng chờ xét duyệt tài khoản.');
-      navigate('/');
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      toast.warning("Vui lòng đăng nhập để đăng ký làm shipper");
+      setIsAuthenticated(false);
+    } else {
+      setIsAuthenticated(true);
     }
-  }, [success, navigate]);
+  }, []);
 
-  useEffect(() => {
-    if (userInfo?.shipper?.isActive) {
-      navigate('/shipper/dashboard');
-    }
-  }, [userInfo, navigate]);
+  const vehicleTypes = [
+    { value: "motorcycle", label: "Xe máy" },
+    { value: "bike", label: "Xe đạp" },
+    { value: "car", label: "Ô tô" },
+    { value: "truck", label: "Xe tải" },
+    { value: "van", label: "Xe tải nhỏ" },
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: '',
-      });
-    }
-  };
-
-  const handleAddressChange = (address) => {
-    setFormData({
-      ...formData,
-      province: address.province,
-      district: address.district,
-      ward: address.ward,
-    });
+    }));
   };
 
   const validateForm = () => {
-    const newErrors = {};
-    if (!formData.phone.trim()) newErrors.phone = 'Vui lòng nhập số điện thoại';
-    if (!formData.vehicle_type.trim()) newErrors.vehicle_type = 'Vui lòng chọn loại phương tiện';
-    if (!formData.driver_license.trim()) newErrors.driver_license = 'Vui lòng nhập số giấy phép lái xe';
-    if (!formData.province.trim()) newErrors.province = 'Vui lòng chọn tỉnh/thành phố';
-    if (!formData.district.trim()) newErrors.district = 'Vui lòng chọn quận/huyện';
-    if (!formData.ward.trim()) newErrors.ward = 'Vui lòng chọn phường/xã';
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const errors = [];
+    if (!formData.vehicle_type) {
+      errors.push("Vui lòng chọn loại phương tiện");
+    }
+    if (!formData.license_plate) {
+      errors.push("Vui lòng nhập biển số xe");
+    }
+    if (!formData.phone) {
+      errors.push("Vui lòng nhập số điện thoại");
+    } else if (!/^[0-9]{10}$/.test(formData.phone)) {
+      errors.push("Số điện thoại không hợp lệ");
+    }
+    return errors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      try {
-        const shipperData = {
-          phone: formData.phone,
-          vehicle_type: formData.vehicle_type,
-          driver_license: formData.driver_license,
-          province: formData.province,
-          district: formData.district,
-          ward: formData.ward,
-        };
 
-        await dispatch(registerShipper(shipperData));
-        toast.success('Đăng ký thành công! Vui lòng đợi xét duyệt');
-        navigate('/shipper/dashboard');
-      } catch (error) {
-        console.error('Error registering shipper:', error);
-        toast.error(error.message || 'Đăng ký thất bại');
+    if (!isAuthenticated) {
+      toast.warning("Vui lòng đăng nhập để đăng ký làm shipper");
+      navigate("/login");
+      return;
+    }
+
+    const errors = validateForm();
+    if (errors.length > 0) {
+      errors.forEach((error) => toast.error(error));
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("accessToken");
+      const response = await axios.post("/api/v1/shippers/register", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        toast.success(
+          "Đăng ký shipper thành công. Vui lòng đợi admin xét duyệt."
+        );
+        navigate("/");
+      } else {
+        toast.error(response.data.message || "Đăng ký thất bại");
       }
+    } catch (error) {
+      console.error("Error registering shipper:", error);
+      toast.error(error.response?.data?.message || "Đăng ký thất bại");
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-red-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-extrabold text-red-900">Đăng ký làm shipper</h2>
-          <p className="mt-2 text-lg text-red-700">
-            Hoàn thành thông tin để bắt đầu công việc giao hàng
+  if (!isAuthenticated) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+          padding: "40px 20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "400px",
+            margin: "0 auto",
+            backgroundColor: "#fff",
+            borderRadius: "12px",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
+            padding: "30px",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ marginBottom: "20px" }}>
+            <ShipperLogo
+              width={30}
+              height={30}
+              className="shipper-logo"
+              style={{ width: "30px", height: "30px", objectFit: "contain" }}
+            />
+          </div>
+          <h2
+            style={{
+              fontSize: "24px",
+              fontWeight: "bold",
+              margin: "0 0 20px",
+              color: "#333",
+            }}
+          >
+            Vui lòng đăng nhập
+          </h2>
+          <p
+            style={{
+              margin: "0 0 30px",
+              color: "#666",
+            }}
+          >
+            Bạn cần đăng nhập để đăng ký làm shipper
           </p>
+          <button
+            onClick={() => navigate("/login")}
+            style={{
+              width: "100%",
+              padding: "14px",
+              backgroundColor: "#1890ff",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "16px",
+              fontWeight: "500",
+              cursor: "pointer",
+              transition: "all 0.3s",
+              boxShadow: "0 2px 8px rgba(24,144,255,0.35)",
+            }}
+          >
+            Đăng nhập ngay
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+        padding: "40px 20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "800px",
+          width: "100%",
+          margin: "0 auto",
+          backgroundColor: "#fff",
+          borderRadius: "12px",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
+          display: "flex",
+          flexDirection: "row",
+          overflow: "hidden",
+        }}
+      >
+        {/* Cột bên trái: Logo */}
+        <div
+          style={{
+            flex: "1",
+            backgroundColor: "#1890ff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+        >
+          <ShipperLogo
+            width={30}
+            height={30}
+            className="shipper-logo"
+            style={{ width: "30px", height: "30px", objectFit: "contain" }}
+          />
         </div>
 
-        <div className="bg-white shadow-xl rounded-lg p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Thông tin liên hệ */}
-            <div className="bg-red-50 p-6 rounded-lg">
-              <h3 className="text-lg font-semibold text-red-900 mb-4">Thông tin liên hệ</h3>
-              <div>
-                <label className="block text-sm font-medium text-red-700">
-                  Số điện thoại <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-                  required
-                />
-                {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
-              </div>
+        {/* Cột bên phải: Form đăng ký */}
+        <div
+          style={{
+            flex: "2",
+            padding: "30px",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "24px",
+              fontWeight: "bold",
+              marginBottom: "20px",
+              color: "#333",
+            }}
+          >
+            Đăng ký làm Shipper
+          </h2>
+          <p
+            style={{
+              marginBottom: "20px",
+              color: "#666",
+            }}
+          >
+            Tham gia cùng chúng tôi để trở thành đối tác giao hàng
+          </p>
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: "24px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "500",
+                  color: "#333",
+                }}
+              >
+                Loại phương tiện:
+              </label>
+              <select
+                name="vehicle_type"
+                value={formData.vehicle_type}
+                onChange={handleChange}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  border: "1px solid #d9d9d9",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  transition: "all 0.3s",
+                }}
+              >
+                <option value="">Chọn loại phương tiện</option>
+                {vehicleTypes.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* Thông tin địa chỉ */}
-            <div className="bg-red-50 p-6 rounded-lg">
-              <h3 className="text-lg font-semibold text-red-900 mb-4">Khu vực hoạt động</h3>
-              <AddressSelector 
-                type="shipper"
-                onAddressChange={handleAddressChange} 
+            <div style={{ marginBottom: "24px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "500",
+                  color: "#333",
+                }}
+              >
+                Biển số xe:
+              </label>
+              <input
+                type="text"
+                name="license_plate"
+                value={formData.license_plate}
+                onChange={handleChange}
+                placeholder="Nhập biển số xe"
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  border: "1px solid #d9d9d9",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  transition: "all 0.3s",
+                }}
               />
-              {errors.province && <p className="mt-1 text-sm text-red-600">{errors.province}</p>}
-              {errors.district && <p className="mt-1 text-sm text-red-600">{errors.district}</p>}
-              {errors.ward && <p className="mt-1 text-sm text-red-600">{errors.ward}</p>}
             </div>
 
-            {/* Thông tin phương tiện */}
-            <div className="bg-red-50 p-6 rounded-lg">
-              <h3 className="text-lg font-semibold text-red-900 mb-4">Thông tin phương tiện</h3>
-              <div>
-                <label className="block text-sm font-medium text-red-700">
-                  Loại phương tiện <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="vehicle_type"
-                  value={formData.vehicle_type}
-                  onChange={handleChange}
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
-                  required
-                >
-                  <option value="">Chọn loại phương tiện</option>
-                  <option value="bike">Xe máy</option>
-                  <option value="car">Ô tô</option>
-                  <option value="truck">Xe tải</option>
-                  <option value="van">Xe van</option>
-                </select>
-                {errors.vehicle_type && <p className="mt-1 text-sm text-red-600">{errors.vehicle_type}</p>}
-              </div>
-
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-red-700">
-                  Số giấy phép lái xe <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="driver_license"
-                  value={formData.driver_license}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-                  required
-                />
-                {errors.driver_license && <p className="mt-1 text-sm text-red-600">{errors.driver_license}</p>}
-              </div>
+            <div style={{ marginBottom: "24px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "500",
+                  color: "#333",
+                }}
+              >
+                Số điện thoại:
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="Nhập số điện thoại"
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  border: "1px solid #d9d9d9",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  transition: "all 0.3s",
+                }}
+              />
             </div>
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
-
-            <div className="flex justify-end">
+            <div style={{ marginTop: "32px" }}>
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  backgroundColor: "#1890ff",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "16px",
+                  fontWeight: "500",
+                  cursor: loading ? "not-allowed" : "pointer",
+                  opacity: loading ? 0.7 : 1,
+                  transition: "all 0.3s",
+                  boxShadow: "0 2px 8px rgba(24,144,255,0.35)",
+                }}
               >
-                {loading ? 'Đang xử lý...' : 'Đăng ký'}
+                {loading ? "Đang xử lý..." : "Đăng ký ngay"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  backgroundColor: "transparent",
+                  color: "#666",
+                  border: "1px solid #d9d9d9",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  marginTop: "12px",
+                  cursor: "pointer",
+                  transition: "all 0.3s",
+                }}
+              >
+                Quay lại
               </button>
             </div>
           </form>
@@ -198,4 +374,4 @@ const ShipperRegister = () => {
   );
 };
 
-export default ShipperRegister; 
+export default ShipperRegister;

@@ -14,26 +14,6 @@ const AddressForm = ({ initialData = {}, onSubmit, onCancel }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isDefault, setIsDefault] = useState(false);
 
-  // Load initial data if provided (for updating)
-  useEffect(() => {
-    if (initialData.address_id) {
-      setFullName(initialData.recipient_name || "");
-      setPhoneNumber(initialData.phone || "");
-      setSpecificAddress(initialData.address_line || "");
-
-      // Kiểm tra nếu dữ liệu trả về là tên, cần tìm mã `code` từ danh sách tỉnh, huyện, xã
-      const province = provinces.find((p) => p.name === initialData.city);
-      const district = districts.find((d) => d.name === initialData.district);
-      const ward = wards.find((w) => w.name === initialData.ward);
-
-      setSelectedProvince(province ? province.code : "");
-      setSelectedDistrict(district ? district.code : "");
-      setSelectedWard(ward ? ward.code : "");
-
-      setIsDefault(initialData.is_default || false);
-    }
-  }, [initialData, provinces, districts, wards]);
-
   // Fetch provinces when component mounts
   useEffect(() => {
     fetch("https://provinces.open-api.vn/api/?depth=1")
@@ -44,12 +24,67 @@ const AddressForm = ({ initialData = {}, onSubmit, onCancel }) => {
       .catch((err) => console.error("Failed to fetch provinces:", err));
   }, []);
 
+  // Load initial data if provided (for updating) - only once when provinces are loaded
+  useEffect(() => {
+    if (initialData.address_id && provinces.length > 0) {
+      setFullName(initialData.recipient_name || "");
+      setPhoneNumber(initialData.phone || "");
+      setSpecificAddress(initialData.address_line || "");
+      setIsDefault(initialData.is_default || false);
+
+      // Find the codes from the names
+      const province = provinces.find((p) => p.name === initialData.city);
+      if (province) {
+        setSelectedProvince(province.code.toString());
+
+        // Fetch districts for the initial province
+        fetch(`https://provinces.open-api.vn/api/p/${province.code}?depth=2`)
+          .then((res) => res.json())
+          .then((data) => {
+            setDistricts(data.districts);
+
+            // Find district code
+            const district = data.districts.find(
+              (d) => d.name === initialData.district
+            );
+            if (district) {
+              setSelectedDistrict(district.code.toString());
+
+              // Fetch wards for the initial district
+              fetch(
+                `https://provinces.open-api.vn/api/d/${district.code}?depth=2`
+              )
+                .then((res) => res.json())
+                .then((data) => {
+                  setWards(data.wards);
+
+                  // Find ward code
+                  const ward = data.wards.find(
+                    (w) => w.name === initialData.ward
+                  );
+                  if (ward) {
+                    setSelectedWard(ward.code.toString());
+                  }
+                })
+                .catch((err) => console.error("Failed to fetch wards:", err));
+            }
+          })
+          .catch((err) => console.error("Failed to fetch districts:", err));
+      }
+    }
+  }, [initialData, provinces]);
+
   // Fetch districts when province changes
   useEffect(() => {
     if (selectedProvince) {
       fetch(`https://provinces.open-api.vn/api/p/${selectedProvince}?depth=2`)
         .then((res) => res.json())
-        .then((data) => setDistricts(data.districts))
+        .then((data) => {
+          setDistricts(data.districts);
+          setWards([]); // Reset wards when province changes
+          setSelectedDistrict(""); // Reset district
+          setSelectedWard(""); // Reset ward
+        })
         .catch((err) => console.error("Failed to fetch districts:", err));
     } else {
       setDistricts([]);

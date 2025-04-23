@@ -30,16 +30,78 @@ const cartApi = {
         return axiosClient.get(url);
     },
 
+    // Kiểm tra sản phẩm đã có trong giỏ hàng chưa
+    checkCartItem: async (product_id, variant_id) => {
+        try {
+            const response = await axiosClient.get('/cart');
+            const cartItems = response.data.items || [];
+            return cartItems.find(item =>
+                item.product_id === product_id &&
+                item.variant_id === variant_id
+            );
+        } catch (error) {
+            console.error('Error checking cart item:', error);
+            return null;
+        }
+    },
+
+    // Lấy thông tin variant
+    getVariantInfo: async (variant_id) => {
+        try {
+            const response = await axiosClient.get(`/products/variants/${variant_id}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error getting variant info:', error);
+            return null;
+        }
+    },
+
     // Thêm sản phẩm vào giỏ hàng
-    addToCart: (product_id, quantity = 1, variant_id = null) => {
-        const url = "/cart/items";
-        return axiosClient.post(url, { product_id, quantity, variant_id });
+    addToCart: async (product_id, quantity = 1, variant_id = null) => {
+        try {
+            if (!product_id) {
+                throw new Error('Thiếu thông tin sản phẩm');
+            }
+
+            const data = {
+                product_id,
+                quantity,
+                variant_id
+            };
+
+            console.log('CartAPI: Adding to cart with data:', data);
+            const response = await axiosClient.post('/cart/items', data);
+            console.log('CartAPI: Add to cart response:', response.data);
+            return response.data;
+        } catch (error) {
+            handleApiError(error, 'addToCart');
+            throw error;
+        }
     },
 
     // Cập nhật số lượng sản phẩm trong giỏ hàng
-    updateCartItem: (cart_item_id, quantity) => {
-        const url = `/cart/items/${cart_item_id}`;
-        return axiosClient.put(url, { quantity });
+    updateCartItem: async (cart_item_id, quantity) => {
+        try {
+            if (!cart_item_id || quantity < 1) {
+                throw new Error('Thông tin không hợp lệ');
+            }
+
+            const response = await axiosClient.put(`/cart/items/${cart_item_id}`, {
+                quantity
+            });
+
+            if (!response.data) {
+                throw new Error('Không nhận được phản hồi từ server');
+            }
+
+            return {
+                success: true,
+                data: response.data
+            };
+        } catch (error) {
+            handleApiError(error, 'updateCartItem');
+            throw error;
+        }
     },
 
     // Xóa sản phẩm khỏi giỏ hàng

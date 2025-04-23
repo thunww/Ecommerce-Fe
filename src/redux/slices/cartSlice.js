@@ -60,7 +60,7 @@ export const addToCart = createAsyncThunk(
     async ({ product_id, quantity, variant_id }, { rejectWithValue }) => {
         try {
             const response = await addToCartApi(product_id, quantity, variant_id);
-            return response.data;
+            return response;
         } catch (error) {
             return rejectWithValue(error.response?.data || error.message);
         }
@@ -193,6 +193,18 @@ export const createPayment = createAsyncThunk(
     }
 );
 
+export const updateCartItemQuantity = createAsyncThunk(
+    'cart/updateCartItemQuantity',
+    async ({ cart_item_id, quantity }, { rejectWithValue }) => {
+        try {
+            const response = await updateCartItemApi(cart_item_id, quantity);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
 const initialState = {
     items: [],
     selectedItems: [], // Mảng chứa các cart_item_id được chọn
@@ -243,6 +255,10 @@ const cartSlice = createSlice({
             state.coupon = null;
             state.discount = 0;
             state.couponError = null;
+        },
+        selectItemForCheckout: (state, action) => {
+            const { cart_item_id } = action.payload;
+            state.selectedItems = [cart_item_id];
         }
     },
     extraReducers: (builder) => {
@@ -271,6 +287,10 @@ const cartSlice = createSlice({
                 state.loading = false;
                 state.items = action.payload.items;
                 message.success("Đã thêm vào giỏ hàng");
+                if (action.meta.arg.navigate) {
+                    const newItem = action.payload.items[action.payload.items.length - 1];
+                    state.selectedItems = [newItem.cart_item_id];
+                }
             })
             .addCase(addToCart.rejected, (state, action) => {
                 state.loading = false;
@@ -352,9 +372,20 @@ const cartSlice = createSlice({
             })
             .addCase(createPayment.rejected, (state, action) => {
                 state.error = action.payload;
+            })
+            .addCase(updateCartItemQuantity.fulfilled, (state, action) => {
+                if (action.payload && action.payload.data) {
+                    state.items = action.payload.data.items || [];
+                    state.shippingFee = action.payload.data.shippingFee || 0;
+                    state.discount = action.payload.data.discount || 0;
+                }
+            })
+            .addCase(updateCartItemQuantity.rejected, (state, action) => {
+                state.error = action.payload;
+                message.error(action.payload || 'Có lỗi xảy ra khi cập nhật số lượng');
             });
     }
 });
 
-export const { clearCart, setSelectedAddress, setPaymentMethod, toggleSelectItem, clearSelectedItems, clearCoupon } = cartSlice.actions;
+export const { clearCart, setSelectedAddress, setPaymentMethod, toggleSelectItem, clearSelectedItems, clearCoupon, selectItemForCheckout } = cartSlice.actions;
 export default cartSlice.reducer; 
