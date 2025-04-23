@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import productService from "../../../../../../services/productService";
+import { toast } from "react-toastify";
 
 const BasicInformation = ({ productData, onInputChange }) => {
   const [imageRatio, setImageRatio] = useState("1:1"); // Mặc định là 1:1
@@ -63,6 +64,19 @@ const BasicInformation = ({ productData, onInputChange }) => {
     };
   }, []);
 
+  // Cập nhật phương thức useEffect để đồng bộ hóa productImages với productData
+  useEffect(() => {
+    // Nếu có ảnh từ productData, cập nhật state
+    if (productData.images && productData.images.length > 0) {
+      setProductImages(productData.images);
+    }
+
+    // Nếu có ảnh khuyến mãi từ productData, cập nhật state
+    if (productData.promotionImage) {
+      setPromotionImage(productData.promotionImage);
+    }
+  }, []);
+
   // Hàm xử lý khi thay đổi tỷ lệ ảnh
   const handleRatioChange = (ratio) => {
     setImageRatio(ratio);
@@ -80,46 +94,45 @@ const BasicInformation = ({ productData, onInputChange }) => {
   // Hàm xử lý upload ảnh sản phẩm
   const handleProductImagesUpload = (e) => {
     const files = Array.from(e.target.files);
+    console.log("Files được chọn:", files);
+
     if (files.length + productImages.length > 9) {
-      alert("Bạn chỉ có thể tải lên tối đa 9 ảnh sản phẩm");
+      toast.error("Bạn chỉ có thể tải lên tối đa 9 ảnh sản phẩm");
       return;
     }
 
     // Kiểm tra kích thước và định dạng ảnh
     const validFiles = files.filter((file) => {
-      const isValidType = file.type.startsWith("image/");
+      console.log("Đang kiểm tra file:", file.name, file.type, file.size);
+
+      const isValidType = file.type.match(/^image\/(jpeg|jpg|png)$/i);
       const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
-      return isValidType && isValidSize;
+
+      if (!isValidType) {
+        toast.error(
+          `File "${file.name}" không phải là định dạng ảnh hợp lệ (JPG, JPEG, PNG)`
+        );
+        return false;
+      }
+
+      if (!isValidSize) {
+        toast.error(`File "${file.name}" vượt quá kích thước tối đa 5MB`);
+        return false;
+      }
+
+      return true;
     });
 
-    if (validFiles.length !== files.length) {
-      alert(
-        "Một số ảnh không hợp lệ. Vui lòng tải lên ảnh có định dạng hợp lệ và kích thước dưới 5MB."
-      );
-    }
-
-    setProductImages([...productImages, ...validFiles]);
-    onInputChange("images", [...productImages, ...validFiles]);
-  };
-
-  // Hàm xử lý upload ảnh khuyến mãi
-  const handlePromotionImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Kiểm tra kích thước và định dạng ảnh
-    const isValidType = file.type.startsWith("image/");
-    const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
-
-    if (!isValidType || !isValidSize) {
-      alert(
-        "Ảnh không hợp lệ. Vui lòng tải lên ảnh có định dạng hợp lệ và kích thước dưới 5MB."
-      );
+    if (validFiles.length === 0) {
       return;
     }
 
-    setPromotionImage(file);
-    onInputChange("promotionImage", file);
+    // Thêm các file hợp lệ vào state
+    const newImages = [...productImages, ...validFiles];
+    setProductImages(newImages);
+    onInputChange("images", newImages);
+
+    toast.success(`Đã thêm ${validFiles.length} ảnh sản phẩm`);
   };
 
   // Hàm xóa ảnh sản phẩm
@@ -128,12 +141,40 @@ const BasicInformation = ({ productData, onInputChange }) => {
     newImages.splice(index, 1);
     setProductImages(newImages);
     onInputChange("images", newImages);
+    toast.info("Đã xóa ảnh sản phẩm");
   };
 
   // Hàm xóa ảnh khuyến mãi
   const removePromotionImage = () => {
     setPromotionImage(null);
     onInputChange("promotionImage", null);
+    toast.info("Đã xóa ảnh khuyến mãi");
+  };
+
+  // Thêm hàm xử lý upload ảnh khuyến mãi
+  const handlePromotionImageUpload = (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    // Kiểm tra định dạng
+    const isValidType = file.type.match(/^image\/(jpeg|jpg|png)$/i);
+    if (!isValidType) {
+      toast.error("Chỉ chấp nhận file ảnh định dạng JPG, JPEG, PNG");
+      return;
+    }
+
+    // Kiểm tra kích thước
+    if (file.size > 5 * 1024 * 1024) {
+      // 5MB
+      toast.error("Kích thước ảnh không được vượt quá 5MB");
+      return;
+    }
+
+    // Cập nhật state và productData
+    setPromotionImage(file);
+    onInputChange("promotionImage", file);
+    toast.success("Đã thêm ảnh khuyến mãi");
   };
 
   // Tính toán kích thước khung addImage dựa trên tỷ lệ
@@ -191,19 +232,43 @@ const BasicInformation = ({ productData, onInputChange }) => {
             <button className="text-blue-600 text-sm">View Example</button>
           </div>
 
+          {/* Thông tin hướng dẫn */}
+          <div className="text-xs text-gray-500 mb-3">
+            <div className="font-medium text-red-500">
+              • Yêu cầu tải lên ít nhất 1 hình ảnh sản phẩm (tối đa 9 ảnh)
+            </div>
+            <div>• Định dạng: JPG, JPEG, PNG</div>
+            <div>• Kích thước tối đa: 5MB mỗi ảnh</div>
+            <div>
+              • Ảnh nên rõ ràng, không chứa text quảng cáo và được chụp trên nền
+              trắng
+            </div>
+          </div>
+
           {/* Hiển thị ảnh đã tải lên */}
           <div className="flex flex-wrap gap-2 mb-2">
             {productImages.map((image, index) => (
               <div key={index} className="relative">
-                <img
-                  src={URL.createObjectURL(image)}
-                  alt={`Product ${index + 1}`}
+                <div
                   className={`${
                     imageRatio === "1:1"
                       ? "w-[120px] h-[120px]"
                       : "w-[90px] h-[120px]"
-                  } object-cover rounded border`}
-                />
+                  } bg-gray-100 rounded border flex items-center justify-center`}
+                >
+                  <img
+                    src={
+                      image instanceof File ? URL.createObjectURL(image) : image
+                    }
+                    alt={`Product ${index + 1}`}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+                <span className="absolute bottom-0 right-0 bg-black bg-opacity-70 text-white text-xs px-1">
+                  {image instanceof File
+                    ? Math.round(image.size / 1024) + " KB"
+                    : "Uploaded"}
+                </span>
                 <button
                   onClick={() => removeProductImage(index)}
                   className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
@@ -217,14 +282,18 @@ const BasicInformation = ({ productData, onInputChange }) => {
           {/* Khung upload ảnh */}
           {productImages.length < 9 && (
             <div
-              className={`border border-dashed border-gray-300 rounded p-2 ${getImageContainerStyle()} flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-all duration-300`}
+              className={`border border-dashed ${
+                productImages.length === 0
+                  ? "border-red-400"
+                  : "border-gray-300"
+              } rounded p-2 ${getImageContainerStyle()} flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-all duration-300`}
               onClick={() => productImagesInputRef.current.click()}
             >
               <input
                 type="file"
                 ref={productImagesInputRef}
                 onChange={handleProductImagesUpload}
-                accept="image/*"
+                accept="image/jpeg, image/png, image/jpg"
                 multiple
                 className="hidden"
               />
@@ -238,8 +307,16 @@ const BasicInformation = ({ productData, onInputChange }) => {
                   />
                 </svg>
               </div>
-              <span className="text-xs text-gray-500">
-                Add Image ({productImages.length}/9)
+              <span
+                className={`text-xs ${
+                  productImages.length === 0
+                    ? "text-red-500 font-medium"
+                    : "text-gray-500"
+                }`}
+              >
+                {productImages.length === 0
+                  ? "Add Image (Required)"
+                  : `Add Image (${productImages.length}/9)`}
               </span>
               <span className="text-xs text-gray-400 mt-1">{imageRatio}</span>
             </div>
@@ -254,7 +331,7 @@ const BasicInformation = ({ productData, onInputChange }) => {
         </div>
         <div>
           <div className="text-xs text-gray-500 mb-2">
-            <div>• Upload 1:1 image</div>
+            <div>• Upload 1:1 image (tối đa 5MB, định dạng JPG, JPEG, PNG)</div>
             <div>
               • Promotion image will be used on the promotion page, search
               result page, daily discover, etc... Upload Promotion Image will
@@ -265,11 +342,22 @@ const BasicInformation = ({ productData, onInputChange }) => {
           {/* Hiển thị ảnh khuyến mãi đã tải lên */}
           {promotionImage ? (
             <div className="relative w-[120px] h-[120px]">
-              <img
-                src={URL.createObjectURL(promotionImage)}
-                alt="Promotion"
-                className="w-full h-full object-cover rounded border"
-              />
+              <div className="w-full h-full bg-gray-100 rounded border flex items-center justify-center">
+                <img
+                  src={
+                    promotionImage instanceof File
+                      ? URL.createObjectURL(promotionImage)
+                      : promotionImage
+                  }
+                  alt="Promotion"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+              <span className="absolute bottom-0 right-0 bg-black bg-opacity-70 text-white text-xs px-1">
+                {promotionImage instanceof File
+                  ? Math.round(promotionImage.size / 1024) + " KB"
+                  : "Uploaded"}
+              </span>
               <button
                 onClick={removePromotionImage}
                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
@@ -286,7 +374,7 @@ const BasicInformation = ({ productData, onInputChange }) => {
                 type="file"
                 ref={promotionImageInputRef}
                 onChange={handlePromotionImageUpload}
-                accept="image/*"
+                accept="image/jpeg, image/png, image/jpg"
                 className="hidden"
               />
               <div className="w-6 h-6 mb-1">
@@ -299,7 +387,9 @@ const BasicInformation = ({ productData, onInputChange }) => {
                   />
                 </svg>
               </div>
-              <span className="text-xs text-gray-500">Add Image (0/1)</span>
+              <span className="text-xs text-gray-500">
+                Add Image (Optional)
+              </span>
             </div>
           )}
         </div>
