@@ -95,7 +95,7 @@ const CustomerRoutes = () => {
               <Route index element={<Dashboard />} />
               <Route path="profile/:user_id" element={<Profile />} />
               {/* Thêm các routes con khác như Orders, Addresses nếu cần */}
-              /* <Route path="orders" element={<OrdersList />} />
+              <Route path="orders" element={<OrdersList />} />
               <Route path="addresses" element={<AddressList />} />
               {/* <Route path="wishlist" element={<Wishlist />} /> */}
             </Route>
