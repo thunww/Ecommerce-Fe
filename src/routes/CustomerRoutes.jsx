@@ -30,6 +30,7 @@ import ResetPassword from "../pages/Auth/ResetPassword";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import OrdersList from "../components/customer/Components/MyOrders";
 import AddressList from "../pages/Customer/Pages/Address/AddressList";
+import ShipperRegister from "../pages/Shipper/ShipperRegister";
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
@@ -69,6 +70,7 @@ const CustomerRoutes = () => {
 
             <Route path="/login" exact={true} element={<Login />} />
             <Route path="register" exact={true} element={<Register />} />
+            <Route path="/shipper/register" element={<ShipperRegister />} />
             <Route
               path="forgot-password"
               exact={true}
