@@ -6,6 +6,7 @@ export const fetchAllProducts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await productService.getAllProducts();
+      console.log("respone data ow slice",response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -158,7 +159,7 @@ const productSlice = createSlice({
           (p) => p.product_id !== action.payload
         );
       })
-      
+
       .addCase(searchProducts.pending, (state) => {
         state.loading = true;
         state.error = null;

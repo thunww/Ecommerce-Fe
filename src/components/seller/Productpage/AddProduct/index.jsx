@@ -288,6 +288,15 @@ const AddProduct = () => {
 
       formData.append("status", action === "publish" ? "ACTIVE" : "DRAFT");
 
+      // Xử lý variations nếu có
+      if (productData.variations && productData.variations.length > 0) {
+        // Loại bỏ image_url từ variations để backend tự xử lý
+        const variations = productData.variations.map(
+          ({ image_url, ...rest }) => rest
+        );
+        formData.append("variations", JSON.stringify(variations));
+      }
+
       // Xử lý ảnh sản phẩm
       if (productData.images && productData.images.length > 0) {
         // Ảnh chính (primary image)
@@ -297,23 +306,12 @@ const AddProduct = () => {
         for (let i = 1; i < productData.images.length; i++) {
           formData.append("additionalImages", productData.images[i]);
         }
-      }
 
-      // Xử lý variations nếu có
-      if (productData.variations && productData.variations.length > 0) {
-        formData.append("variations", JSON.stringify(productData.variations));
-      }
-
-      // Log để kiểm tra FormData
-      console.log("=== FORMDATA TRƯỚC KHI GỬI ===");
-      for (let [key, value] of formData.entries()) {
-        if (value instanceof File) {
-          console.log(
-            `${key}: File[${value.name}] (${Math.round(value.size / 1024)} KB)`
-          );
-        } else {
-          console.log(`${key}: ${value}`);
-        }
+        // Log để kiểm tra
+        console.log("=== CHECKING FORM DATA ===");
+        console.log("Primary Image:", productData.images[0]);
+        console.log("Additional Images:", productData.images.slice(1));
+        console.log("Variations:", JSON.parse(formData.get("variations")));
       }
 
       // Hiển thị loading toast
