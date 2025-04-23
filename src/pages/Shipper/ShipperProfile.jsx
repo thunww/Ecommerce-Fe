@@ -37,6 +37,7 @@ const ShipperProfile = () => {
 
   useEffect(() => {
     if (shipper) {
+      console.log('Shipper data from Redux:', shipper);
       setFormData({
         vehicle_type: shipper.vehicle_type || '',
         license_plate: shipper.license_plate || '',
@@ -85,7 +86,7 @@ const ShipperProfile = () => {
       })).unwrap();
 
       if (result.success) {
-        toast.success('Cập nhật thông tin thành công');
+      toast.success('Cập nhật thông tin thành công');
         dispatch(getShipperProfile());
         setIsEditing(false);
       } else {
@@ -111,8 +112,8 @@ const ShipperProfile = () => {
       const result = await dispatch(updateAvatar(formData)).unwrap();
       
       if (result.success) {
-        setAvatar(null);
-        toast.success('Cập nhật ảnh đại diện thành công');
+      setAvatar(null);
+      toast.success('Cập nhật ảnh đại diện thành công');
         dispatch(getShipperProfile());
       } else {
         toast.error(result.message || 'Cập nhật ảnh đại diện thất bại');
@@ -153,10 +154,10 @@ const ShipperProfile = () => {
               src={previewUrl || shipper?.avatar} 
               alt="Avatar" 
               className="w-full h-full object-cover"
-            />
-          </div>
+              />
+            </div>
           <div className="mt-2">
-            <input
+              <input
               type="file"
               accept="image/*"
               onChange={handleAvatarChange}
@@ -177,8 +178,8 @@ const ShipperProfile = () => {
               </button>
             )}
           </div>
-        </div>
-      </div>
+            </div>
+            </div>
 
       <form onSubmit={handleSubmit}>
         <div className="space-y-4">
@@ -186,26 +187,26 @@ const ShipperProfile = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Loại phương tiện
             </label>
-            <select
-              name="vehicle_type"
-              value={formData.vehicle_type}
-              onChange={handleChange}
+              <select
+                name="vehicle_type"
+                value={formData.vehicle_type}
+                onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-              required
-            >
-              <option value="">Chọn loại phương tiện</option>
+                required
+              >
+                <option value="">Chọn loại phương tiện</option>
               <option value="motorcycle">Xe máy</option>
               <option value="bike">Xe đạp</option>
-              <option value="car">Ô tô</option>
-            </select>
-          </div>
+                <option value="car">Ô tô</option>
+              </select>
+            </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Biển số xe
             </label>
-            <input
-              type="text"
+              <input
+                type="text"
               name="license_plate"
               value={formData.license_plate}
               onChange={handleChange}
@@ -222,11 +223,11 @@ const ShipperProfile = () => {
               type="tel"
               name="phone"
               value={formData.phone}
-              onChange={handleChange}
+                onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-              required
-            />
-          </div>
+                required
+              />
+            </div>
 
           <div className="flex space-x-4 pt-4">
             <button
@@ -256,8 +257,10 @@ const ShipperProfile = () => {
   );
 
   const renderViewMode = () => {
+    console.log('Rendering view mode with shipper:', shipper);
     // Lấy thông tin user từ shipper data
     const userData = shipper?.user || {};
+    console.log('User data:', userData);
     
     return (
       <div className="space-y-6">
@@ -320,12 +323,12 @@ const ShipperProfile = () => {
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold text-gray-800">Thông tin cá nhân</h1>
               {!isEditing && (
-                <button
+              <button
                   onClick={() => setIsEditing(true)}
                   className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                >
+              >
                   Chỉnh sửa
-                </button>
+              </button>
               )}
             </div>
             {isEditing ? renderEditMode() : renderViewMode()}
