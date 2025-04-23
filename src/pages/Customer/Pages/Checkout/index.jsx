@@ -1,256 +1,232 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
 import {
-    fetchCart,
-    applyCoupon,
-    calculateShipping,
-    checkout,
-    setSelectedAddress,
-    setPaymentMethod,
-} from "../../../../redux/slices/cartSlice";
+    Box, Card, CardContent, Typography, TextField, Button, Grid, Divider,
+    FormControlLabel, Radio, RadioGroup, FormControl, CircularProgress, Alert
+} from '@mui/material';
 import {
-    Form,
-    Input,
-    Button,
-    Select,
-    Radio,
-    Space,
-    Divider,
-    Card,
-    Typography,
-    message,
-    Spin,
-} from "antd";
-import { FaTruck, FaCreditCard, FaWallet, FaMoneyBillWave } from "react-icons/fa";
-
-const { Title, Text } = Typography;
-const { Option } = Select;
+    LocalShipping as ShippingIcon,
+    Payment as PaymentIcon,
+    ShoppingCart as CartIcon,
+    Phone as PhoneIcon
+} from '@mui/icons-material';
+import { clearCart } from '../../../../redux/slices/cartSlice';
+import { fetchAllAddresses } from '../../../../redux/addressSlice';
+import AddressList from '../Address/AddressList';
+import orderApi from '../../../../api/orderApi';
+import './Checkout.css';
 
 const Checkout = () => {
+    const navigate = useNavigate();
     const dispatch = useDispatch();
-    const [form] = Form.useForm();
-    const [loading, setLoading] = useState(false);
-    const [couponCode, setCouponCode] = useState("");
-    const [selectedPayment, setSelectedPayment] = useState("cod");
+    const cartItems = useSelector(state => state.cart.items);
+    const selectedItemIds = useSelector(state => state.cart.selectedItems);
+    const user = useSelector(state => state.auth.user);
+    const allAddresses = useSelector(state => state.addresses.addresses);
 
-    const {
-        cart,
-        shippingFee,
-        discount,
-        selectedAddress,
-        paymentMethods,
-        shippingMethods,
-        estimatedDeliveryTime,
-    } = useSelector((state) => state.cart);
+    const [loading, setLoading] = useState(false);
+    const [selectedAddress, setSelectedAddress] = useState(null);
+    const [formData, setFormData] = useState({
+        recipient_name: '',
+        phone: '',
+        address_line: '',
+        ward: '',
+        district: '',
+        city: '',
+        payment_method: 'cod'
+    });
+
+    const selectedProducts = useCallback(() => {
+        return cartItems.filter(item => selectedItemIds.includes(item.cart_item_id));
+    }, [cartItems, selectedItemIds]);
 
     useEffect(() => {
-        dispatch(fetchCart());
+        dispatch(fetchAllAddresses());
     }, [dispatch]);
 
-    const handleApplyCoupon = async () => {
-        if (!couponCode) {
-            message.warning("Vui lòng nhập mã giảm giá");
-            return;
+    useEffect(() => {
+        const defaultAddr = allAddresses.find(addr => addr.is_default);
+        if (defaultAddr) {
+            setSelectedAddress(defaultAddr);
+            setFormData(prev => ({
+                ...prev,
+                recipient_name: defaultAddr.recipient_name || '',
+                phone: defaultAddr.phone,
+                address_line: defaultAddr.address_line,
+                ward: defaultAddr.ward,
+                district: defaultAddr.district,
+                city: defaultAddr.city
+            }));
         }
-        await dispatch(applyCoupon(couponCode));
+    }, [allAddresses]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
 
-    const handleAddressChange = (values) => {
-        dispatch(setSelectedAddress(values));
-        dispatch(calculateShipping(values));
-    };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
 
-    const handlePaymentChange = (value) => {
-        setSelectedPayment(value);
-        dispatch(setPaymentMethod(value));
-    };
-
-    const handleCheckout = async (values) => {
         try {
-            setLoading(true);
+            if (!user || !user.user_id) {
+                toast.error('Vui lòng đăng nhập để đặt hàng');
+                navigate('/login');
+                return;
+            }
+
+            const selectedItems = selectedProducts();
+            if (selectedItems.length === 0) {
+                toast.error('Vui lòng chọn sản phẩm để đặt hàng');
+                return;
+            }
+
             const orderData = {
-                ...values,
-                cart_id: cart.cart_id,
-                payment_method: selectedPayment,
-                shipping_address: selectedAddress,
-                shipping_fee: shippingFee,
-                discount: discount,
-                coupon_code: couponCode,
+                user_id: user.user_id,
+                order_items: selectedItems.map(item => ({
+                    product_id: item.product.product_id,
+                    variant_id: item.variant_id || item.variant?.variant_id || null,
+                    quantity: item.quantity,
+                    price: item.price,
+                    discount: item.discount || 0,
+                    variant_info: JSON.stringify({
+                        size: item.size || null,
+                        color: item.color || null,
+                        material: item.material || null
+                    })
+                })),
+                shipping_address: {
+                    user_id: user.user_id,
+                    recipient_name: formData.recipient_name,
+                    phone: formData.phone,
+                    address_line: formData.address_line,
+                    ward: formData.ward,
+                    district: formData.district,
+                    city: formData.city
+                },
+                total_amount: selectedItems.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0),
+                shipping_fee: 0,
+                payment_method: formData.payment_method
             };
-            await dispatch(checkout(orderData)).unwrap();
-            message.success("Đặt hàng thành công!");
-            // Redirect to order confirmation page
+
+            const response = await orderApi.createOrder(orderData);
+
+            if (response.data) {
+                toast.success('Đặt hàng thành công!');
+                dispatch(clearCart());
+                navigate('/my-account/orders');
+            }
         } catch (error) {
-            message.error(error.message || "Có lỗi xảy ra khi đặt hàng");
+            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!');
         } finally {
             setLoading(false);
         }
     };
 
-    if (!cart) {
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+    };
+
+    if (selectedProducts().length === 0) {
         return (
-            <div className="flex justify-center items-center h-screen">
-                <Spin size="large" />
-            </div>
+            <Box className="checkout-container" sx={{ p: 3 }}>
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                    Không có sản phẩm nào được chọn. Vui lòng quay lại giỏ hàng để chọn sản phẩm.
+                </Alert>
+                <Button variant="contained" color="primary" startIcon={<CartIcon />} onClick={() => navigate('/cart')}>
+                    Quay lại giỏ hàng
+                </Button>
+            </Box>
         );
     }
 
-    const totalPrice = cart.items.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-    );
-    const finalPrice = totalPrice + shippingFee - discount;
-
     return (
-        <div className="container mx-auto px-4 py-8">
-            <Title level={2}>Thanh toán</Title>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Thông tin giao hàng */}
-                <div className="lg:col-span-2">
-                    <Card title="Thông tin giao hàng" className="mb-6">
-                        <Form
-                            form={form}
-                            layout="vertical"
-                            onValuesChange={handleAddressChange}
-                        >
-                            <Form.Item
-                                name="fullName"
-                                label="Họ và tên"
-                                rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
-                            >
-                                <Input />
-                            </Form.Item>
-                            <Form.Item
-                                name="phone"
-                                label="Số điện thoại"
-                                rules={[
-                                    { required: true, message: "Vui lòng nhập số điện thoại" },
-                                    {
-                                        pattern: /^[0-9]{10}$/,
-                                        message: "Số điện thoại không hợp lệ",
-                                    },
-                                ]}
-                            >
-                                <Input />
-                            </Form.Item>
-                            <Form.Item
-                                name="email"
-                                label="Email"
-                                rules={[
-                                    { required: true, message: "Vui lòng nhập email" },
-                                    { type: "email", message: "Email không hợp lệ" },
-                                ]}
-                            >
-                                <Input />
-                            </Form.Item>
-                            <Form.Item
-                                name="address"
-                                label="Địa chỉ"
-                                rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}
-                            >
-                                <Input.TextArea rows={3} />
-                            </Form.Item>
-                            <Form.Item
-                                name="city"
-                                label="Thành phố"
-                                rules={[{ required: true, message: "Vui lòng chọn thành phố" }]}
-                            >
-                                <Select>
-                                    <Option value="hanoi">Hà Nội</Option>
-                                    <Option value="hcm">TP. Hồ Chí Minh</Option>
-                                    <Option value="danang">Đà Nẵng</Option>
-                                </Select>
-                            </Form.Item>
-                        </Form>
-                    </Card>
-
-                    {/* Phương thức thanh toán */}
-                    <Card title="Phương thức thanh toán">
-                        <Radio.Group
-                            value={selectedPayment}
-                            onChange={(e) => handlePaymentChange(e.target.value)}
-                            className="w-full"
-                        >
-                            <Space direction="vertical" className="w-full">
-                                <Radio value="cod" className="w-full py-2">
-                                    <Space>
-                                        <FaMoneyBillWave className="text-xl" />
-                                        <span>Thanh toán khi nhận hàng (COD)</span>
-                                    </Space>
-                                </Radio>
-                                <Radio value="credit_card" className="w-full py-2">
-                                    <Space>
-                                        <FaCreditCard className="text-xl" />
-                                        <span>Thẻ tín dụng/Thẻ ghi nợ</span>
-                                    </Space>
-                                </Radio>
-                                <Radio value="e_wallet" className="w-full py-2">
-                                    <Space>
-                                        <FaWallet className="text-xl" />
-                                        <span>Ví điện tử</span>
-                                    </Space>
-                                </Radio>
-                                <Radio value="bank_transfer" className="w-full py-2">
-                                    <Space>
-                                        <FaTruck className="text-xl" />
-                                        <span>Chuyển khoản ngân hàng</span>
-                                    </Space>
-                                </Radio>
-                            </Space>
-                        </Radio.Group>
-                    </Card>
-                </div>
-
-                {/* Tổng đơn hàng */}
-                <div className="lg:col-span-1">
-                    <Card title="Tổng đơn hàng">
-                        <div className="space-y-4">
-                            <div className="flex justify-between">
-                                <Text>Tạm tính:</Text>
-                                <Text>{totalPrice.toLocaleString()}đ</Text>
-                            </div>
-                            <div className="flex justify-between">
-                                <Text>Phí vận chuyển:</Text>
-                                <Text>{shippingFee.toLocaleString()}đ</Text>
-                            </div>
-                            {discount > 0 && (
-                                <div className="flex justify-between text-green-600">
-                                    <Text>Giảm giá:</Text>
-                                    <Text>-{discount.toLocaleString()}đ</Text>
-                                </div>
-                            )}
-                            <Divider />
-                            <div className="flex justify-between font-bold text-lg">
-                                <Text>Tổng cộng:</Text>
-                                <Text>{finalPrice.toLocaleString()}đ</Text>
-                            </div>
-
-                            <div className="flex gap-2">
-                                <Input
-                                    placeholder="Nhập mã giảm giá"
-                                    value={couponCode}
-                                    onChange={(e) => setCouponCode(e.target.value)}
-                                />
-                                <Button type="primary" onClick={handleApplyCoupon}>
-                                    Áp dụng
-                                </Button>
-                            </div>
-
-                            <Button
-                                type="primary"
-                                size="large"
-                                block
-                                loading={loading}
-                                onClick={() => form.submit()}
-                            >
-                                Đặt hàng
+        <Box className="checkout-container">
+            <Typography variant="h4" gutterBottom>Thanh toán</Typography>
+            <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                    <Card>
+                        <CardContent>
+                            <Typography variant="h6" gutterBottom>Chọn địa chỉ giao hàng</Typography>
+                            <AddressList onSelectAddress={(addr) => {
+                                setSelectedAddress(addr);
+                                setFormData({
+                                    recipient_name: addr.recipient_name || '',
+                                    phone: addr.phone,
+                                    address_line: addr.address_line,
+                                    ward: addr.ward,
+                                    district: addr.district,
+                                    city: addr.city
+                                });
+                            }} />
+                            <Grid container spacing={2} mt={2}>
+                                <Grid item xs={12}>
+                                    <TextField fullWidth required label="Tên người nhận" name="recipient_name" value={formData.recipient_name} onChange={handleChange} variant="outlined" />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField fullWidth required label="Số điện thoại" name="phone" value={formData.phone} onChange={handleChange} variant="outlined" InputProps={{ startAdornment: <PhoneIcon sx={{ mr: 1, color: 'action.active' }} /> }} />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField fullWidth required label="Địa chỉ" name="address_line" value={formData.address_line} onChange={handleChange} variant="outlined" multiline rows={2} />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField fullWidth label="Phường/Xã" name="ward" value={formData.ward} onChange={handleChange} variant="outlined" />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField fullWidth label="Quận/Huyện" name="district" value={formData.district} onChange={handleChange} variant="outlined" />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField fullWidth label="Thành phố" name="city" value={formData.city} onChange={handleChange} variant="outlined" />
+                                </Grid>
+                            </Grid>
+                            <Box mt={4}>
+                                <Typography variant="h6">Phương thức thanh toán</Typography>
+                                <FormControl component="fieldset">
+                                    <RadioGroup name="payment_method" value={formData.payment_method} onChange={handleChange}>
+                                        <FormControlLabel value="cod" control={<Radio />} label="Thanh toán khi nhận hàng (COD)" />
+                                        <FormControlLabel value="momo" control={<Radio />} label="Ví điện tử MoMo" />
+                                        <FormControlLabel value="vnpay" control={<Radio />} label="VNPay" />
+                                    </RadioGroup>
+                                </FormControl>
+                            </Box>
+                            <Button type="submit" variant="contained" color="primary" size="large" fullWidth onClick={handleSubmit} disabled={loading} sx={{ mt: 3 }}>
+                                {loading ? <CircularProgress size={24} /> : 'Đặt hàng'}
                             </Button>
-                        </div>
+                        </CardContent>
                     </Card>
-                </div>
-            </div>
-        </div>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                    <Card>
+                        <CardContent>
+                            <Typography variant="h6" gutterBottom>Đơn hàng của bạn ({selectedProducts().length} sản phẩm)</Typography>
+                            {selectedProducts().map(item => (
+                                <Box key={item.cart_item_id} display="flex" my={2}>
+                                    <img src={item.variant?.image_url || item.product?.product_image || '/default-product.png'} alt={item.product?.product_name || 'Sản phẩm'} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, marginRight: 12 }} />
+                                    <Box flex={1}>
+                                        <Typography fontWeight="bold">{item.product_name}</Typography>
+                                        <Typography variant="body2" color="text.secondary">Số lượng: {item.quantity}</Typography>
+                                        <Typography variant="body2" color="text.secondary">Giá: {formatPrice(item.price)}</Typography>
+                                    </Box>
+                                    <Typography color="error" fontWeight="bold">{formatPrice(item.price * item.quantity)}</Typography>
+                                </Box>
+                            ))}
+                            <Divider sx={{ my: 2 }} />
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography>Tổng cộng:</Typography>
+                                <Typography color="error" fontWeight="bold">{formatPrice(selectedProducts().reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0))}</Typography>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+            </Grid>
+        </Box>
     );
 };
 
-export default Checkout; 
+export default Checkout;

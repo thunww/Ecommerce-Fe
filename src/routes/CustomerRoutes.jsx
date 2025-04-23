@@ -28,8 +28,10 @@ import Cart from "../pages/Customer/Pages/Cart";
 import SearchResults from "../components/customer/Components/Search/SearchResult";
 import ResetPassword from "../pages/Auth/ResetPassword";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
+import Checkout from "../pages/Customer/Pages/Checkout";
 import OrdersList from "../components/customer/Components/MyOrders";
 import AddressList from "../pages/Customer/Pages/Address/AddressList";
+import ShipperRegister from "../pages/Shipper/ShipperRegister";
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
@@ -69,6 +71,7 @@ const CustomerRoutes = () => {
 
             <Route path="/login" exact={true} element={<Login />} />
             <Route path="register" exact={true} element={<Register />} />
+            <Route path="/shipper/register" element={<ShipperRegister />} />
             <Route
               path="forgot-password"
               exact={true}
@@ -85,7 +88,7 @@ const CustomerRoutes = () => {
               element={<ProductDetails />}
             />
             <Route path="/cart" exact={true} element={<Cart />} />
-
+            <Route path="/checkout" element={<Checkout />} />
             {/* Thêm routes cho My Account */}
             <Route path="/my-account" element={<MyAccount />}>
               {/* Thay Dashboard bằng trang khác bạn muốn, ví dụ Profile */}

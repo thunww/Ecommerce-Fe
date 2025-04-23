@@ -133,7 +133,8 @@ const Header = () => {
                   <Tooltip title="Cart">
                     <IconButton
                       aria-label="cart"
-                      onClick={() => context.setOpenCartPanel(true)}
+                      // onClick={() => context.setOpenCartPanel(true)}
+                      onClick={() => navigate("/cart")}
                       size="small"
                       className="p-1 sm:p-2"
                     >
@@ -158,7 +159,7 @@ const Header = () => {
                 </li>
                 <li>
                   <Tooltip title="Notification">
-                    <Link to="/shipper/register">
+                    <Link to="#">
                       <IconButton
                         aria-label="notification"
                         size="small"

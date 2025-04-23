@@ -7,8 +7,10 @@ import { getProductById } from "../../../../redux/productSilce";
 import ShopInfoOfProduct from "./ShopInfoOfProduct";
 import RelatedProducts from "../../../../components/customer/Components/ProductRelated";
 import ProductReviewSection from "./ProductReviewSection";
+
 const ProductDetails = () => {
   const [activeTab, setActiveTab] = useState(0);
+  const [selectedVariant, setSelectedVariant] = useState(0);
   const { id } = useParams();
   const dispatch = useDispatch();
 
@@ -63,7 +65,11 @@ const ProductDetails = () => {
           <div className="productContent px-5 space-y-10">
             {/* ✅ Chi tiết sản phẩm */}
             <div className="product-details">
-              <ProductDetailsComponent />
+              <ProductDetailsComponent
+                product={product}
+                selectedVariant={selectedVariant}
+                onVariantChange={setSelectedVariant}
+              />
             </div>
 
             {/* ✅ Thông tin shop */}
