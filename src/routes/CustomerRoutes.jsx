@@ -31,6 +31,7 @@ import ForgotPassword from "../pages/Auth/ForgotPassword";
 import Checkout from "../pages/Customer/Pages/Checkout";
 import OrdersList from "../components/customer/Components/MyOrders";
 import AddressList from "../pages/Customer/Pages/Address/AddressList";
+import ShipperRegister from "../pages/Shipper/ShipperRegister";
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
@@ -70,6 +71,7 @@ const CustomerRoutes = () => {
 
             <Route path="/login" exact={true} element={<Login />} />
             <Route path="register" exact={true} element={<Register />} />
+            <Route path="/shipper/register" element={<ShipperRegister />} />
             <Route
               path="forgot-password"
               exact={true}
@@ -92,14 +94,11 @@ const CustomerRoutes = () => {
               {/* Thay Dashboard bằng trang khác bạn muốn, ví dụ Profile */}
               <Route index element={<Dashboard />} />
               <Route path="profile/:user_id" element={<Profile />} />
-
               {/* Thêm các routes con khác như Orders, Addresses nếu cần */}
               /* <Route path="orders" element={<OrdersList />} />
               <Route path="addresses" element={<AddressList />} />
               {/* <Route path="wishlist" element={<Wishlist />} /> */}
-
             </Route>
-
           </Route>
         </Routes>
       </MyContext.Provider>

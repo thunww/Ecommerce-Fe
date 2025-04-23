@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { Menu, Bell, User, Settings, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "../../contexts/UserContext";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../redux/authSlice";
+import { getShipperProfile } from "../../redux/shipperSlice";
 import { toast } from "react-toastify";
 
 const NotificationDropdown = ({ notifications, isOpen, onClose }) => {
@@ -36,11 +37,11 @@ const NotificationDropdown = ({ notifications, isOpen, onClose }) => {
 };
 
 const UserDropdown = ({ isOpen, onClose }) => {
-  const { userInfo } = useUser();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { shipper } = useSelector((state) => state.shipper);
 
-  if (!isOpen) return null;
+  if (!isOpen || !shipper?.user) return null;
 
   const handleLogout = () => {
     dispatch(logout());
@@ -48,20 +49,22 @@ const UserDropdown = ({ isOpen, onClose }) => {
     navigate("/");
   };
 
+  const userFullName = `${shipper.user.first_name} ${shipper.user.last_name}`;
+
   return (
     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
       <div className="px-4 py-2 border-b">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-full overflow-hidden">
             <img 
-              src={userInfo.avatar} 
-              alt={userInfo.name}
+              src={shipper.user.profile_picture || '/default-avatar.png'} 
+              alt={userFullName}
               className="w-full h-full object-cover"
             />
           </div>
           <div>
-            <p className="font-semibold">{userInfo.name}</p>
-            <p className="text-xs text-gray-500">ID: {userInfo.id}</p>
+            <p className="font-semibold">{userFullName}</p>
+            <p className="text-xs text-gray-500">ID: {shipper.user.user_id}</p>
           </div>
         </div>
       </div>
@@ -88,7 +91,12 @@ const ShipperHeader = ({ onMenuClick, currentPath }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const notificationRef = useRef(null);
   const userMenuRef = useRef(null);
-  const { userInfo } = useUser();
+  const dispatch = useDispatch();
+  const { shipper, loading } = useSelector((state) => state.shipper);
+
+  useEffect(() => {
+    dispatch(getShipperProfile());
+  }, [dispatch]);
 
   // Mock notifications data
   const notifications = [
@@ -134,6 +142,8 @@ const ShipperHeader = ({ onMenuClick, currentPath }) => {
     }
   };
 
+  const userFullName = shipper?.user ? `${shipper.user.first_name} ${shipper.user.last_name}` : '';
+
   return (
     <header className="bg-red-500 shadow-sm">
       <div className="flex items-center justify-between px-4 py-3">
@@ -177,11 +187,13 @@ const ShipperHeader = ({ onMenuClick, currentPath }) => {
               className="flex items-center space-x-2 p-2 rounded-full text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
             >
               <div className="w-8 h-8 rounded-full overflow-hidden">
-                <img 
-                  src={userInfo.avatar} 
-                  alt={userInfo.name}
-                  className="w-full h-full object-cover"
-                />
+                {shipper?.user && (
+                  <img 
+                    src={shipper.user.profile_picture || '/default-avatar.png'} 
+                    alt={userFullName}
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
             </button>
             <UserDropdown
