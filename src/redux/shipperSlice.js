@@ -1,12 +1,15 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from '../config/axios';
-
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "../config/axios";
+import shipperService from "../services/shipperService";
 // Async thunk for shipper registration
 export const registerShipper = createAsyncThunk(
-  'shipper/register',
+  "shipper/register",
   async (shipperData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/v1/shippers/register', shipperData);
+      const response = await axios.post(
+        "/api/v1/shippers/register",
+        shipperData
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -16,10 +19,12 @@ export const registerShipper = createAsyncThunk(
 
 // Async thunk for accepting an order
 export const acceptOrder = createAsyncThunk(
-  'shipper/acceptOrder',
+  "shipper/acceptOrder",
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`/api/v1/shippers/sub_orders/${orderId}/accept`);
+      const response = await axios.post(
+        `/api/v1/shippers/sub_orders/${orderId}/accept`
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -29,10 +34,12 @@ export const acceptOrder = createAsyncThunk(
 
 // Async thunk for completing an order
 export const completeOrder = createAsyncThunk(
-  'shipper/completeOrder',
+  "shipper/completeOrder",
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`/api/v1/shippers/sub_orders/${orderId}/complete`);
+      const response = await axios.post(
+        `/api/v1/shippers/sub_orders/${orderId}/complete`
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -42,10 +49,12 @@ export const completeOrder = createAsyncThunk(
 
 // Async thunk for getting order details
 export const getOrderDetails = createAsyncThunk(
-  'shipper/getOrderDetails',
+  "shipper/getOrderDetails",
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`/api/v1/shippers/sub_orders/${orderId}`);
+      const response = await axios.get(
+        `/api/v1/shippers/sub_orders/${orderId}`
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -55,12 +64,12 @@ export const getOrderDetails = createAsyncThunk(
 
 // Async thunk for getting orders list
 export const getOrders = createAsyncThunk(
-  'shipper/getOrders',
+  "shipper/getOrders",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
       if (!token) {
-        throw new Error('No access token found');
+        throw new Error("No access token found");
       }
 
       const response = await axios.get(
@@ -72,9 +81,9 @@ export const getOrders = createAsyncThunk(
         }
       );
 
-      console.log('API Response:', response.data);
+      console.log("API Response:", response.data);
       if (response.data.success) {
-        console.log('Orders data:', response.data.data);
+        console.log("Orders data:", response.data.data);
         return response.data.data;
       }
       return rejectWithValue(response.data.message);
@@ -86,15 +95,15 @@ export const getOrders = createAsyncThunk(
 
 // Async thunk for getting shipper profile
 export const getShipperProfile = createAsyncThunk(
-  'shipper/getProfile',
+  "shipper/getProfile",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/v1/shippers/profile', {
+      const response = await axios.get("/api/v1/shippers/profile", {
         headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-        }
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
       });
       return response.data;
     } catch (error) {
@@ -105,14 +114,18 @@ export const getShipperProfile = createAsyncThunk(
 
 // Async thunk for updating shipper avatar
 export const updateAvatar = createAsyncThunk(
-  'shipper/updateAvatar',
+  "shipper/updateAvatar",
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await axios.put('/api/v1/shippers/profile/avatar', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+      const response = await axios.put(
+        "/api/v1/shippers/profile/avatar",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
-      });
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -122,13 +135,16 @@ export const updateAvatar = createAsyncThunk(
 
 // Async thunk for updating order location
 export const updateOrderLocation = createAsyncThunk(
-  'shipper/updateOrderLocation',
+  "shipper/updateOrderLocation",
   async ({ orderId, location }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`/api/shippers/orders/${orderId}/location`, {
-        latitude: location.latitude,
-        longitude: location.longitude
-      });
+      const response = await axios.put(
+        `/api/shippers/orders/${orderId}/location`,
+        {
+          latitude: location.latitude,
+          longitude: location.longitude,
+        }
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -138,48 +154,54 @@ export const updateOrderLocation = createAsyncThunk(
 
 // Async thunk for updating shipper profile
 export const updateShipperProfile = createAsyncThunk(
-  'shipper/updateProfile',
+  "shipper/updateProfile",
   async (profileData, { rejectWithValue }) => {
     try {
-      console.log('Sending profile update data:', profileData);
-      
-      const response = await axios.put('/api/v1/shippers/profile', {
-        vehicle_type: profileData.vehicle_type,
-        license_plate: profileData.license_plate,
-        phone: profileData.phone
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache',
-          'Expires': '0',
+      console.log("Sending profile update data:", profileData);
+
+      const response = await axios.put(
+        "/api/v1/shippers/profile",
+        {
+          vehicle_type: profileData.vehicle_type,
+          license_plate: profileData.license_plate,
+          phone: profileData.phone,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
         }
-      });
-      
-      console.log('Profile update response:', response.data);
+      );
+
+      console.log("Profile update response:", response.data);
       return response.data;
     } catch (error) {
-      console.error('Update profile error:', error.response?.data);
-      console.error('Error details:', {
+      console.error("Update profile error:", error.response?.data);
+      console.error("Error details:", {
         status: error.response?.status,
         statusText: error.response?.statusText,
-        data: error.response?.data
+        data: error.response?.data,
       });
-      return rejectWithValue(error.response?.data || { message: 'Cập nhật thông tin thất bại' });
+      return rejectWithValue(
+        error.response?.data || { message: "Cập nhật thông tin thất bại" }
+      );
     }
   }
 );
 
 // Async thunk for getting detailed income
 export const getDetailedIncome = createAsyncThunk(
-  'shipper/getDetailedIncome',
+  "shipper/getDetailedIncome",
   async ({ startDate, endDate }, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/v1/shippers/income/filter', {
+      const response = await axios.get("/api/v1/shippers/income/filter", {
         params: {
           startDate,
-          endDate
-        }
+          endDate,
+        },
       });
       return response.data;
     } catch (error) {
@@ -190,14 +212,14 @@ export const getDetailedIncome = createAsyncThunk(
 
 // Async thunk for getting statistics
 export const getStatistics = createAsyncThunk(
-  'shipper/getStatistics',
+  "shipper/getStatistics",
   async ({ startDate, endDate }, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/v1/shippers/income/filter', {
+      const response = await axios.get("/api/v1/shippers/income/filter", {
         params: {
           startDate,
-          endDate
-        }
+          endDate,
+        },
       });
       return response.data;
     } catch (error) {
@@ -206,7 +228,35 @@ export const getStatistics = createAsyncThunk(
   }
 );
 
+export const getAllShippers = createAsyncThunk(
+  "shipper/getAll",
+  async (_, thunkAPI) => {
+    try {
+      const response = await shipperService.getAllShippers();
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const updateShipperStatus = createAsyncThunk(
+  "shipper/updateStatus",
+  async ({ shipperId, status }, thunkAPI) => {
+    try {
+      const response = await shipperService.updateShipperStatus(
+        shipperId,
+        status
+      );
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 const initialState = {
+  shippers: [],
   loading: false,
   error: null,
   success: false,
@@ -215,11 +265,11 @@ const initialState = {
   orderDetails: null,
   orders: [],
   detailedIncome: null,
-  statistics: null
+  statistics: null,
 };
 
 const shipperSlice = createSlice({
-  name: 'shipper',
+  name: "shipper",
   initialState,
   reducers: {
     resetShipperState: (state) => {
@@ -232,10 +282,42 @@ const shipperSlice = createSlice({
       state.orders = [];
       state.detailedIncome = null;
       state.statistics = null;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
+      // getAllShippers
+      .addCase(getAllShippers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getAllShippers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.shippers = action.payload;
+      })
+      .addCase(getAllShippers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // updateShipperStatus
+      .addCase(updateShipperStatus.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateShipperStatus.fulfilled, (state, action) => {
+        state.loading = false;
+        const { shipperId, status } = action.payload;
+        const shipperIndex = state.shippers.findIndex(
+          (shippers) => shippers.shipper_id === shipperId
+        );
+        if (shipperIndex !== -1) {
+          state.shops[shipperIndex].status = status;
+        }
+      })
+      .addCase(updateShipperStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       // Register shipper
       .addCase(registerShipper.pending, (state) => {
         state.loading = true;
@@ -249,7 +331,7 @@ const shipperSlice = createSlice({
       })
       .addCase(registerShipper.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Đăng ký thất bại';
+        state.error = action.payload?.message || "Đăng ký thất bại";
       })
       // Accept order
       .addCase(acceptOrder.pending, (state) => {
@@ -263,7 +345,7 @@ const shipperSlice = createSlice({
       })
       .addCase(acceptOrder.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Không thể nhận đơn hàng';
+        state.error = action.payload?.message || "Không thể nhận đơn hàng";
       })
       // Complete order
       .addCase(completeOrder.pending, (state) => {
@@ -277,7 +359,8 @@ const shipperSlice = createSlice({
       })
       .addCase(completeOrder.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Không thể hoàn thành đơn hàng';
+        state.error =
+          action.payload?.message || "Không thể hoàn thành đơn hàng";
       })
       // Get order details
       .addCase(getOrderDetails.pending, (state) => {
@@ -291,7 +374,8 @@ const shipperSlice = createSlice({
       })
       .addCase(getOrderDetails.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Không thể lấy thông tin đơn hàng';
+        state.error =
+          action.payload?.message || "Không thể lấy thông tin đơn hàng";
       })
       // Get orders list
       .addCase(getOrders.pending, (state) => {
@@ -305,7 +389,8 @@ const shipperSlice = createSlice({
       })
       .addCase(getOrders.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Không thể lấy danh sách đơn hàng';
+        state.error =
+          action.payload?.message || "Không thể lấy danh sách đơn hàng";
       })
       // Get shipper profile
       .addCase(getShipperProfile.pending, (state) => {
@@ -319,7 +404,8 @@ const shipperSlice = createSlice({
       })
       .addCase(getShipperProfile.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Không thể lấy thông tin shipper';
+        state.error =
+          action.payload?.message || "Không thể lấy thông tin shipper";
       })
       // Update avatar
       .addCase(updateAvatar.pending, (state) => {
@@ -335,7 +421,8 @@ const shipperSlice = createSlice({
       })
       .addCase(updateAvatar.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Không thể cập nhật ảnh đại diện';
+        state.error =
+          action.payload?.message || "Không thể cập nhật ảnh đại diện";
       })
       // Update order location
       .addCase(updateOrderLocation.pending, (state) => {
@@ -351,7 +438,8 @@ const shipperSlice = createSlice({
       })
       .addCase(updateOrderLocation.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Không thể cập nhật vị trí đơn hàng';
+        state.error =
+          action.payload?.message || "Không thể cập nhật vị trí đơn hàng";
       })
       // Update shipper profile
       .addCase(updateShipperProfile.pending, (state) => {
@@ -365,7 +453,7 @@ const shipperSlice = createSlice({
       })
       .addCase(updateShipperProfile.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Không thể cập nhật hồ sơ';
+        state.error = action.payload?.message || "Không thể cập nhật hồ sơ";
       })
       // Get detailed income
       .addCase(getDetailedIncome.pending, (state) => {
@@ -380,7 +468,8 @@ const shipperSlice = createSlice({
       })
       .addCase(getDetailedIncome.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Không thể lấy thông tin thu nhập';
+        state.error =
+          action.payload?.message || "Không thể lấy thông tin thu nhập";
       })
       // Get statistics
       .addCase(getStatistics.pending, (state) => {
@@ -394,10 +483,11 @@ const shipperSlice = createSlice({
       })
       .addCase(getStatistics.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Không thể lấy thông tin thống kê';
+        state.error =
+          action.payload?.message || "Không thể lấy thông tin thống kê";
       });
-  }
+  },
 });
 
 export const { resetShipperState } = shipperSlice.actions;
-export default shipperSlice.reducer; 
+export default shipperSlice.reducer;
