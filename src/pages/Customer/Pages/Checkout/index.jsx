@@ -101,15 +101,17 @@ const Checkout = () => {
                         material: item.material || null
                     })
                 })),
-                shipping_address: {
-                    user_id: user.user_id,
-                    recipient_name: formData.recipient_name,
-                    phone: formData.phone,
-                    address_line: formData.address_line,
-                    ward: formData.ward,
-                    district: formData.district,
-                    city: formData.city
-                },
+                shipping_address: selectedAddress?.address_id
+                    ? { address_id: selectedAddress.address_id }  // ✅ Gửi address_id nếu có
+                    : {
+                        user_id: user.user_id,                     // 👈 Trường hợp fallback (không xảy ra nếu AddressList là bắt buộc)
+                        recipient_name: formData.recipient_name,
+                        phone: formData.phone,
+                        address_line: formData.address_line,
+                        ward: formData.ward,
+                        district: formData.district,
+                        city: formData.city
+                    },
                 total_amount: selectedItems.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0),
                 shipping_fee: 0,
                 payment_method: formData.payment_method
@@ -165,26 +167,7 @@ const Checkout = () => {
                                     city: addr.city
                                 });
                             }} />
-                            <Grid container spacing={2} mt={2}>
-                                <Grid item xs={12}>
-                                    <TextField fullWidth required label="Tên người nhận" name="recipient_name" value={formData.recipient_name} onChange={handleChange} variant="outlined" />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <TextField fullWidth required label="Số điện thoại" name="phone" value={formData.phone} onChange={handleChange} variant="outlined" InputProps={{ startAdornment: <PhoneIcon sx={{ mr: 1, color: 'action.active' }} /> }} />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <TextField fullWidth required label="Địa chỉ" name="address_line" value={formData.address_line} onChange={handleChange} variant="outlined" multiline rows={2} />
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                    <TextField fullWidth label="Phường/Xã" name="ward" value={formData.ward} onChange={handleChange} variant="outlined" />
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                    <TextField fullWidth label="Quận/Huyện" name="district" value={formData.district} onChange={handleChange} variant="outlined" />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <TextField fullWidth label="Thành phố" name="city" value={formData.city} onChange={handleChange} variant="outlined" />
-                                </Grid>
-                            </Grid>
+
                             <Box mt={4}>
                                 <Typography variant="h6">Phương thức thanh toán</Typography>
                                 <FormControl component="fieldset">
