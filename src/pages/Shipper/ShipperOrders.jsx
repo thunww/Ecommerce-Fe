@@ -18,7 +18,7 @@ const ShipperOrders = () => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem('accessToken');
-      
+
       if (!token) {
         toast.error('Vui lòng đăng nhập lại');
         return;
@@ -46,7 +46,7 @@ const ShipperOrders = () => {
           };
 
           const user = order.Order?.User || {};
-          const fullName = user.first_name && user.last_name ? 
+          const fullName = user.first_name && user.last_name ?
             `${user.first_name} ${user.last_name}` : 'Không xác định';
 
           return {
@@ -57,18 +57,18 @@ const ShipperOrders = () => {
             customerEmail: user.email || '',
             address: formatAddress(order.Order?.shipping_address),
             time: order.created_at ? new Date(order.created_at).toLocaleString() : 'Không xác định',
-            deliveredTime: order.status === 'delivered' && order.shipment?.actual_delivery_date 
-              ? new Date(order.shipment.actual_delivery_date).toLocaleString() 
+            deliveredTime: order.status === 'delivered' && order.shipment?.actual_delivery_date
+              ? new Date(order.shipment.actual_delivery_date).toLocaleString()
               : null,
             total: parseFloat(order.shipping_fee || 0).toLocaleString('vi-VN', {
               style: 'currency',
               currency: 'VND'
             }),
-            status: order.status === 'processing' ? 'Đang xử lý' 
-                   : order.status === 'shipped' ? 'Đang giao hàng'
-                   : order.status === 'delivered' ? 'Đã hoàn thành'
-                   : order.status === 'cancelled' ? 'Đã hủy'
-                   : 'Không xác định',
+            status: order.status === 'processing' ? 'Đang xử lý'
+              : order.status === 'shipped' ? 'Đang giao hàng'
+                : order.status === 'delivered' ? 'Đã hoàn thành'
+                  : order.status === 'cancelled' ? 'Đã hủy'
+                    : 'Không xác định',
             rawStatus: order.status
           };
         });
@@ -87,14 +87,14 @@ const ShipperOrders = () => {
   }, []);
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
+    const matchesSearch =
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerPhone.includes(searchTerm) ||
       order.address.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = 
-      statusFilter === 'all' || 
+    const matchesStatus =
+      statusFilter === 'all' ||
       order.rawStatus === statusFilter;
 
     // Implement date filtering if needed
@@ -117,7 +117,7 @@ const ShipperOrders = () => {
         <div className="p-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <h1 className="text-2xl font-semibold text-gray-800">Danh sách đơn hàng</h1>
-            
+
             <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
               {/* Search Box */}
               <div className="relative flex-1 md:flex-none md:w-64">
@@ -152,11 +152,10 @@ const ShipperOrders = () => {
                           setStatusFilter(option.value);
                           setShowFilterMenu(false);
                         }}
-                        className={`block w-full text-left px-4 py-2 text-sm ${
-                          statusFilter === option.value 
-                            ? 'bg-red-50 text-red-700' 
+                        className={`block w-full text-left px-4 py-2 text-sm ${statusFilter === option.value
+                            ? 'bg-red-50 text-red-700'
                             : 'text-gray-700 hover:bg-gray-50'
-                        }`}
+                          }`}
                       >
                         {option.label}
                       </button>
@@ -177,8 +176,8 @@ const ShipperOrders = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <OrdersTable 
-                orders={filteredOrders} 
+              <OrdersTable
+                orders={filteredOrders}
                 onOrderUpdate={fetchOrders}
               />
             </div>
