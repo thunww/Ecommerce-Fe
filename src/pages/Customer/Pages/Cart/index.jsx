@@ -253,7 +253,7 @@ const CartPage = () => {
     };
 
     const handleContinueShopping = () => {
-        navigate("/products");
+        navigate("/");
     };
 
     console.log("Current cart items:", items);

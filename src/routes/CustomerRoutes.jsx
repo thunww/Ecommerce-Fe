@@ -28,6 +28,7 @@ import Cart from "../pages/Customer/Pages/Cart";
 import SearchResults from "../components/customer/Components/Search/SearchResult";
 import ResetPassword from "../pages/Auth/ResetPassword";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
+import Checkout from "../pages/Customer/Pages/Checkout";
 import OrdersList from "../components/customer/Components/MyOrders";
 import AddressList from "../pages/Customer/Pages/Address/AddressList";
 const CustomerRoutes = () => {
@@ -85,17 +86,20 @@ const CustomerRoutes = () => {
               element={<ProductDetails />}
             />
             <Route path="/cart" exact={true} element={<Cart />} />
-
+            <Route path="/checkout" element={<Checkout />} />
             {/* Thêm routes cho My Account */}
             <Route path="/my-account" element={<MyAccount />}>
               {/* Thay Dashboard bằng trang khác bạn muốn, ví dụ Profile */}
               <Route index element={<Dashboard />} />
               <Route path="profile/:user_id" element={<Profile />} />
+
               {/* Thêm các routes con khác như Orders, Addresses nếu cần */}
               /* <Route path="orders" element={<OrdersList />} />
               <Route path="addresses" element={<AddressList />} />
               {/* <Route path="wishlist" element={<Wishlist />} /> */}
+
             </Route>
+
           </Route>
         </Routes>
       </MyContext.Provider>
