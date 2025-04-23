@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Menu, Bell, User, Settings, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useUser } from "../../contexts/UserContext";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../redux/authSlice";
 import { getShipperProfile } from "../../redux/shipperSlice";

@@ -1,6 +1,5 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import { UserProvider } from "../contexts/UserContext";
 import ShipperLayout from "../layouts/ShipperLayout";
 import ShipperDashboard from "../pages/Shipper/ShipperDashboard";
 import ShipperOrders from "../pages/Shipper/ShipperOrders";
@@ -13,26 +12,24 @@ import NotFound from "../pages/NotFound";
 
 const ShipperRoutes = () => {
   return (
-    <UserProvider>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<ShipperLanding />} />
-        {/* <Route path="/register" element={<ShipperRegister />} /> */}
-        {/* <Route path="/login" element={<ShipperLogin />} /> */}
+    <Routes>
+      {/* Public routes */}
+      <Route path="/" element={<ShipperLanding />} />
+      <Route path="/register" element={<ShipperRegister />} />
+      {/* <Route path="/login" element={<ShipperLogin />} /> */}
 
-        {/* Protected routes with layout */}
-        <Route element={<ShipperLayout />}>
-          <Route path="/dashboard" element={<ShipperDashboard />} />
-          <Route path="/orders" element={<ShipperOrders />} />
-          <Route path="/orders/:orderId" element={<ShipperOrderDetail />} />
-          <Route path="/profile" element={<ShipperProfile />} />
-          <Route path="/income" element={<ShipperIncome />} />
-        </Route>
+      {/* Protected routes with layout */}
+      <Route element={<ShipperLayout />}>
+        <Route path="/dashboard" element={<ShipperDashboard />} />
+        <Route path="/orders" element={<ShipperOrders />} />
+        <Route path="/orders/:orderId" element={<ShipperOrderDetail />} />
+        <Route path="/profile" element={<ShipperProfile />} />
+        <Route path="/income" element={<ShipperIncome />} />
+      </Route>
 
-        {/* Catch all route */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </UserProvider>
+      {/* Catch all route */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 
