@@ -106,7 +106,7 @@ const Register = () => {
                       placeholder="Enter your full name"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      disabled={isLoading}
+                      required
                     />
                   </div>
                 </div>
@@ -126,7 +126,7 @@ const Register = () => {
                       placeholder="Enter your email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      disabled={isLoading}
+                      required
                     />
                   </div>
                 </div>
@@ -146,7 +146,7 @@ const Register = () => {
                       placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      disabled={isLoading}
+                      required
                     />
                   </div>
                 </div>
@@ -166,7 +166,7 @@ const Register = () => {
                       placeholder="Confirm your password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      disabled={isLoading}
+                      required
                     />
                   </div>
                 </div>
@@ -174,15 +174,14 @@ const Register = () => {
                 <button
                   type="submit"
                   className="w-full py-3 px-4 flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 shadow-md"
-                  disabled={isLoading}
                 >
-                  {isLoading ? "Đang đăng ký..." : "Register"}
+                  Register
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </button>
               </form>
 
               {/* Social login buttons */}
-              <div className="relative my-6">
+              <div className="relative my-6 ">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200"></div>
                 </div>

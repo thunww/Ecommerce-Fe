@@ -133,7 +133,8 @@ const Header = () => {
                   <Tooltip title="Cart">
                     <IconButton
                       aria-label="cart"
-                      onClick={() => context.setOpenCartPanel(true)}
+                      // onClick={() => context.setOpenCartPanel(true)}
+                      onClick={() => navigate('/cart')}
                       size="small"
                       className="p-1 sm:p-2"
                     >
@@ -208,8 +209,7 @@ const Header = () => {
                         <div className="py-3 px-4 border-b border-gray-100">
                           <p className="text-sm font-medium text-gray-800 truncate">
                             {user
-                              ? `${user.first_name || ""} ${
-                                  user.last_name || ""
+                              ? `${user.first_name || ""} ${user.last_name || ""
                                 }`.trim()
                               : "User"}
                           </p>
