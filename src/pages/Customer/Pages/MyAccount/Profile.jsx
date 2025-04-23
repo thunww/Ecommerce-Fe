@@ -48,12 +48,11 @@ const ProfileField = ({ icon, label, value, isEditing, onChange, name }) => {
         ) : name === "gender" ? (
           <select
             className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm bg-white transition-all duration-200"
-            value={value}
+            value={value || "male"} // Đặt giá trị mặc định là "male"
             onChange={(e) => onChange(name, e.target.value)}
           >
             <option value="male">Male</option>
             <option value="female">Female</option>
-            <option value="other">Other</option>
           </select>
         ) : (
           <input
@@ -66,7 +65,9 @@ const ProfileField = ({ icon, label, value, isEditing, onChange, name }) => {
         )
       ) : (
         <p className="text-base font-medium text-gray-800 py-2 px-3 bg-gray-50 rounded-lg truncate">
-          {formattedValue || "Not updated yet"}
+          {name === "gender" && !value
+            ? "Male"
+            : formattedValue || "Not updated yet"}
         </p>
       )}
     </div>
@@ -95,7 +96,7 @@ const Profile = () => {
         last_name: user.last_name || "",
         phone: user.phone || "",
         date_of_birth: user.date_of_birth || "",
-        gender: user.gender || "",
+        gender: user.gender || "male", // Đặt mặc định là "male"
         profile_picture: user.profile_picture || "",
       });
     }
@@ -137,20 +138,25 @@ const Profile = () => {
 
     const updatedData = {
       first_name:
-        profileData.first_name !== user.first_name
+        profileData.first_name !== (user.first_name || "")
           ? profileData.first_name
           : undefined,
       last_name:
-        profileData.last_name !== user.last_name
+        profileData.last_name !== (user.last_name || "")
           ? profileData.last_name
           : undefined,
-      phone: profileData.phone !== user.phone ? profileData.phone : undefined,
+      phone:
+        profileData.phone !== (user.phone || "")
+          ? profileData.phone
+          : undefined,
       date_of_birth:
-        profileData.date_of_birth !== user.date_of_birth
+        profileData.date_of_birth !== (user.date_of_birth || "")
           ? profileData.date_of_birth
           : undefined,
       gender:
-        profileData.gender !== user.gender ? profileData.gender : undefined,
+        profileData.gender !== (user.gender || "male")
+          ? profileData.gender
+          : undefined,
       profile_picture: selectedImage ? uploadedImageUrl : undefined,
     };
 
@@ -158,7 +164,9 @@ const Profile = () => {
       Object.entries(updatedData).filter(([_, value]) => value !== undefined)
     );
 
-    dispatch(updateUser({ user_id: userId, ...filteredData }));
+    if (Object.keys(filteredData).length > 0) {
+      dispatch(updateUser({ user_id: userId, ...filteredData }));
+    }
     setIsEditing(false);
   };
 
@@ -169,7 +177,7 @@ const Profile = () => {
         last_name: user.last_name || "",
         phone: user.phone || "",
         date_of_birth: user.date_of_birth || "",
-        gender: user.gender || " ",
+        gender: user.gender || "male", // Đặt mặc định là "male"
         profile_picture: user.profile_picture || "",
       });
     }

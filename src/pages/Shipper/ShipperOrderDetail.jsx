@@ -103,6 +103,24 @@ const ShipperOrderDetail = () => {
     }
   };
 
+  const validateOrderData = (order) => {
+    if (!order) return false;
+    
+    // Kiểm tra tính hợp lệ của thời gian
+    const createdAt = new Date(order.createdAt);
+    const updatedAt = new Date(order.updatedAt);
+    const estimatedDelivery = order.shipment?.estimated_delivery_date ? new Date(order.shipment.estimated_delivery_date) : null;
+    
+    if (isNaN(createdAt.getTime()) || isNaN(updatedAt.getTime())) return false;
+    if (estimatedDelivery && isNaN(estimatedDelivery.getTime())) return false;
+    if (estimatedDelivery && estimatedDelivery < createdAt) return false;
+    
+    // Kiểm tra tính hợp lệ của giá tiền
+    if (isNaN(parseFloat(order.total_price)) || isNaN(parseFloat(order.shipping_fee))) return false;
+    
+    return true;
+  };
+
   useEffect(() => {
     fetchOrderDetails();
   }, [orderId]);
@@ -118,6 +136,20 @@ const ShipperOrderDetail = () => {
       </div>
     );
   }
+
+  const getFinalStatus = () => {
+    if (order.status === 'cancelled' || order.Order?.status === 'cancelled') {
+      return 'cancelled';
+    }
+    if (order.shipment?.status === 'in_transit') {
+      return 'in_transit';
+    }
+    return order.status;
+  };
+
+  const getFinalTotalPrice = () => {
+    return parseFloat(order.total_price) || parseFloat(order.Order?.total_price) || 0;
+  };
 
   return (
     <div style={{ padding: '24px' }}>
@@ -158,15 +190,19 @@ const ShipperOrderDetail = () => {
           </div>
           <div style={{ display: 'flex', marginBottom: '10px' }}>
             <div style={{ width: '150px', fontWeight: 'bold' }}>Ngày tạo:</div>
-            <div>{moment(order.created_at).format('DD/MM/YYYY HH:mm')}</div>
+            <div>{moment(order.createdAt).format('DD/MM/YYYY HH:mm')}</div>
+          </div>
+          <div style={{ display: 'flex', marginBottom: '10px' }}>
+            <div style={{ width: '150px', fontWeight: 'bold' }}>Ngày giao dự kiến:</div>
+            <div>{order.shipment?.estimated_delivery_date ? moment(order.shipment.estimated_delivery_date).format('DD/MM/YYYY HH:mm') : 'Chưa cập nhật'}</div>
           </div>
           <div style={{ display: 'flex', marginBottom: '10px' }}>
             <div style={{ width: '150px', fontWeight: 'bold' }}>Tổng tiền:</div>
-            <div>{order.total_price.toLocaleString('vi-VN')}đ</div>
+            <div>{parseFloat(order.total_price || 0).toLocaleString('vi-VN')}đ</div>
           </div>
           <div style={{ display: 'flex', marginBottom: '10px' }}>
             <div style={{ width: '150px', fontWeight: 'bold' }}>Phí vận chuyển:</div>
-            <div>{order.shipping_fee.toLocaleString('vi-VN')}đ</div>
+            <div>{parseFloat(order.shipping_fee || 0).toLocaleString('vi-VN')}đ</div>
           </div>
         </div>
 
@@ -194,41 +230,61 @@ const ShipperOrderDetail = () => {
 
         <div style={{ marginBottom: '20px' }}>
           <h3>Danh sách sản phẩm</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'left' }}>Sản phẩm</th>
-                <th style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'center' }}>Số lượng</th>
-                <th style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'right' }}>Đơn giá</th>
-                <th style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'right' }}>Thành tiền</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order?.orderItems?.map(item => {
-                console.log('Order item:', item);
-                return (
-                  <tr key={item.order_item_id}>
+          {order.orderItems && order.orderItems.length > 0 ? (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'left' }}>Sản phẩm</th>
+                  <th style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'left' }}>Số lượng</th>
+                  <th style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'right' }}>Giá</th>
+                  <th style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'right' }}>Tổng</th>
+                </tr>
+              </thead>
+              <tbody>
+                {order.orderItems.map((item, index) => (
+                  <tr key={index}>
                     <td style={{ padding: '8px', border: '1px solid #d9d9d9' }}>
-                      <div>{item.product?.product_name}</div>
-                      {item.productVariant && (
-                        <div style={{ color: '#666', fontSize: '12px' }}>
-                          {item.productVariant.size && `Size: ${item.productVariant.size} `}
-                          {item.productVariant.color && `Màu: ${item.productVariant.color} `}
-                          {item.productVariant.material && `Chất liệu: ${item.productVariant.material}`}
-                          {item.productVariant.storage && `Bộ nhớ: ${item.productVariant.storage} `}
-                          {item.productVariant.ram && `RAM: ${item.productVariant.ram} `}
-                          {item.productVariant.processor && `CPU: ${item.productVariant.processor}`}
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <div style={{ width: '60px', height: '60px', marginRight: '10px', overflow: 'hidden', borderRadius: '4px' }}>
+                          <img 
+                            src={item.productVariant?.image_url || '/default-product.png'} 
+                            alt={item.product?.product_name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = '/default-product.png';
+                            }}
+                          />
                         </div>
-                      )}
+                        <div>
+                          <div style={{ fontWeight: 'bold' }}>{item.product?.product_name}</div>
+                          {item.productVariant && (
+                            <div style={{ color: '#666', fontSize: '0.9em' }}>
+                              {item.productVariant.color && <span>Màu: {item.productVariant.color} </span>}
+                              {item.productVariant.size && <span>Size: {item.productVariant.size} </span>}
+                              {item.productVariant.material && <span>Chất liệu: {item.productVariant.material} </span>}
+                              {item.productVariant.storage && <span>Bộ nhớ: {item.productVariant.storage} </span>}
+                              {item.productVariant.ram && <span>RAM: {item.productVariant.ram} </span>}
+                              {item.productVariant.processor && <span>CPU: {item.productVariant.processor} </span>}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </td>
-                    <td style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'center' }}>{item.quantity}</td>
-                    <td style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'right' }}>{item.price.toLocaleString('vi-VN')}đ</td>
-                    <td style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'right' }}>{item.total.toLocaleString('vi-VN')}đ</td>
+                    <td style={{ padding: '8px', border: '1px solid #d9d9d9' }}>{item.quantity}</td>
+                    <td style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'right' }}>
+                      {item.price.toLocaleString('vi-VN')}đ
+                    </td>
+                    <td style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'right' }}>
+                      {(item.price * item.quantity).toLocaleString('vi-VN')}đ
+                    </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>Không có sản phẩm nào trong đơn hàng</p>
+          )}
         </div>
 
         {order.shipment && (

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { getShipperProfile, updateShipperProfile, updateAvatar } from '../../redux/shipperSlice';
+import { FaTruck, FaPhone, FaIdCard, FaUser, FaEnvelope, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
 const ShipperProfile = () => {
   const dispatch = useDispatch();
@@ -44,8 +45,8 @@ const ShipperProfile = () => {
         phone: shipper.phone || ''
       });
       
-      if (shipper.avatar) {
-        setPreviewUrl(shipper.avatar);
+      if (shipper.user?.profile_picture) {
+        setPreviewUrl(shipper.user.profile_picture);
       }
     }
   }, [shipper]);
@@ -86,7 +87,7 @@ const ShipperProfile = () => {
       })).unwrap();
 
       if (result.success) {
-      toast.success('Cập nhật thông tin thành công');
+        toast.success('Cập nhật thông tin thành công');
         dispatch(getShipperProfile());
         setIsEditing(false);
       } else {
@@ -112,8 +113,8 @@ const ShipperProfile = () => {
       const result = await dispatch(updateAvatar(formData)).unwrap();
       
       if (result.success) {
-      setAvatar(null);
-      toast.success('Cập nhật ảnh đại diện thành công');
+        setAvatar(null);
+        toast.success('Cập nhật ảnh đại diện thành công');
         dispatch(getShipperProfile());
       } else {
         toast.error(result.message || 'Cập nhật ảnh đại diện thất bại');
@@ -132,6 +133,10 @@ const ShipperProfile = () => {
         return 'Xe đạp';
       case 'car':
         return 'Ô tô';
+      case 'truck':
+        return 'Xe tải';
+      case 'van':
+        return 'Xe tải nhỏ';
       default:
         return type;
     }
@@ -151,13 +156,13 @@ const ShipperProfile = () => {
         <div className="relative">
           <div className="w-32 h-32 rounded-full overflow-hidden">
             <img 
-              src={previewUrl || shipper?.avatar} 
+              src={previewUrl || shipper?.user?.profile_picture || '/default-avatar.png'} 
               alt="Avatar" 
               className="w-full h-full object-cover"
-              />
-            </div>
+            />
+          </div>
           <div className="mt-2">
-              <input
+            <input
               type="file"
               accept="image/*"
               onChange={handleAvatarChange}
@@ -178,8 +183,8 @@ const ShipperProfile = () => {
               </button>
             )}
           </div>
-            </div>
-            </div>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit}>
         <div className="space-y-4">
@@ -187,26 +192,26 @@ const ShipperProfile = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Loại phương tiện
             </label>
-              <select
-                name="vehicle_type"
-                value={formData.vehicle_type}
-                onChange={handleChange}
+            <select
+              name="vehicle_type"
+              value={formData.vehicle_type}
+              onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                required
-              >
-                <option value="">Chọn loại phương tiện</option>
+              required
+            >
+              <option value="">Chọn loại phương tiện</option>
               <option value="motorcycle">Xe máy</option>
               <option value="bike">Xe đạp</option>
-                <option value="car">Ô tô</option>
-              </select>
-            </div>
+              <option value="car">Ô tô</option>
+            </select>
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Biển số xe
             </label>
-              <input
-                type="text"
+            <input
+              type="text"
               name="license_plate"
               value={formData.license_plate}
               onChange={handleChange}
@@ -223,13 +228,13 @@ const ShipperProfile = () => {
               type="tel"
               name="phone"
               value={formData.phone}
-                onChange={handleChange}
+              onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                required
-              />
-            </div>
+              required
+            />
+          </div>
 
-          <div className="flex space-x-4 pt-4">
+          <div className="flex space-x-4">
             <button
               type="submit"
               className="px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700"
@@ -257,56 +262,81 @@ const ShipperProfile = () => {
   );
 
   const renderViewMode = () => {
-    console.log('Rendering view mode with shipper:', shipper);
-    // Lấy thông tin user từ shipper data
     const userData = shipper?.user || {};
-    console.log('User data:', userData);
     
     return (
-      <div className="space-y-6">
+      <div className="space-y-8">
+        {/* Profile Header */}
         <div className="flex items-start space-x-6">
-          <div className="w-32 h-32 rounded-full overflow-hidden">
+          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-red-500">
             <img 
-              src={shipper?.avatar || '/default-avatar.png'} 
+              src={userData.profile_picture || '/default-avatar.png'} 
               alt="Avatar" 
               className="w-full h-full object-cover"
             />
           </div>
           <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-800">
+                {userData.first_name} {userData.last_name}
+              </h2>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                shipper?.status === 'active' 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {shipper?.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}
+              </span>
+            </div>
+            <p className="text-gray-600 mt-1">ID: {shipper?.shipper_id}</p>
+          </div>
+        </div>
+
+        {/* Personal Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Thông tin cá nhân</h3>
             <div className="space-y-4">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Họ và tên
-                </h2>
-                <p className="text-gray-600">
-                  {userData.first_name} {userData.last_name}
-                </p>
+              <div className="flex items-center space-x-3">
+                <FaUser className="text-gray-500" />
+                <div>
+                  <p className="text-sm text-gray-500">Họ và tên</p>
+                  <p className="text-gray-800">{userData.first_name} {userData.last_name}</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Email
-                </h2>
-                <p className="text-gray-600">{userData.email}</p>
+              <div className="flex items-center space-x-3">
+                <FaEnvelope className="text-gray-500" />
+                <div>
+                  <p className="text-sm text-gray-500">Email</p>
+                  <p className="text-gray-800">{userData.email}</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Số điện thoại
-                </h2>
-                <p className="text-gray-600">{shipper?.phone}</p>
+              <div className="flex items-center space-x-3">
+                <FaPhone className="text-gray-500" />
+                <div>
+                  <p className="text-sm text-gray-500">Số điện thoại</p>
+                  <p className="text-gray-800">{shipper?.phone}</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Loại phương tiện
-                </h2>
-                <p className="text-gray-600">
-                  {getVehicleTypeText(shipper?.vehicle_type)}
-                </p>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Thông tin phương tiện</h3>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <FaTruck className="text-gray-500" />
+                <div>
+                  <p className="text-sm text-gray-500">Loại phương tiện</p>
+                  <p className="text-gray-800">{getVehicleTypeText(shipper?.vehicle_type)}</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Biển số xe
-                </h2>
-                <p className="text-gray-600">{shipper?.license_plate}</p>
+              <div className="flex items-center space-x-3">
+                <FaIdCard className="text-gray-500" />
+                <div>
+                  <p className="text-sm text-gray-500">Biển số xe</p>
+                  <p className="text-gray-800">{shipper?.license_plate}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -323,12 +353,12 @@ const ShipperProfile = () => {
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold text-gray-800">Thông tin cá nhân</h1>
               {!isEditing && (
-              <button
+                <button
                   onClick={() => setIsEditing(true)}
                   className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-              >
+                >
                   Chỉnh sửa
-              </button>
+                </button>
               )}
             </div>
             {isEditing ? renderEditMode() : renderViewMode()}

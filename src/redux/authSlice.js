@@ -46,7 +46,6 @@ export const logout = createAsyncThunk("auth/logout", async () => {
   return null;
 });
 
-// ✅ Khởi tạo state an toàn
 const initialState = {
   user: (() => {
     try {
@@ -67,7 +66,8 @@ const initialState = {
   token: localStorage.getItem("accessToken") || null,
   isAuthenticated: !!localStorage.getItem("accessToken"),
   isLoading: false,
-  error: null,
+  message: null, // Thêm để lưu message (thành công)
+  error: null, // Lưu message lỗi
 };
 
 // Tạo slice
@@ -80,6 +80,10 @@ const authSlice = createSlice({
       state.isAuthenticated = !!token;
       state.token = token;
     },
+    resetMessage: (state) => {
+      state.message = null;
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -87,18 +91,20 @@ const authSlice = createSlice({
       .addCase(register.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        state.message = null; // Reset message
       })
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
-        state.roles = action.payload.user.roles;
+        state.roles = action.payload.user?.roles || [];
         state.token = action.payload.token;
-        state.isAuthenticated = true;
+        state.isAuthenticated = false;
+        state.message = action.payload.message; // Lưu message
         localStorage.setItem("user", JSON.stringify(action.payload.user));
         localStorage.setItem("accessToken", action.payload.token);
         localStorage.setItem(
           "roles",
-          JSON.stringify(action.payload.user.roles)
+          JSON.stringify(action.payload.user?.roles || [])
         );
       })
       .addCase(register.rejected, (state, action) => {
@@ -110,6 +116,7 @@ const authSlice = createSlice({
       .addCase(login.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        state.message = null; // Reset message
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -117,6 +124,7 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.roles = action.payload.user.roles;
         state.isAuthenticated = true;
+        state.message = action.payload.message; // Lưu message
         localStorage.setItem("user", JSON.stringify(action.payload.user));
         localStorage.setItem("accessToken", action.payload.token);
         localStorage.setItem(
@@ -126,12 +134,14 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = action.payload; // Lưu message lỗi
       })
 
       // Lấy profile
       .addCase(getProfile.pending, (state) => {
         state.isLoading = true;
+        state.error = null;
+        state.message = null; // Reset message
       })
       .addCase(getProfile.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -151,6 +161,8 @@ const authSlice = createSlice({
         state.token = null;
         state.roles = [];
         state.isAuthenticated = false;
+        state.message = null; // Reset message
+        state.error = null; // Reset error
         localStorage.removeItem("user");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("roles");
@@ -158,5 +170,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { checkAuthStatus } = authSlice.actions;
+export const { checkAuthStatus, resetMessage } = authSlice.actions;
 export default authSlice.reducer;

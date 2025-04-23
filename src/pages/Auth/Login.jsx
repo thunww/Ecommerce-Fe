@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { Mail, Lock, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Thêm useEffect
 import { useDispatch, useSelector } from "react-redux";
-import { login } from "../../redux/authSlice";
+import { login, resetMessage } from "../../redux/authSlice";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -12,6 +12,31 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { message, error, isLoading } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(resetMessage());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (message) {
+      toast.success(message, {
+        position: "top-right",
+        autoClose: 2000,
+        onClose: () => dispatch(resetMessage()),
+      });
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
+    }
+    if (error) {
+      toast.error(error, {
+        position: "top-right",
+        autoClose: 3000,
+        onClose: () => dispatch(resetMessage()),
+      });
+    }
+  }, [message, error, navigate, dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,19 +46,8 @@ const Login = () => {
       return;
     }
 
-    try {
-      const result = await dispatch(login({ email, password })).unwrap();
-
-      // Lấy message từ backend nếu có
-      const successMessage = result.message || "Đăng nhập thành công!";
-      toast.success(successMessage, { position: "top-right" });
-
-      setTimeout(() => {
-        navigate("/");
-      }, 500);
-    } catch (error) {
-      toast.error(error || "Đăng nhập thất bại!", { position: "top-right" });
-    }
+    // Gọi action login
+    await dispatch(login({ email, password }));
   };
 
   return (
@@ -77,6 +91,7 @@ const Login = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-10 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none transition duration-150 bg-white shadow-sm"
                       placeholder="Enter your email"
+                      disabled={isLoading} // Vô hiệu hóa khi đang tải
                     />
                   </div>
                 </div>
@@ -103,6 +118,7 @@ const Login = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full pl-10 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none transition duration-150 bg-white shadow-sm"
                       placeholder="Enter your password"
+                      disabled={isLoading} // Vô hiệu hóa khi đang tải
                     />
                   </div>
                 </div>
@@ -125,8 +141,9 @@ const Login = () => {
                 <button
                   type="submit"
                   className="w-full py-3 px-4 flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 shadow-md"
+                  disabled={isLoading} // Vô hiệu hóa khi đang tải
                 >
-                  Login
+                  {isLoading ? "Đang đăng nhập..." : "Login"}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </button>
               </form>
