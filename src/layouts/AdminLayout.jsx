@@ -12,21 +12,18 @@ const AdminLayout = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
+      {/* Sidebar không nằm trong flex để tránh đẩy content */}
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
-      {/* Main Content với Header dịch chuyển theo Sidebar */}
+      {/* Main content */}
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ${
           isSidebarOpen ? "ml-64" : "ml-20"
         }`}
       >
-        {/* Header */}
         <Header onMenuClick={toggleSidebar} />
-
-        {/* Content */}
         <main className="p-2 overflow-auto h-full">
-          <Outlet /> {/* Đây là nơi hiển thị nội dung của route con */}
+          <Outlet />
         </main>
       </div>
     </div>
