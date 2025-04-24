@@ -6,6 +6,7 @@
   .animation-delay-200 {
     animation-delay: 200ms;
   }
+
   .animation-delay-400 {
     animation-delay: 400ms;
   }
@@ -16,6 +17,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -29,8 +31,10 @@
 
 /* Tùy chỉnh thanh cuộn */
 ::-webkit-scrollbar {
-  width: 4px; /* Độ rộng của thanh kéo dọc */
-  height: 4px; /* Độ rộng của thanh kéo ngang */
+  width: 4px;
+  /* Độ rộng của thanh kéo dọc */
+  height: 4px;
+  /* Độ rộng của thanh kéo ngang */
 }
 
 ::-webkit-scrollbar-thumb {
@@ -279,6 +283,47 @@ footer form input::placeholder {
   transition-duration: 2.1s;
 }
 
+.pt-16 {
+  padding-top: 3rem;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.p-6 {
+  padding: 0.5rem;
+}
+
+html,
+body {
+  height: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.w-16 {
+  width: 3rem;
+}
+
+/* .overflow-hidden {
+  overflow: visible;
+} */
+.pt-16 {
+  padding-top: 5rem;
+  padding-left: 3rem;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+
 .MuiCheckbox-root {
   padding: 6px !important;
 }
@@ -381,4 +426,8 @@ input::-webkit-inner-spin-button {
 
 #size-menu .MuiButtonBase-root {
   font-size: 12px !important;
+}
+
+.p-6 {
+  padding: 0.5rem;
 }

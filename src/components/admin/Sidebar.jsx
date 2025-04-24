@@ -28,15 +28,14 @@ const Sidebar = ({ isOpen }) => {
 
   return (
     <aside
-      className={`fixed top-0 left-0 h-full bg-gray-900 text-white shadow-lg transition-all duration-300 flex flex-col ${
-        isOpen ? "w-64" : "w-20"
-      } overflow-y-auto scrollbar scrollbar-thumb-gray-600 scrollbar-track-gray-800 scrollbar-thumb-rounded-md`}
+      className={`fixed top-0 left-0 h-full z-50 bg-gray-900 text-white border-r border-gray-800 transition-all duration-300 ${isOpen ? "w-64" : "w-20"
+        } overflow-y-auto`}
     >
+
       {/* Logo */}
       <div
-        className={`flex items-center gap-3 p-5 ${
-          isOpen ? "" : "justify-center"
-        }`}
+        className={`flex items-center gap-3 p-5 ${isOpen ? "" : "justify-center"
+          }`}
       >
         <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden">
           <img
@@ -104,24 +103,76 @@ const Sidebar = ({ isOpen }) => {
 
       {/* MANAGEMENT Section */}
       <SidebarSection title="Management" isOpen={isOpen}>
-        <SidebarItem to="/admin/users" label="Users" icon={<Users size={20} />} isOpen={isOpen} />
-        <SidebarItem to="/admin/orders" icon={<ShoppingCart size={20} />} label="Orders" isOpen={isOpen} />
-        <SidebarItem to="/admin/products" icon={<Package size={20} />} label="Products" isOpen={isOpen} />
-        <SidebarItem to="/admin/categories" icon={<Folder size={20} />} label="Categories" isOpen={isOpen} />
-        <SidebarItem to="/admin/shops" icon={<Store size={20} />} label="Shops" isOpen={isOpen} />
-        <SidebarItem to="/admin/shipping" icon={<Truck size={20} />} label="Shipping" isOpen={isOpen} />
-        <SidebarItem to="/admin/transactions" icon={<DollarSign size={20} />} label="Transactions" isOpen={isOpen} />
+        <SidebarItem
+          to="/admin/users"
+          label="Users"
+          icon={<Users size={20} />}
+          isOpen={isOpen}
+        />
+        <SidebarItem
+          to="/admin/orders"
+          icon={<ShoppingCart size={20} />}
+          label="Orders"
+          isOpen={isOpen}
+        />
+        <SidebarItem
+          to="/admin/products"
+          icon={<Package size={20} />}
+          label="Products"
+          isOpen={isOpen}
+        />
+        <SidebarItem
+          to="/admin/categories"
+          icon={<Folder size={20} />}
+          label="Categories"
+          isOpen={isOpen}
+        />
+        <SidebarItem
+          to="/admin/shops"
+          icon={<Store size={20} />}
+          label="Shops"
+          isOpen={isOpen}
+        />
+        <SidebarItem
+          to="/admin/shippers"
+          icon={<Truck size={20} />}
+          label="Shippers"
+          isOpen={isOpen}
+        />
+        <SidebarItem
+          to="/admin/transactions"
+          icon={<DollarSign size={20} />}
+          label="Transactions"
+          isOpen={isOpen}
+        />
       </SidebarSection>
 
       {/* CONTENT Section */}
       <SidebarSection title="Content" isOpen={isOpen}>
-       
-
-        <SidebarItem to="/admin/chat" icon={<MessageSquare size={20} />} label="Chat" isOpen={isOpen} />
-        <SidebarItem to="/admin/posts" icon={<FileText size={20} />} label="Posts" isOpen={isOpen} />
-        <SidebarItem to="/admin/comments" icon={<MessageSquare size={20} />} label="Comments" isOpen={isOpen} />
-        <SidebarItem to="/admin/media" icon={<Image size={20} />} label="Media" isOpen={isOpen} />
-       
+        <SidebarItem
+          to="/admin/chat"
+          icon={<MessageSquare size={20} />}
+          label="Chat"
+          isOpen={isOpen}
+        />
+        <SidebarItem
+          to="/admin/posts"
+          icon={<FileText size={20} />}
+          label="Posts"
+          isOpen={isOpen}
+        />
+        <SidebarItem
+          to="/admin/comments"
+          icon={<MessageSquare size={20} />}
+          label="Comments"
+          isOpen={isOpen}
+        />
+        <SidebarItem
+          to="/admin/media"
+          icon={<Image size={20} />}
+          label="Media"
+          isOpen={isOpen}
+        />
       </SidebarSection>
 
       {/* ANALYTICS Section */}

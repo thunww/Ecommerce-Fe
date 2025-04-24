@@ -9,6 +9,9 @@ export default defineConfig({
     hmr: false,
     
   },
+  optimizeDeps: {
+    exclude: ['react-csv']
+  },
   css: {
     postcss: "./postcss.config.js",  // Kiểm tra dòng này
   },

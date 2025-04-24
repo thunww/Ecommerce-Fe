@@ -6,6 +6,7 @@ export const fetchAllProducts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await productService.getAllProducts();
+      console.log("respone data ow slice",response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(
