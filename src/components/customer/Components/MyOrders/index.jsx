@@ -77,12 +77,11 @@ const OrdersList = () => {
             return (
               <div
                 key={sub.sub_order_id}
-                className={`bg-white rounded-lg shadow-md overflow-hidden ${
-                  index !==
-                  orders.flatMap((order) => order.subOrders).length - 1
+                className={`bg-white rounded-lg shadow-md overflow-hidden ${index !==
+                    orders.flatMap((order) => order.subOrders).length - 1
                     ? "mb-4"
                     : ""
-                }`}
+                  }`}
               >
                 {/* Sub-order Header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-300">
@@ -104,6 +103,7 @@ const OrdersList = () => {
                       </p>
                     </div>
                   </div>
+
                   <p className="text-lg font-semibold text-[#EE4D2D]">
                     Total: <span className="text-xs">đ</span>
                     {Number(sub.total_price).toLocaleString()}
@@ -118,9 +118,8 @@ const OrdersList = () => {
                     sub.orderItems.map((item, itemIndex) => (
                       <div
                         key={item.order_item_id}
-                        className={`flex items-start space-x-4 py-4 ${
-                          itemIndex !== 0 ? "border-t border-gray-200" : ""
-                        }`}
+                        className={`flex items-start space-x-4 py-4 ${itemIndex !== 0 ? "border-t border-gray-200" : ""
+                          }`}
                       >
                         <Link
                           to={`/product/${item.product.product_id - 1}`}
@@ -172,9 +171,8 @@ const OrdersList = () => {
                         Rate
                       </button>
                       <Link
-                        to={`/product/${
-                          sub.orderItems[0].product.product_id - 1
-                        }`}
+                        to={`/product/${sub.orderItems[0].product.product_id - 1
+                          }`}
                         className="bg-blue-500 border border-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition text-center"
                       >
                         Buy Again
