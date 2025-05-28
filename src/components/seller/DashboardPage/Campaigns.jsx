@@ -17,7 +17,7 @@ const Campaigns = () => {
         </Button>
       </div>
       <div className="text-right pb-4">
-        <a href="#" className="text-blue-500 text-sm">More &gt;</a>
+        
       </div>
     </div>
   );

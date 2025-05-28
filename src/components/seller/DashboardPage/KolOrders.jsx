@@ -6,7 +6,6 @@ class KOLOrders extends Component {
       <div className="bg-white p-4 rounded-xl shadow border w-120  h-[360px] overflow-hidden">
         <div className="flex justify-between">
           <h2 className="font-bold text-lg">Boost Orders with KOL</h2>
-          <a href="#" className="text-blue-500">More</a>
         </div>
         <div className="bg-red-100 text-red-700 p-2 rounded mt-2">
           Only pay for successful orders brought by KOLs!

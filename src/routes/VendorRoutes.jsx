@@ -11,6 +11,7 @@ import BulkShippingPage from "../pages/Vendor/bulk-shipping";
 import AddProductPage from "../pages/Vendor/AddProduct";
 import ShopProfile from "../components/seller/ShopProfile/ShopProfile";
 import UserProfile from "../components/seller/ShopProfile/UserProfile";
+import DetailOrder from "../components/seller/AllOrder/DetailOrder";
 
 const VendorRoutes = () => {
   return (
@@ -20,6 +21,7 @@ const VendorRoutes = () => {
         <Route index element={<Dashboard />} />
 
         <Route path="orders" element={<Orders />} />
+        <Route path="orders/detailOrder" element={<DetailOrder />} />
         <Route path="bulk-shipping" element={<BulkShippingPage />} />
 
         <Route path="products" element={<Products />} />
