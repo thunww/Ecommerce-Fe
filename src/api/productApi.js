@@ -21,6 +21,7 @@ const productApi = {
     minPrice,
     maxPrice,
     sort,
+    minRating,
   } = {}) =>
     axiosClient.get("/products/search", {
       params: {
@@ -29,6 +30,7 @@ const productApi = {
         min_price: minPrice,
         max_price: maxPrice,
         sort,
+        min_rating: minRating,
       },
     }),
   searchSuggest: (keyword, limit = 5) =>

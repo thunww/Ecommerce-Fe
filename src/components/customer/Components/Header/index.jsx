@@ -2,7 +2,7 @@ import React, { useContext, useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../../../redux/authSlice";
-import Search from "../Search";
+import Search from "../Search/Search";
 import Button from "@mui/material/Button";
 import Badge from "@mui/material/Badge";
 import { styled } from "@mui/material/styles";

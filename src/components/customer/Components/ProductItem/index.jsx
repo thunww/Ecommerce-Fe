@@ -1,41 +1,42 @@
 import React from "react";
-import "../ProductItem/style.css";
 import { Link } from "react-router-dom";
 import { FaStar, FaRegStar } from "react-icons/fa";
 
 const ProductItem = ({ product }) => {
   // Lấy giá thấp nhất từ mảng variants
-  const variantPrices = product.variants.map(
-    (variant) => parseFloat(variant.price) || 0
-  );
+  const variantPrices =
+    product.variants?.map((variant) => parseFloat(variant.price) || 0) || [];
   const price = variantPrices.length > 0 ? Math.min(...variantPrices) : 0;
   const discount = parseFloat(product.discount) || 0;
   const priceAfterDiscount = price * (1 - discount / 100);
+
+  // Định dạng giá
+  const formattedPrice = new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(price);
+  const formattedPriceAfterDiscount = new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(priceAfterDiscount);
+
+  // Định dạng số lượng bán
   const formatSold = (sold) => {
     if (sold >= 1000) {
       return (sold / 1000).toFixed(1) + "k";
     }
     return sold;
   };
-  const formattedPrice = new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(price);
 
-  const formattedPriceAfterDiscount = new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(priceAfterDiscount);
-
+  // Định dạng đánh giá
   const averageRating = parseFloat(product.average_rating || 0);
-
   const renderRatingStars = (rating) => {
     const totalStars = 5;
     return Array.from({ length: totalStars }, (_, i) =>
       i < Math.floor(rating) ? (
-        <FaStar key={`star-${i}`} className="text-amber-400" />
+        <FaStar key={`star-${i}`} className="text-amber-400 text-xs" />
       ) : (
-        <FaRegStar key={`star-${i}`} className="text-amber-400" />
+        <FaRegStar key={`star-${i}`} className="text-amber-400 text-xs" />
       )
     );
   };
@@ -64,6 +65,7 @@ const ProductItem = ({ product }) => {
         </Link>
       </div>
 
+      {/* Thông tin sản phẩm */}
       <div className="p-4">
         <h3 className="font-medium text-gray-800 text-base mb-2 line-clamp-2 h-12 group-hover:text-indigo-600 transition-colors duration-200">
           <Link to={`/product/${product.product_id}`}>
@@ -75,7 +77,6 @@ const ProductItem = ({ product }) => {
           <span className="text-lg font-bold bg-gradient-to-r from-pink-500 to-red-500 bg-clip-text text-transparent">
             {formattedPriceAfterDiscount}
           </span>
-
           {discount > 0 && price > 0 && (
             <span className="text-gray-500 line-through text-xs mt-1">
               {formattedPrice}
@@ -87,10 +88,9 @@ const ProductItem = ({ product }) => {
           <div className="flex text-amber-400 text-xs">
             {renderRatingStars(averageRating)}
           </div>
-
           <div className="bg-gray-100 rounded-full px-2 py-1">
             <span className="text-xs text-gray-600 font-medium">
-              {formatSold(product.sold || 0)} sold
+              {formatSold(product.sold || 0)} đã bán
             </span>
           </div>
         </div>

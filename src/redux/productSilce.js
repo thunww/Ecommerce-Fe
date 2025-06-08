@@ -6,11 +6,11 @@ export const fetchAllProducts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await productService.getAllProducts();
-      console.log("respone data ow slice",response.data);
-      return response.data;
+      return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
+      console.error("fetchAllProducts error:", error);
       return rejectWithValue(
-        error.response?.data || "Failed to fetch products"
+        error.response?.data?.message || "Failed to fetch products"
       );
     }
   }
@@ -23,8 +23,9 @@ export const updateProductStatus = createAsyncThunk(
       await productService.updateProductStatus(productId, status);
       return { productId, status };
     } catch (error) {
+      console.error("updateProductStatus error:", error);
       return rejectWithValue(
-        error.response?.data || "Failed to update product status"
+        error.response?.data?.message || "Failed to update product status"
       );
     }
   }
@@ -37,8 +38,9 @@ export const deleteProductById = createAsyncThunk(
       await productService.deleteProductById(productId);
       return productId;
     } catch (error) {
+      console.error("deleteProductById error:", error);
       return rejectWithValue(
-        error.response?.data || "Failed to delete product"
+        error.response?.data?.message || "Failed to delete product"
       );
     }
   }
@@ -49,10 +51,12 @@ export const getProductById = createAsyncThunk(
   async (productId, { rejectWithValue }) => {
     try {
       const response = await productService.getProductById(productId);
+      console.log("getProductById response:", response.data);
       return response.data;
     } catch (error) {
+      console.error("getProductById error:", error);
       return rejectWithValue(
-        error.response?.data || "Failed to fetch product by ID"
+        error.response?.data?.message || "Failed to fetch product by ID"
       );
     }
   }
@@ -63,10 +67,12 @@ export const getProductRelated = createAsyncThunk(
   async (categoryId, { rejectWithValue }) => {
     try {
       const response = await productService.getProductRelated(categoryId);
-      return response.data;
+      console.log("getProductRelated response:", response.data);
+      return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
+      console.error("getProductRelated error:", error);
       return rejectWithValue(
-        error.response?.data || "Failed to fetch related products"
+        error.response?.data?.message || "Failed to fetch related products"
       );
     }
   }
@@ -75,7 +81,7 @@ export const getProductRelated = createAsyncThunk(
 export const searchProducts = createAsyncThunk(
   "products/searchProducts",
   async (
-    { keyword = "", categoryId, minPrice, maxPrice, sort } = {},
+    { keyword = "", categoryId, minPrice, maxPrice, sort, minRating } = {},
     { rejectWithValue }
   ) => {
     try {
@@ -85,11 +91,14 @@ export const searchProducts = createAsyncThunk(
         minPrice,
         maxPrice,
         sort,
+        minRating,
       });
-      return response.data;
+      // console.log("searchProducts response:", response.data);
+      return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
+      console.error("searchProducts error:", error);
       return rejectWithValue(
-        error.response?.data || "Failed to search products"
+        error.response?.data?.message || "Failed to search products"
       );
     }
   }

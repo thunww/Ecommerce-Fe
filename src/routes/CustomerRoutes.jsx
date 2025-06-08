@@ -25,7 +25,7 @@ import { IoCloseSharp } from "react-icons/io5";
 import ProductDetailsComponent from "../components/customer/Components/ProductDetails";
 import MyContext from "../context/MyContext";
 import Cart from "../pages/Customer/Pages/Cart";
-import SearchResults from "../components/customer/Components/Search/SearchResult";
+import SearchPage from "../components/customer/Components/Search/SearchPage";
 import ResetPassword from "../pages/Auth/ResetPassword";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import Checkout from "../pages/Customer/Pages/Checkout";
@@ -67,11 +67,11 @@ const CustomerRoutes = () => {
           <Route path="/" element={<CustomerLayout />}>
             <Route index element={<Home />} />
 
-            <Route path="/search" element={<SearchResults />} />
+            <Route path="/search" element={<SearchPage />} />
 
             <Route path="/login" exact={true} element={<Login />} />
             <Route path="register" exact={true} element={<Register />} />
-            <Route path="/shipper/register" element={<ShipperRegister />} />
+
             <Route
               path="forgot-password"
               exact={true}
