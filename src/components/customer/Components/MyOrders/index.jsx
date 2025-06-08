@@ -122,7 +122,7 @@ const OrdersList = () => {
                           }`}
                       >
                         <Link
-                          to={`/product/${item.product.product_id - 1}`}
+                          to={`/product/${item.product.product_id}`}
                           className="w-20 h-20 rounded-md object-cover"
                         >
                           <img
@@ -171,8 +171,7 @@ const OrdersList = () => {
                         Rate
                       </button>
                       <Link
-                        to={`/product/${sub.orderItems[0].product.product_id - 1
-                          }`}
+                        to={`/product/${sub.orderItems[0].product.product_id}`}
                         className="bg-blue-500 border border-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition text-center"
                       >
                         Buy Again

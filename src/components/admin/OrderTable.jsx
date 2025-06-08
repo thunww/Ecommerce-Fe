@@ -24,7 +24,9 @@ const OrderTable = ({ orders, onUpdateStatus, onDelete }) => {
             >
               <td className="p-3">{order.id}</td>
               <td className="p-3">{order.customer}</td>
-              <td className="p-3 font-semibold">{order.total.toLocaleString()}đ</td>
+              <td className="p-3 font-semibold">
+                {order.total.toLocaleString()}đ
+              </td>
               <td className="p-3">
                 <select
                   value={order.status}
