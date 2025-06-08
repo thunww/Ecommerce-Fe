@@ -99,7 +99,7 @@ const ProductDetailsComponent = ({
   // Điều kiện để cho phép mua hoặc thêm vào giỏ hàng
   const isValidToBuy = Boolean(
     (attributes.size?.length > 0 ? selectedAttributes.size : true) &&
-      (hasVariants ? selectedVariant !== null && selected?.variant_id : true)
+    (hasVariants ? selectedVariant !== null && selected?.variant_id : true)
   );
 
   // Cập nhật hình ảnh
@@ -126,8 +126,8 @@ const ProductDetailsComponent = ({
         !v[key]
           ? true
           : typeof v[key] === "string"
-          ? v[key].toLowerCase() === val.toLowerCase()
-          : v[key].toString() === val.toString()
+            ? v[key].toLowerCase() === val.toLowerCase()
+            : v[key].toString() === val.toString()
       )
     );
 
@@ -193,14 +193,29 @@ const ProductDetailsComponent = ({
     }
 
     try {
-      await dispatch(
+      const result = await dispatch(
         addToCart({
           product_id: product.product_id,
           quantity: qty,
           variant_id: selected?.variant_id || null,
         })
       ).unwrap();
-      navigate("/cart");
+
+      const matchedItem = result.items.find(
+        (item) =>
+          item.product.product_id === product.product_id &&
+          item.variant?.variant_id === (selected?.variant_id || null)
+      );
+
+      if (!matchedItem) {
+        toast.error("Không xác định được sản phẩm vừa thêm");
+        return;
+      }
+
+      navigate("/cart", {
+        replace: true, // bắt buộc để router cập nhật state mới
+        state: { buyNowItemId: matchedItem.cart_item_id },
+      });
     } catch (error) {
       console.error("Lỗi khi thêm vào giỏ hàng:", error);
       toast.error(error.message || "Có lỗi xảy ra khi thêm vào giỏ hàng");
@@ -303,26 +318,24 @@ const ProductDetailsComponent = ({
               <div className="flex items-center">
                 <div className="h-2 w-32 bg-gray-200 rounded-full mr-2">
                   <div
-                    className={`h-full rounded-full ${
-                      stock > 10
-                        ? "bg-green-500"
-                        : stock > 5
+                    className={`h-full rounded-full ${stock > 10
+                      ? "bg-green-500"
+                      : stock > 5
                         ? "bg-yellow-500"
                         : "bg-red-500"
-                    }`}
+                      }`}
                     style={{
                       width: `${Math.min((stock / 30) * 100, 100)}%`,
                     }}
                   ></div>
                 </div>
                 <span
-                  className={`text-xs font-medium ${
-                    stock > 10
-                      ? "text-green-600"
-                      : stock > 5
+                  className={`text-xs font-medium ${stock > 10
+                    ? "text-green-600"
+                    : stock > 5
                       ? "text-yellow-600"
                       : "text-red-600"
-                  }`}
+                    }`}
                 >
                   {stock} in stock
                 </span>
@@ -374,8 +387,8 @@ const ProductDetailsComponent = ({
                               !v[k]
                                 ? true
                                 : typeof v[k] === "string"
-                                ? v[k].toLowerCase() === val.toLowerCase()
-                                : v[k].toString() === val.toString()
+                                  ? v[k].toLowerCase() === val.toLowerCase()
+                                  : v[k].toString() === val.toString()
                             )
                       );
                       return (
@@ -389,18 +402,16 @@ const ProductDetailsComponent = ({
                             }
                           }}
                           disabled={!isAvailable}
-                          className={`px-4 py-2 rounded-full text-sm border transition-all ${
-                            selectedAttributes[attribute]
-                              ?.toString()
-                              .toLowerCase() ===
-                              value.toString().toLowerCase() && isAvailable
-                              ? "bg-indigo-600 text-white border-indigo-600"
-                              : "bg-white text-gray-700 border-gray-300"
-                          } ${
-                            !isAvailable
+                          className={`px-4 py-2 rounded-full text-sm border transition-all ${selectedAttributes[attribute]
+                            ?.toString()
+                            .toLowerCase() ===
+                            value.toString().toLowerCase() && isAvailable
+                            ? "bg-indigo-600 text-white border-indigo-600"
+                            : "bg-white text-gray-700 border-gray-300"
+                            } ${!isAvailable
                               ? "opacity-50 cursor-not-allowed"
                               : "hover:bg-indigo-50"
-                          }`}
+                            }`}
                         >
                           {value}
                           {!isAvailable && (
@@ -442,11 +453,10 @@ const ProductDetailsComponent = ({
               <button
                 onClick={decrementQty}
                 disabled={qty <= 1}
-                className={`w-8 h-8 flex items-center justify-center rounded-l-lg border border-r-0 ${
-                  qty <= 1
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`w-8 h-8 flex items-center justify-center rounded-l-lg border border-r-0 ${qty <= 1
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 -
               </button>
@@ -461,11 +471,10 @@ const ProductDetailsComponent = ({
               <button
                 onClick={incrementQty}
                 disabled={qty >= stock}
-                className={`w-8 h-8 flex items-center justify-center rounded-r-lg border border-l-0 ${
-                  qty >= stock
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`w-8 h-8 flex items-center justify-center rounded-r-lg border border-l-0 ${qty >= stock
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 +
               </button>

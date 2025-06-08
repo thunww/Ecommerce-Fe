@@ -3,6 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useLocation } from "react-router-dom";
+import { setSelectedItems } from "../../../../redux/slices/cartSlice";
+import { ChevronDownIcon, XIcon } from 'lucide-react';
+import couponApi from "../../../../api/couponApi";
+
 import {
     Card,
     CardContent,
@@ -52,12 +57,58 @@ import {
 
 const { Title, Text } = Typography;
 
-// Dữ liệu giả để kiểm tra hiển thị
+
 
 
 const CartPage = () => {
-    console.log("=== Rendering Cart Component ===");
 
+    // Thêm state mới cho mã giảm giá
+    const [showCouponList, setShowCouponList] = useState(false);
+    const [availableCoupons, setAvailableCoupons] = useState([]); // Danh sách mã giảm giá
+    const [loadingCoupons, setLoadingCoupons] = useState(false);
+    // Thêm function để lấy danh sách mã giảm giá
+    const fetchAvailableCoupons = async () => {
+        setLoadingCoupons(true);
+        try {
+            console.log('Fetching all coupons...');
+            const response = await couponApi.getAllCoupons();
+            console.log('Coupons response:', response.data); // Log để kiểm tra
+            // Chuyển đổi dữ liệu từ API
+            const formattedCoupons = (response.data.data || []).map((coupon) => ({
+                coupon_id: coupon.coupon_id,
+                code: coupon.code,
+                discount_type: coupon.discount_percent ? 'percentage' : 'fixed', // Xác định loại giảm giá
+                discount_value: coupon.discount_percent || coupon.max_discount_amount || 0,
+                max_discount: coupon.max_discount_amount || null,
+                min_order_amount: coupon.min_order_value || null,
+            }));
+            setAvailableCoupons(formattedCoupons);
+            if (formattedCoupons.length === 0) {
+                toast.info('Không có mã giảm giá nào khả dụng');
+            }
+        } catch (error) {
+            console.error('Không thể lấy danh sách mã giảm giá:', error.response?.data);
+            toast.error(error.response?.data?.message || 'Không thể lấy danh sách mã giảm giá');
+            setAvailableCoupons([]);
+        } finally {
+            setLoadingCoupons(false);
+        }
+    };
+
+    // Thêm function xử lý chọn mã
+    const handleSelectCoupon = async (couponCode) => {
+        try {
+            await dispatch(validateCoupon(couponCode)).unwrap();
+            await dispatch(applyCoupon({ code: couponCode })).unwrap();
+            await dispatch(fetchCart());
+            setShowCouponList(false);
+            toast.success("Áp dụng mã giảm giá thành công!");
+        } catch (error) {
+            toast.error(error.message || "Không thể áp dụng mã giảm giá");
+        }
+    };
+
+    const location = useLocation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -69,29 +120,35 @@ const CartPage = () => {
     // State cho biến thể được chọn
     const [selectedVariants, setSelectedVariants] = useState({});
 
+
+
+
+    const [cartLoaded, setCartLoaded] = useState(false);
+
     useEffect(() => {
-        console.log("Fetching cart data...");
-        dispatch(fetchCart())
-            .unwrap()
-            .then(data => {
-                console.log("Cart data received:", data);
-            })
-            .catch(err => {
-                console.error("Error fetching cart:", err);
-            });
+        dispatch(fetchCart()).then(() => setCartLoaded(true));
     }, [dispatch]);
+
+    useEffect(() => {
+        const itemIdFromNav = location.state?.buyNowItemId;
+
+        if (cartLoaded && itemIdFromNav) {
+            dispatch(setSelectedItems([itemIdFromNav]));
+        }
+    }, [cartLoaded, location.state?.buyNowItemId, dispatch]);
+
+
+
+
+
 
     const handleSelectAll = (checked) => {
         if (checked) {
             const allItemIds = items.map(item => item.cart_item_id);
-            allItemIds.forEach(id => dispatch(toggleSelectItem({ cart_item_id: id })));
+            dispatch(setSelectedItems(allItemIds));
         } else {
             dispatch(clearSelectedItems());
         }
-    };
-
-    const handleSelectItem = (checked, cartItemId) => {
-        dispatch(toggleSelectItem({ cart_item_id: cartItemId }));
     };
 
     const handleSelectShop = (checked, shopId) => {
@@ -99,13 +156,25 @@ const CartPage = () => {
         const shopItemIds = shopItems.map(item => item.cart_item_id);
 
         if (checked) {
-            shopItemIds.forEach(id => dispatch(toggleSelectItem({ cart_item_id: id })));
+            // thêm tất cả shopItemIds vào selectedItems mà không trùng
+            const newSelected = Array.from(new Set([...selectedItems, ...shopItemIds]));
+            dispatch(setSelectedItems(newSelected));
         } else {
-            shopItemIds.forEach(id => {
-                if (selectedItems.includes(id)) {
-                    dispatch(toggleSelectItem({ cart_item_id: id }));
-                }
-            });
+            // loại bỏ tất cả shopItemIds khỏi selectedItems
+            const newSelected = selectedItems.filter(id => !shopItemIds.includes(id));
+            dispatch(setSelectedItems(newSelected));
+        }
+    };
+
+    const handleSelectItem = (checked, cartItemId) => {
+        if (checked) {
+            // thêm nếu chưa có
+            if (!selectedItems.includes(cartItemId)) {
+                dispatch(setSelectedItems([...selectedItems, cartItemId]));
+            }
+        } else {
+            // bỏ chọn
+            dispatch(setSelectedItems(selectedItems.filter(id => id !== cartItemId)));
         }
     };
 
@@ -518,28 +587,85 @@ const CartPage = () => {
                         </div>
 
                         {!coupon && (
-                            <div className="mb-6">
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="Nhập mã giảm giá"
-                                        value={couponCode}
-                                        onChange={(e) => setCouponCode(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    <TagIcon className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
-                                    <button
-                                        onClick={handleApplyCoupon}
-                                        disabled={applyingCoupon}
-                                        className="absolute right-2 top-1.5 bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded-md transition-colors disabled:opacity-50"
-                                    >
-                                        {applyingCoupon ? 'Đang áp dụng...' : 'Áp dụng'}
-                                    </button>
-                                </div>
-                                {couponError && (
-                                    <p className="mt-2 text-sm text-red-600">{couponError.message || String(couponError)}</p>
-                                )}
+                            <div className="mb-6 relative">
+                                <button
+                                    onClick={() => {
+                                        setShowCouponList(!showCouponList);
+                                        if (!showCouponList) fetchAvailableCoupons();
+                                    }}
+                                    className="w-full bg-white border border-gray-300 hover:border-blue-500 
+                 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors 
+                 flex items-center justify-between"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <TagIcon className="w-5 h-5 text-gray-400" />
+                                        <span>Chọn mã giảm giá</span>
+                                    </div>
+                                    <ChevronDownIcon className={`w-5 h-5 transition-transform ${showCouponList ? 'rotate-180' : ''}`} />
+                                </button>
 
+                                {/* Danh sách mã giảm giá */}
+                                {showCouponList && (
+                                    <div className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg">
+                                        <div className="p-4">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="font-semibold">Mã giảm giá có sẵn</h3>
+                                                <button
+                                                    onClick={() => setShowCouponList(false)}
+                                                    className="text-gray-400 hover:text-gray-600"
+                                                >
+                                                    <XIcon className="w-5 h-5" />
+                                                </button>
+                                            </div>
+
+                                            {loadingCoupons ? (
+                                                <div className="flex justify-center py-4">
+                                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                                                </div>
+                                            ) : availableCoupons.length > 0 ? (
+                                                <div className="space-y-3">
+                                                    {availableCoupons.map((coupon) => (
+                                                        <div
+                                                            key={coupon.coupon_id}
+                                                            className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-blue-500 cursor-pointer"
+                                                            onClick={() => handleSelectCoupon(coupon.code)}
+                                                        >
+                                                            <div>
+                                                                <div className="font-medium text-gray-800">{coupon.code}</div>
+                                                                <div className="text-sm text-gray-500">
+                                                                    {coupon.discount_type === 'percentage'
+                                                                        ? `Giảm ${coupon.discount_value}%`
+                                                                        : `Giảm ${formatPrice(parseFloat(coupon.discount_value))}`}
+                                                                    {coupon.max_discount &&
+                                                                        ` (Tối đa ${formatPrice(parseFloat(coupon.max_discount))})`}
+                                                                </div>
+                                                                {coupon.min_order_amount && (
+                                                                    <div className="text-xs text-gray-400">
+                                                                        Đơn tối thiểu {formatPrice(coupon.min_order_amount)}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <button
+                                                                className="px-3 py-1 text-sm text-blue-600 border border-blue-600 
+                               rounded hover:bg-blue-50"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation(); // Ngăn sự kiện click trên div
+                                                                    handleSelectCoupon(coupon.code);
+                                                                }}
+                                                            >
+                                                                Áp dụng
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-4 text-gray-500">
+                                                    Không có mã giảm giá nào khả dụng
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 

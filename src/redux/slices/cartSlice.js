@@ -111,7 +111,10 @@ const cartSlice = createSlice({
             state.coupon = null;
             state.discount = 0;
             state.couponError = null;
-        }
+        },
+        setSelectedItems: (state, action) => {
+            state.selectedItems = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -127,6 +130,35 @@ const cartSlice = createSlice({
                 state.loading = false;
             })
 
+            .addCase(addToCart.fulfilled, (state, action) => {
+                const cartData = action.payload;
+                let items = cartData.items || [];
+
+                if (items.length > 0) {
+                    const lastAddedItem = items[items.length - 1];
+                    if (lastAddedItem) {
+                        const addedShopId = lastAddedItem.product.shop.shop_id;
+
+                        items = [
+                            lastAddedItem,
+                            ...items.filter(item =>
+                                item.product.shop.shop_id === addedShopId &&
+                                item.cart_item_id !== lastAddedItem.cart_item_id
+                            ),
+                            ...items.filter(item => item.product.shop.shop_id !== addedShopId)
+                        ];
+                    }
+                }
+
+                state.items = items;
+                state.shippingFee = cartData.shippingFee || 0;
+                state.discount = cartData.discount || 0;
+                state.coupon = cartData.coupon || null;
+
+                if (items.length > 0) {
+                    localStorage.setItem("selectedCartItemId", items[0].cart_item_id);
+                }
+            })
 
 
             .addCase(fetchCart.rejected, (state, action) => {
@@ -194,5 +226,5 @@ const cartSlice = createSlice({
     }
 });
 
-export const { clearCart, toggleSelectItem, clearSelectedItems, clearCoupon } = cartSlice.actions;
+export const { clearCart, toggleSelectItem, clearSelectedItems, clearCoupon, setSelectedItems } = cartSlice.actions;
 export default cartSlice.reducer;

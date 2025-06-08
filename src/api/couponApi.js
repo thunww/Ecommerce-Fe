@@ -1,3 +1,4 @@
+
 import axiosClient from "./axiosClient";
 
 const couponApi = {
@@ -24,7 +25,12 @@ const couponApi = {
     getAvailableCoupons: () => {
         const url = "/coupons/valid-for-cart";
         return axiosClient.get(url);
+    },
+    getAllCoupons: () => {
+        const url = "/coupons";
+        return axiosClient.get(url);
     }
+
 };
 
 export default couponApi; 
