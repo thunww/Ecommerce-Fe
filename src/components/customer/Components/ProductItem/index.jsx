@@ -90,7 +90,7 @@ const ProductItem = ({ product }) => {
           </div>
           <div className="bg-gray-100 rounded-full px-2 py-1">
             <span className="text-xs text-gray-600 font-medium">
-              {formatSold(product.sold || 0)} đã bán
+              {formatSold(product.sold || 0)} sold
             </span>
           </div>
         </div>
