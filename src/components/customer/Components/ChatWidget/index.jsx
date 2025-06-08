@@ -272,14 +272,14 @@ const ChatWidget = () => {
 
     const selectedChat = dummyChats.find((c) => c.id === selectedChatId);
 
-    useEffect(() => {
-        const socketIo = io(SOCKET_SERVER_URL);
-        setSocket(socketIo);
+    // useEffect(() => {
+    //     // const socketIo = io(SOCKET_SERVER_URL);
+    //     // setSocket(socketIo);
 
-        return () => {
-            socketIo.disconnect();
-        };
-    }, []);
+    //     return () => {
+    //         // socketIo.disconnect();
+    //     };
+    // }, []);
 
     return (
         <>
