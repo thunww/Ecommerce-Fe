@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchAllOrders } from "../../../../redux/orderSlice";
+import { fetchAllOrders, cancelOrder } from "../../../../redux/orderSlice";
 import {
   FiClock,
   FiSettings,
   FiTruck,
   FiCheckCircle,
   FiXCircle,
+  FiSmartphone,
+  FiCreditCard,
+  FiPackage,
 } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import RateModal from "../ProductReviews";
-
-const OrderItem = ({ sub, handleRateClick }) => {
+import Swal from "sweetalert2";
+const OrderItem = ({ sub, order, handleRateClick, handleCancelOrder }) => {
   const statusStyles = {
     pending: {
       icon: <FiClock className="mr-1" />,
       color: "text-yellow-500",
-      label: "Thanh toán",
+      label: "Chờ xử lý",
     },
     processing: {
       icon: <FiSettings className="mr-1" />,
@@ -26,7 +29,7 @@ const OrderItem = ({ sub, handleRateClick }) => {
     shipped: {
       icon: <FiTruck className="mr-1" />,
       color: "text-orange-500",
-      label: "Vận chuyển",
+      label: "Đang giao hàng",
     },
     delivered: {
       icon: <FiCheckCircle className="mr-1" />,
@@ -40,10 +43,55 @@ const OrderItem = ({ sub, handleRateClick }) => {
     },
   };
 
+  const paymentStatusStyles = {
+    pending: {
+      icon: <FiClock className="mr-1" />,
+      color: "text-yellow-500",
+      label: "Chờ thanh toán",
+    },
+    paid: {
+      icon: <FiCheckCircle className="mr-1" />,
+      color: "text-green-500",
+      label: "Đã thanh toán",
+    },
+    failed: {
+      icon: <FiXCircle className="mr-1" />,
+      color: "text-red-500",
+      label: "Thất bại",
+    },
+  };
+
+  const paymentMethodLabels = {
+    momo: { icon: <FiSmartphone className="mr-1" />, label: "MoMo" },
+    vnpay: { icon: <FiCreditCard className="mr-1" />, label: "VNPay" },
+    cod: {
+      icon: <FiPackage className="mr-1" />,
+      label: "Thanh toán khi nhận hàng",
+    },
+  };
+
   const { icon, color, label } = statusStyles[sub.status] || {
     icon: null,
     color: "text-gray-500",
-    label: sub.status,
+    label: sub.status || "Không xác định",
+  };
+
+  // Lấy thông tin thanh toán (dùng order.payment_status, order.payment_method)
+  const {
+    icon: paymentIcon,
+    color: paymentColor,
+    label: paymentLabel,
+  } = paymentStatusStyles[order?.payment_status] || {
+    icon: null,
+    color: "text-gray-500",
+    label: "Không xác định",
+  };
+
+  const { icon: methodIcon, label: paymentMethod } = paymentMethodLabels[
+    order?.payment_method
+  ] || {
+    icon: null,
+    label: order?.payment_method || "Không xác định",
   };
 
   return (
@@ -62,13 +110,29 @@ const OrderItem = ({ sub, handleRateClick }) => {
             </p>
             <p className={`text-sm font-medium flex items-center ${color}`}>
               {icon}
-              Trạng thái: {label}
+              Trạng thái đơn hàng: {label}
             </p>
+
+            {/* Ẩn nếu sub.status === "cancelled" */}
+            {sub.status !== "cancelled" && (
+              <>
+                <p
+                  className={`text-sm font-medium flex items-center ${paymentColor}`}
+                >
+                  {paymentIcon}
+                  Trạng thái thanh toán: {paymentLabel}
+                </p>
+                <p className="text-sm font-medium flex items-center text-gray-600">
+                  {methodIcon}
+                  Phương thức thanh toán: {paymentMethod}
+                </p>
+              </>
+            )}
           </div>
         </div>
-        <p className="text-lg font-semibold text-blue-500">
+        <p className="text-lg font-semibold text-red-500">
           Tổng: <span className="text-xs">đ</span>
-          {Number(sub.total_price).toLocaleString()}
+          {Number(order.total_price).toLocaleString()}
         </p>
       </div>
 
@@ -125,6 +189,14 @@ const OrderItem = ({ sub, handleRateClick }) => {
 
       {/* Sub-order Footer */}
       <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-2">
+        {sub.status === "pending" && (
+          <button
+            onClick={() => handleCancelOrder(order.order_id)}
+            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
+          >
+            Hủy đơn hàng
+          </button>
+        )}
         {sub.status === "delivered" && sub.orderItems.length > 0 && (
           <>
             <button
@@ -174,18 +246,49 @@ const OrdersList = () => {
     setShowRateModal(true);
   };
 
+  const handleCancelOrder = async (subOrderId) => {
+    const result = await Swal.fire({
+      title: "Bạn có chắc chắn muốn hủy đơn hàng?",
+      text: "Hành động này không thể hoàn tác!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc3545",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Hủy đơn",
+      cancelButtonText: "Không",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await dispatch(cancelOrder(subOrderId)).unwrap();
+        dispatch(fetchAllOrders());
+        Swal.fire("Đã hủy!", "Đơn hàng đã được hủy thành công.", "success");
+      } catch (error) {
+        Swal.fire("Thất bại", error.message || "Không thể hủy đơn", "error");
+      }
+    }
+  };
+
   const tabs = [
     { id: "all", label: "Tất cả" },
-    { id: "pending", label: "Chờ thanh toán" },
-    { id: "processing", label: "Đang xử lý" },
-    { id: "shipped", label: "Vận chuyển" },
+    { id: "payment_pending", label: "Chờ thanh toán" },
+    { id: "pending_processing", label: "Đang xử lý" }, // Gộp chung 2 trạng thái pending + processing
+    { id: "shipped", label: "Đang giao hàng" },
     { id: "delivered", label: "Hoàn thành" },
     { id: "cancelled", label: "Đã hủy" },
   ];
 
+  // Lọc sub-order theo tab, với yêu cầu ở tab "Chờ thanh toán"
   const filteredOrders = orders
-    .flatMap((order) => order.subOrders)
-    .filter((sub) => activeTab === "all" || sub.status === activeTab);
+    .flatMap((order) => order.subOrders.map((sub) => ({ sub, order })))
+    .filter(({ sub, order }) => {
+      if (activeTab === "all") return true;
+      if (activeTab === "payment_pending")
+        return order.payment_status === "pending" && sub.status !== "cancelled";
+      if (activeTab === "pending_processing")
+        return sub.status === "pending" || sub.status === "processing";
+      return sub.status === activeTab;
+    });
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -198,8 +301,8 @@ const OrdersList = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 px-4 py-2 rounded-md font-medium text-center transition ${
                 activeTab === tab.id
-                  ? "bg-blue-500 text-white"
-                  : "bg-white text-gray-600 hover:bg-blue-100"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-200"
               }`}
             >
               {tab.label}
@@ -208,24 +311,24 @@ const OrdersList = () => {
         </div>
 
         {/* Orders List */}
-        <div>
-          {filteredOrders.length === 0 ? (
-            <EmptyState />
-          ) : (
-            filteredOrders.map((sub) => (
-              <OrderItem
-                key={sub.sub_order_id}
-                sub={sub}
-                handleRateClick={handleRateClick}
-              />
-            ))
-          )}
-        </div>
+        {filteredOrders.length === 0 ? (
+          <EmptyState />
+        ) : (
+          filteredOrders.map(({ sub, order }) => (
+            <OrderItem
+              key={sub.sub_order_id}
+              sub={sub}
+              order={order}
+              handleRateClick={handleRateClick}
+              handleCancelOrder={handleCancelOrder}
+            />
+          ))
+        )}
 
-        {/* Rate Modal */}
-        {selectedOrderItem && (
+        {/* Modal đánh giá */}
+        {showRateModal && selectedOrderItem && (
           <RateModal
-            isOpen={showRateModal}
+            show={showRateModal}
             onClose={() => setShowRateModal(false)}
             orderItem={selectedOrderItem}
           />
