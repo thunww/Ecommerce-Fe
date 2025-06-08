@@ -32,6 +32,7 @@ import Checkout from "../pages/Customer/Pages/Checkout";
 import OrdersList from "../components/customer/Components/MyOrders";
 import AddressList from "../pages/Customer/Pages/Address/AddressList";
 import ShipperRegister from "../pages/Shipper/ShipperRegister";
+import Payment from "../components/customer/Components/Payment";
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
@@ -89,6 +90,7 @@ const CustomerRoutes = () => {
             />
             <Route path="/cart" exact={true} element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/payment" element={<Payment />} />
             {/* Thêm routes cho My Account */}
             <Route path="/my-account" element={<MyAccount />}>
               {/* Thay Dashboard bằng trang khác bạn muốn, ví dụ Profile */}

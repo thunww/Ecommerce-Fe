@@ -24,7 +24,7 @@ import {
 } from "@mui/icons-material";
 import { clearCart } from "../../../../redux/slices/cartSlice";
 import { fetchAllAddresses } from "../../../../redux/addressSlice";
-import DefaultAddress from "../Address/DefaultAddress"; // Import DefaultAddress
+import DefaultAddress from "../Address/DefaultAddress";
 import orderApi from "../../../../api/orderApi";
 import "./Checkout.css";
 
@@ -33,6 +33,8 @@ const Checkout = () => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
   const selectedItemIds = useSelector((state) => state.cart.selectedItems);
+  const { coupon, discount } = useSelector((state) => state.cart);
+
   const user = useSelector((state) => state.auth.user);
   const allAddresses = useSelector((state) => state.addresses.addresses);
 
@@ -45,6 +47,7 @@ const Checkout = () => {
     ward: "",
     district: "",
     city: "",
+
     payment_method: "cod",
   });
 
@@ -53,6 +56,11 @@ const Checkout = () => {
       selectedItemIds.includes(item.cart_item_id)
     );
   }, [cartItems, selectedItemIds]);
+
+  const totalAmount = selectedProducts().reduce(
+    (total, item) => total + parseFloat(item.price) * item.quantity,
+    0
+  );
 
   useEffect(() => {
     dispatch(fetchAllAddresses());
@@ -108,7 +116,8 @@ const Checkout = () => {
         navigate("/my-account/addresses");
         return;
       }
-
+      const totalAmountAfterDiscount = totalAmount - discount;
+      console.log("Total amount after discount:", totalAmountAfterDiscount);
       const orderData = {
         user_id: user.user_id,
         order_items: selectedItems.map((item) => ({
@@ -126,25 +135,31 @@ const Checkout = () => {
         shipping_address: {
           address_id: selectedAddress.address_id,
         },
-        total_amount: selectedItems.reduce(
-          (total, item) => total + parseFloat(item.price) * item.quantity,
-          0
-        ),
+        total_amount: totalAmountAfterDiscount,
         shipping_fee: 0,
         payment_method: formData.payment_method,
+        discount_amount: coupon?.discount_amount || 0,
+        coupon_code: coupon?.code || null,
       };
 
       const response = await orderApi.createOrder(orderData);
-
+      console.log("Order response:", response.data);
       if (response.data) {
-        toast.success("Đặt hàng thành công!");
-        dispatch(clearCart());
-        navigate("/my-account/orders");
+        if (
+          formData.payment_method === "vnpay" &&
+          response.data.payment_url
+        ) {
+          window.location.href = response.data.payment_url;
+        } else {
+          toast.success("Đặt hàng thành công!");
+          dispatch(clearCart());
+          navigate("/my-account/orders");
+        }
       }
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
-          "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!"
+        "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!"
       );
     } finally {
       setLoading(false);
@@ -284,17 +299,40 @@ const Checkout = () => {
               ))}
               <Divider sx={{ my: 2 }} />
               <Box display="flex" justifyContent="space-between">
-                <Typography>Tổng cộng:</Typography>
-                <Typography color="error" fontWeight="bold">
-                  {formatPrice(
-                    selectedProducts().reduce(
-                      (total, item) =>
-                        total + parseFloat(item.price) * item.quantity,
-                      0
-                    )
-                  )}
-                </Typography>
+                <Typography>Tạm tính:</Typography>
+                <Typography>{formatPrice(totalAmount)}</Typography>
               </Box>
+
+              {coupon?.discount_amount > 0 && (
+                <Box display="flex" justifyContent="space-between" mt={1}>
+                  <Typography>Mã giảm: {coupon.code}</Typography>
+                  <Typography color="green">
+                    -{formatPrice(coupon.discount_amount)}
+                  </Typography>
+                </Box>
+              )}
+
+              <Divider sx={{ my: 2 }} />
+
+              <Box>
+                {coupon && (
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography fontWeight="bold" color="primary">
+                      Mã giảm giá ({coupon.code}):
+                    </Typography>
+                    <Typography color="primary" fontWeight="bold">
+                      -{formatPrice(discount)}
+                    </Typography>
+                  </Box>
+                )}
+                <Box display="flex" justifyContent="space-between">
+                  <Typography fontWeight="bold">Tổng thanh toán:</Typography>
+                  <Typography color="error" fontWeight="bold">
+                    {formatPrice(totalAmount - discount)}
+                  </Typography>
+                </Box>
+              </Box>
+
             </CardContent>
           </Card>
         </Grid>
