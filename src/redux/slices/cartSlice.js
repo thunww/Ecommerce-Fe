@@ -123,12 +123,25 @@ const cartSlice = createSlice({
                 state.error = null;
             })
             .addCase(fetchCart.fulfilled, (state, action) => {
-                state.items = action.payload.items || [];
+                let items = action.payload.items || [];
+                const selectedId = localStorage.getItem("selectedCartItemId");
+
+                if (selectedId) {
+                    const index = items.findIndex(item => item.cart_item_id === selectedId);
+                    if (index !== -1) {
+                        const selectedItem = items[index];
+                        items.splice(index, 1); // xóa khỏi mảng
+                        items.unshift(selectedItem); // đưa lên đầu
+                    }
+                }
+
+                state.items = items;
                 state.shippingFee = action.payload.shippingFee || 0;
                 state.discount = action.payload.discount || 0;
                 state.coupon = action.payload.coupon || null;
                 state.loading = false;
             })
+
 
             .addCase(addToCart.fulfilled, (state, action) => {
                 const cartData = action.payload;
