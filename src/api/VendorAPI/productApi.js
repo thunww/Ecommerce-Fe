@@ -27,36 +27,8 @@ const productApi = {
   },
 
   // Tạo sản phẩm mới
-  createProduct: async (productData) => {
+  createProduct: async (formData) => {
     try {
-      const formData = new FormData();
-
-      // Thêm thông tin cơ bản
-      formData.append("product_name", productData.product_name);
-      formData.append("description", productData.description);
-      formData.append("discount", productData.discount);
-      formData.append("weight", productData.weight);
-      formData.append("dimensions", productData.dimensions);
-      formData.append("category", productData.category);
-      formData.append("stock", productData.stock);
-
-      // Thêm variants
-      formData.append("variants", JSON.stringify(productData.variants));
-
-      // Thêm ảnh chính
-      if (productData.mainImage) {
-        formData.append("mainImage", productData.mainImage);
-      }
-
-      // Thêm ảnh biến thể
-      if (productData.variantImages) {
-        Object.entries(productData.variantImages).forEach(([key, file]) => {
-          if (file) {
-            formData.append(`variantImage_${key}`, file);
-          }
-        });
-      }
-
       const response = await axiosClient.post(
         "/vendor/product/create",
         formData,

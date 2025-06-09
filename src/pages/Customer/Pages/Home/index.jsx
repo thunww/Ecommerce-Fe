@@ -28,10 +28,9 @@ const Home = () => {
     loading,
     error,
   } = useSelector((state) => state.products);
-  const activeProducts = Array.isArray(products) 
-  ? products.filter((product) => product.status === "active")
-  : [];
-  
+  const activeProducts = Array.isArray(products)
+    ? products.filter((product) => product.status === "active")
+    : [];
 
   const totalPages = Math.ceil(activeProducts.length / productsPerPage);
 
