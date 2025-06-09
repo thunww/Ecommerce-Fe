@@ -14,10 +14,11 @@ const couponApi = {
     },
 
     // Xóa mã giảm giá khỏi giỏ hàng
-    removeCoupon: (cart_id) => {
-        const url = `/coupons/remove/${cart_id}`;
-        return axiosClient.delete(url);
-    },
+    removeCoupon: () => {
+        const url = `/coupons/remove`; // ✅ chuẩn theo backend
+        return axiosClient.post(url);  // ✅ dùng POST
+    }
+    ,
 
     // Lấy danh sách mã giảm giá có thể sử dụng
     getAvailableCoupons: () => {

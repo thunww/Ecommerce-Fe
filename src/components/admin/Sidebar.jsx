@@ -28,15 +28,14 @@ const Sidebar = ({ isOpen }) => {
 
   return (
     <aside
-      className={`fixed top-0 left-0 h-full bg-gray-900 text-white shadow-lg transition-all duration-300 flex flex-col ${
-        isOpen ? "w-64" : "w-20"
-      } overflow-y-auto scrollbar scrollbar-thumb-gray-600 scrollbar-track-gray-800 scrollbar-thumb-rounded-md`}
+      className={`fixed top-0 left-0 h-full z-50 bg-gray-900 text-white border-r border-gray-800 transition-all duration-300 ${isOpen ? "w-64" : "w-20"
+        } overflow-y-auto`}
     >
+
       {/* Logo */}
       <div
-        className={`flex items-center gap-3 p-5 ${
-          isOpen ? "" : "justify-center"
-        }`}
+        className={`flex items-center gap-3 p-5 ${isOpen ? "" : "justify-center"
+          }`}
       >
         <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden">
           <img

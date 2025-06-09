@@ -5,15 +5,12 @@ import shopReducer from "./shopSlice";
 import productReducer from "./productSilce";
 import shipperReducer from "./shipperSlice";
 import userReducer from "./userSlice";
-
 import cartReducer from "./slices/cartSlice";
 import wishlistReducer from "./slices/wishlistSlice";
 import reviewReducer from "./reviewsSilce";
 import categoryReducer from "./categorySlice";
-
+import orderReducer from "./orderSlice";
 import addressReducer from "./addressSlice";
-import orderReducer from './slices/orderSlice';
-import ordersReducer from './orderSlice';
 
 const store = configureStore({
   reducer: {
@@ -29,9 +26,6 @@ const store = configureStore({
     categories: categoryReducer,
     orders: orderReducer,
     addresses: addressReducer,
-    categories: categoryReducer,
-    order: orderReducer,
-    orders: ordersReducer
   },
 });
 

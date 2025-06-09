@@ -1,127 +1,96 @@
-import React, { useState } from 'react'
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import "../Sidebar/style.css";
-import { Collapse } from 'react-collapse';
-import { FaAngleDown } from "react-icons/fa6";
-import Button from '@mui/material/Button';
-import { FaAngleUp } from "react-icons/fa6";
-import RangeSlider from 'react-range-slider-input';
-import 'react-range-slider-input/dist/style.css';
-import Rating from '@mui/material/Rating';
-const Sidebar = () => {
-    const [isOpenCategoryFilter, setIsOpenCategoryFilter] = useState(true);
-    const [isOpenAvailFilter, setIsOpenAvailFilter] = useState(true);
-    const [isOpenSizeFilter, setIsOpenSizeFilter] = useState(true);
-    return (
-        <aside className='sidebar py-3'>
-            <div className='box'>
-                <h3 className='w-full mb-3 text-[18px] font-[500] flex items-center pr-5'>
-                    Shop By Category
-                    <Button className=' !w-[30px] !h-[30px] !min-w-[30px] !rounded-full !ml-auto !text-[#000]'
-                        onClick={() => setIsOpenCategoryFilter(!isOpenCategoryFilter)}>
-                        {
-                            isOpenCategoryFilter ? <FaAngleUp /> : <FaAngleDown />
-                        }
-                    </Button>
-                </h3>
-                <Collapse isOpened={isOpenCategoryFilter}>
-                    <div className='scroll px-4 ralative -left-[13px]'>
-                        <FormControlLabel control={<Checkbox size="small" />} label="Fashion" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="Electronics" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="Bags" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="Footwear" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="Groceries" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="Beauty" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="Wellness" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="Jawellery" className='w-full' />
-                    </div>
-                </Collapse>
-            </div>
+import React, { useState, useEffect } from "react";
 
-            <div className='box'>
-                <h3 className='w-full mb-3 text-[18px] font-[500] flex items-center pr-5'>
-                    Availability
-                    <Button className=' !w-[30px] !h-[30px] !min-w-[30px] !rounded-full !ml-auto !text-[#000]'
-                        onClick={() => setIsOpenAvailFilter(!isOpenAvailFilter)}>
-                        {
-                            isOpenAvailFilter ? <FaAngleUp /> : <FaAngleDown />
-                        }
-                    </Button>
-                </h3>
-                <Collapse isOpened={isOpenAvailFilter}>
-                    <div className='scroll px-4 ralative -left-[13px]'>
-                        <FormControlLabel control={<Checkbox size="small" />} label="Available (100)" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="In Stock (100)" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="Not Available (100)" className='w-full' />
-                    </div>
-                </Collapse>
-            </div>
+const Sidebar = ({ filters, onFilterChange, onSearchChange }) => {
+  // Local state cho các bộ lọc để kiểm soát checkbox, slider
+  const [selectedCategories, setSelectedCategories] = useState(
+    filters.categories || []
+  );
+  const [priceRange, setPriceRange] = useState(filters.priceRange || [1, 100]);
+  const categories = ["Áo", "Quần", "Giày", "Phụ kiện"]; // ví dụ category tĩnh, có thể lấy từ API
 
-            <div className='box mt-3'>
-                <h3 className='w-full mb-3 text-[18px] font-[500] flex items-center pr-5'>
-                    Size
-                    <Button className=' !w-[30px] !h-[30px] !min-w-[30px] !rounded-full !ml-auto !text-[#000]'
-                        onClick={() => setIsOpenSizeFilter(!isOpenSizeFilter)}>
-                        {
-                            isOpenSizeFilter ? <FaAngleUp /> : <FaAngleDown />
-                        }
-                    </Button>
-                </h3>
-                <Collapse isOpened={isOpenSizeFilter}>
-                    <div className='scroll px-4 ralative -left-[13px]'>
-                        <FormControlLabel control={<Checkbox size="small" />} label="S (100)" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="M (100)" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="L (100)" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="XL (100)" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="XXL (100)" className='w-full' />
-                        <FormControlLabel control={<Checkbox size="small" />} label="Chuppy (100)" className='w-full' />
-                    </div>
-                </Collapse>
-            </div>
+  // Khi user check/uncheck category
+  const handleCategoryChange = (category) => {
+    let newSelected;
+    if (selectedCategories.includes(category)) {
+      newSelected = selectedCategories.filter((c) => c !== category);
+    } else {
+      newSelected = [...selectedCategories, category];
+    }
+    setSelectedCategories(newSelected);
+  };
 
-            <div className='box mt-4'>
-                <h3 className='w-full mb-3 text-[18px] font-[500] flex items-center pr-5'>
-                    Filter by Price
-                </h3>
+  // Khi price range thay đổi (ví dụ dùng 2 input number)
+  const handlePriceMinChange = (e) => {
+    const newMin = Number(e.target.value);
+    if (newMin <= priceRange[1]) {
+      setPriceRange([newMin, priceRange[1]]);
+    }
+  };
+  const handlePriceMaxChange = (e) => {
+    const newMax = Number(e.target.value);
+    if (newMax >= priceRange[0]) {
+      setPriceRange([priceRange[0], newMax]);
+    }
+  };
 
-                <RangeSlider />
-                <div className='flex pt-4 pb-2 priceRange'>
-                    <span className='text-[13px]'>
-                        From: <strong className='text-dark'>Rs: 1</strong>
-                    </span>
-                    <span className='ml-auto text-[13px]'>
-                        From: <strong className='text-dark'>Rs: 100</strong>
-                    </span>
-                </div>
+  // Khi selectedCategories hoặc priceRange thay đổi thì gọi onFilterChange
+  useEffect(() => {
+    onFilterChange({
+      categories: selectedCategories,
+      priceRange,
+    });
+  }, [selectedCategories, priceRange]);
 
-            </div>
+  return (
+    <div className="w-[20%] p-3 border-r border-gray-300">
+      {/* Search bar */}
+      <input
+        type="text"
+        placeholder="Tìm sản phẩm..."
+        value={filters.keyword || ""}
+        onChange={(e) => onSearchChange(e.target.value)}
+        className="w-full p-2 mb-4 border border-gray-400 rounded"
+      />
 
-            <div className='box mt-4'>
-                <h3 className='w-full mb-3 text-[18px] font-[500] flex items-center pr-5'>
-                    Filter by Rating
-                </h3>
-                <div className='w-full'>
-                    <Rating name="size-small" defaultValue={5} size="small" readOnly className='cursor-pointer' />
-                </div>
-                <div className='w-full'>
-                    <Rating name="size-small" defaultValue={4} size="small" readOnly className='cursor-pointer' />
-                </div>
-                <div className='w-full'>
-                    <Rating name="size-small" defaultValue={3} size="small" readOnly className='cursor-pointer' />
-                </div>
-                <div className='w-full'>
-                    <Rating name="size-small" defaultValue={2} size="small" readOnly className='cursor-pointer' />
-                </div>
-                <div className='w-full'>
-                    <Rating name="size-small" defaultValue={1} size="small" readOnly className='cursor-pointer' />
-                </div>
+      {/* Categories */}
+      <div className="mb-4">
+        <h3 className="font-semibold mb-2">Danh mục</h3>
+        {categories.map((category) => (
+          <label key={category} className="block">
+            <input
+              type="checkbox"
+              checked={selectedCategories.includes(category)}
+              onChange={() => handleCategoryChange(category)}
+            />{" "}
+            {category}
+          </label>
+        ))}
+      </div>
 
+      {/* Price Range */}
+      <div className="mb-4">
+        <h3 className="font-semibold mb-2">Khoảng giá</h3>
+        <div className="flex items-center space-x-2">
+          <input
+            type="number"
+            min={0}
+            value={priceRange[0]}
+            onChange={handlePriceMinChange}
+            className="w-16 p-1 border border-gray-400 rounded"
+          />
+          <span>-</span>
+          <input
+            type="number"
+            min={0}
+            value={priceRange[1]}
+            onChange={handlePriceMaxChange}
+            className="w-16 p-1 border border-gray-400 rounded"
+          />
+          <span>VNĐ</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-            </div>
-        </aside>
-    )
-}
-
-export default Sidebar
+export default Sidebar;
