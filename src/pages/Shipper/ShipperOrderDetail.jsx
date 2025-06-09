@@ -138,7 +138,7 @@ const ShipperOrderDetail = () => {
   }
 
   const getFinalStatus = () => {
-    if (order.status === 'cancelled' || order.Order?.status === 'cancelled') {
+    if (order.status === 'cancelled' || order.order?.status === 'cancelled') {
       return 'cancelled';
     }
     if (order.shipment?.status === 'in_transit') {
@@ -148,7 +148,7 @@ const ShipperOrderDetail = () => {
   };
 
   const getFinalTotalPrice = () => {
-    return parseFloat(order.total_price) || parseFloat(order.Order?.total_price) || 0;
+    return parseFloat(order.total_price) || parseFloat(order.order?.total_price) || 0;
   };
 
   return (
@@ -216,20 +216,20 @@ const ShipperOrderDetail = () => {
           <h3>Thông tin người nhận</h3>
           <div style={{ display: 'flex', marginBottom: '10px' }}>
             <div style={{ width: '150px', fontWeight: 'bold' }}>Họ tên:</div>
-            <div>{order.Order?.User?.first_name} {order.Order?.User?.last_name}</div>
+            <div>{order.order?.User?.first_name} {order.order?.User?.last_name}</div>
           </div>
           <div style={{ display: 'flex', marginBottom: '10px' }}>
             <div style={{ width: '150px', fontWeight: 'bold' }}>Số điện thoại:</div>
-            <div>{order.Order?.User?.phone}</div>
+            <div>{order.order?.User?.phone}</div>
           </div>
           <div style={{ display: 'flex', marginBottom: '10px' }}>
             <div style={{ width: '150px', fontWeight: 'bold' }}>Email:</div>
-            <div>{order.Order?.User?.email}</div>
+            <div>{order.order?.User?.email}</div>
           </div>
           <div style={{ display: 'flex', marginBottom: '10px' }}>
             <div style={{ width: '150px', fontWeight: 'bold' }}>Địa chỉ:</div>
             <div>
-              {order.Order?.shipping_address?.address_line}, {order.Order?.shipping_address?.city}, {order.Order?.shipping_address?.province}
+              {order.order?.shipping_address?.address_line}, {order.order?.shipping_address?.city}
             </div>
           </div>
         </div>
