@@ -6,6 +6,7 @@ import { FaAngleDown } from "react-icons/fa6";
 import { MdDeliveryDining } from "react-icons/md";
 import { HiOutlineMenuAlt1 } from "react-icons/hi";
 import { FaBars } from "react-icons/fa";
+import { Store } from "lucide-react";
 import CategoryPanel from "./CategoryPanel";
 import "../Navigation/style.css";
 
@@ -173,12 +174,20 @@ const Navigation = () => {
             </ul>
           </div>
           <div className="col3 w-full md:w-1/5 lg:w-1/5 hidden lg:block">
-            <Link to="/shipper/register">
-              <p className="text-[12px] md:text-[13px] lg:text-[14px] font-[500] flex items-center gap-2 mb-0 mt-0 justify-end free-delivery-link">
-                <MdDeliveryDining className="text-[16px] flex-shrink-0" />
-                <span className="truncate">Go Shipper</span>
-              </p>
-            </Link>
+            <div className="flex items-center gap-4 justify-end">
+              <Link to="/shipper/register">
+                <p className="text-[12px] md:text-[13px] lg:text-[14px] font-[500] flex items-center gap-2 mb-0 mt-0 justify-end free-delivery-link">
+                  <MdDeliveryDining className="text-[16px] flex-shrink-0" />
+                  <span className="truncate">Go Shipper</span>
+                </p>
+              </Link>
+              <Link to="/register-vendor">
+                <p className="text-[12px] md:text-[13px] lg:text-[14px] font-[500] flex items-center gap-2 mb-0 mt-0 justify-end free-delivery-link">
+                  <Store className="w-[16px] h-[16px] flex-shrink-0" />
+                  <span className="truncate">Become a Vendor</span>
+                </p>
+              </Link>
+            </div>
           </div>
         </div>
 
