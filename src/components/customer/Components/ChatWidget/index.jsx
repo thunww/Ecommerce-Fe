@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
+
 const TOKEN = localStorage.getItem("accessToken") || null;
 const SOCKET_SERVER_URL = "http://localhost:8080";
 
@@ -220,6 +221,7 @@ const ChatDetail = ({ chat, onClose, socket, messages, addMessage, userId }) => 
     }, [messages]);
 
     const sendMessage = () => {
+        console.log("chat object:", chat);
         if (!input.trim() || !socket || !chat) {
             console.log("Không gửi được:", { input: input.trim(), socket: !!socket, chat: !!chat });
             return;
@@ -229,9 +231,12 @@ const ChatDetail = ({ chat, onClose, socket, messages, addMessage, userId }) => 
             return;
         }
 
-        const receiverId = chat.shop?.shop_id;
         const data = {
-            receiver_id: receiverId,
+            chat_id: chat.chat_id,
+            sender_id: userId,
+            sender_type: "user", // hoặc giá trị tương ứng với loại người gửi
+            receiver_id: chat.shop?.shop_id,
+            receiver_type: "shop", // hoặc giá trị phù hợp với backend
             message: input.trim(),
         };
 
@@ -239,6 +244,7 @@ const ChatDetail = ({ chat, onClose, socket, messages, addMessage, userId }) => 
         socket.emit("send_message", data);
         setInput("");
     };
+
 
     const handleKeyDown = (e) => {
         if (e.key === "Enter") {
@@ -325,6 +331,7 @@ const ChatWidget = () => {
     const [userId, setUserId] = useState(null);
 
     useEffect(() => {
+
         if (!TOKEN) {
             console.error("Không có token, vui lòng đăng nhập.");
             return;
@@ -352,7 +359,7 @@ const ChatWidget = () => {
                 setUserId(userId);
                 console.log("Gửi yêu cầu với userId:", userId, "role:", role);
 
-                const res = await fetch(`/chats/user/${userId}`, {
+                const res = await fetch(`http://localhost:8080/api/v1/chat/user/${userId}`, {
                     headers: {
                         Authorization: `Bearer ${TOKEN}`,
                     },
@@ -440,6 +447,33 @@ const ChatWidget = () => {
 
     const handleSelectChat = (chatId) => {
         setSelectedChatId(chatId);
+
+        // Kiểm tra xem đã có tin nhắn chưa, nếu chưa thì fetch
+        if (!messages[chatId]) {
+            fetch(`http://localhost:8080/api/v1/chat/${chatId}`, {
+                headers: {
+                    Authorization: `Bearer ${TOKEN}`,
+                },
+            })
+                .then((res) => {
+                    if (!res.ok) throw new Error("Lỗi khi tải tin nhắn");
+                    return res.json();
+                })
+                .then((data) => {
+                    const formattedMessages = data.data.map((msg) => ({
+                        text: msg.message,
+                        timestamp: msg.created_at,
+                        fromMe: msg.sender_id === userId,
+                    }));
+                    setMessages((prev) => ({
+                        ...prev,
+                        [chatId]: formattedMessages,
+                    }));
+                })
+                .catch((err) => {
+                    console.error("Lỗi tải tin nhắn:", err);
+                });
+        }
     };
 
     return (
