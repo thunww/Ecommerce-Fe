@@ -1,16 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
-// WebSocket server URL
+
+const TOKEN = localStorage.getItem("accessToken") || null;
 const SOCKET_SERVER_URL = "http://localhost:8080";
 
-// Giả lập danh sách cuộc trò chuyện (có thể lấy từ API)
-const dummyChats = [
-    { id: 1, name: "Shop ABC", lastMessage: "Chào bạn!" },
-    { id: 2, name: "User 123", lastMessage: "Bạn còn hàng không?" },
-];
-
-// CSS styles
 const styles = {
     chatButton: {
         position: "fixed",
@@ -95,6 +89,7 @@ const styles = {
         borderRadius: 12,
         fontSize: 14,
         lineHeight: 1.4,
+        wordBreak: "break-word",
     },
     messageFromMe: {
         backgroundColor: "#1976d2",
@@ -129,79 +124,133 @@ const styles = {
     },
 };
 
-// Giao diện nút mở chat
-const ChatButton = ({ onClick }) => (
-    <button style={styles.chatButton} onClick={onClick} aria-label="Open chat">
-        💬
-    </button>
+const ChatButton = ({ onClick, hasUnread }) => (
+    <div style={{ position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
+        <button style={styles.chatButton} onClick={onClick} aria-label="Mở chat">
+            💬
+        </button>
+        {hasUnread && (
+            <span
+                style={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    width: 12,
+                    height: 12,
+                    backgroundColor: "red",
+                    borderRadius: "50%",
+                }}
+            />
+        )}
+    </div>
 );
 
-// Danh sách cuộc trò chuyện
-const ChatList = ({ chats, selectedChatId, onSelect }) => {
-    return (
-        <div style={styles.chatList}>
-            {chats.map((chat) => {
-                const isSelected = chat.id === selectedChatId;
-                return (
-                    <div
-                        key={chat.id}
-                        style={{
-                            ...styles.chatListItem,
-                            ...(isSelected ? styles.chatListItemActive : {}),
-                        }}
-                        onClick={() => onSelect(chat.id)}
-                    >
-                        <strong>{chat.name}</strong>
-                        <p style={{ margin: "6px 0 0", color: "#555", fontSize: 13 }}>
-                            {chat.lastMessage}
-                        </p>
-                    </div>
-                );
-            })}
-        </div>
-    );
-};
+const ChatList = ({ chats, selectedChatId, onSelect }) => (
+    <div style={styles.chatList}>
+        {chats.map((chat) => {
+            const isSelected = chat.chat_id === selectedChatId;
+            return (
+                <div
+                    key={chat.chat_id}
+                    style={{
+                        ...styles.chatListItem,
+                        ...(isSelected ? styles.chatListItemActive : {}),
+                    }}
+                    onClick={() => onSelect(chat.chat_id)}
+                >
+                    <strong>{chat.user?.username || chat.shop?.shop_name}</strong>
+                    <p style={{ margin: "6px 0 0", color: "#555", fontSize: 13 }}>
+                        {chat.last_message}
+                    </p>
+                </div>
+            );
+        })}
+    </div>
+);
 
-// Chi tiết cuộc trò chuyện
-const ChatDetail = ({ chat, onClose, socket }) => {
-    const [messages, setMessages] = useState([]);
+const ChatDetail = ({ chat, onClose, socket, messages, addMessage, userId }) => {
     const [input, setInput] = useState("");
     const messagesEndRef = useRef(null);
 
     useEffect(() => {
         if (!socket || !chat) return;
 
-        // Lắng nghe tin nhắn đến
-        const handleIncoming = (message) => {
-            if (message.chatId === chat.id) {
-                setMessages((prev) => [...prev, { ...message, fromMe: false }]);
+        const handleNewMessage = (message) => {
+            console.log("Nhận new_message:", message);
+            const chatIdFromMessage = message.sender_id; // Shop gửi cho user
+            if (chatIdFromMessage === chat.shop?.shop_id) {
+                addMessage(chat.chat_id, {
+                    text: message.message,
+                    timestamp: message.created_at || Date.now(),
+                    fromMe: message.sender_id === userId,
+                });
             }
         };
 
-        socket.on("receiveMessage", handleIncoming);
+        socket.on("new_message", handleNewMessage);
+        return () => socket.off("new_message", handleNewMessage);
+    }, [socket, chat, addMessage, userId]);
 
-        return () => {
-            socket.off("receiveMessage", handleIncoming);
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleMessageSent = (msg) => {
+            console.log("Nhận message_sent:", msg);
+            addMessage(chat.chat_id, {
+                text: msg.message,
+                timestamp: msg.created_at || Date.now(),
+                fromMe: true,
+            });
         };
-    }, [socket, chat]);
+
+        const handleError = (msg) => {
+            console.error("Lỗi từ server:", msg);
+            alert("Lỗi: " + msg);
+        };
+
+        socket.on("message_sent", handleMessageSent);
+        socket.on("error", handleError);
+        return () => {
+            socket.off("message_sent", handleMessageSent);
+            socket.off("error", handleError);
+        };
+    }, [socket, chat, addMessage]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
     const sendMessage = () => {
-        if (!input.trim()) return;
-        const message = {
-            chatId: chat.id,
-            text: input,
+        console.log("chat object:", chat);
+        if (!input.trim() || !socket || !chat) {
+            console.log("Không gửi được:", { input: input.trim(), socket: !!socket, chat: !!chat });
+            return;
+        }
+        if (!socket.connected) {
+            console.error("Socket không kết nối!");
+            return;
+        }
+
+        const data = {
+            chat_id: chat.chat_id,
+            sender_id: userId,
+            sender_type: "user", // hoặc giá trị tương ứng với loại người gửi
+            receiver_id: chat.shop?.shop_id,
+            receiver_type: "shop", // hoặc giá trị phù hợp với backend
+            message: input.trim(),
         };
-        setMessages((prev) => [...prev, { ...message, fromMe: true }]);
-        socket.emit("sendMessage", message);
+
+        console.log("Gửi tin nhắn:", data);
+        socket.emit("send_message", data);
         setInput("");
     };
 
+
     const handleKeyDown = (e) => {
-        if (e.key === "Enter") sendMessage();
+        if (e.key === "Enter") {
+            console.log("Nhấn Enter, gửi tin nhắn:", input);
+            sendMessage();
+        }
     };
 
     if (!chat) {
@@ -218,7 +267,7 @@ const ChatDetail = ({ chat, onClose, socket }) => {
                     padding: 20,
                 }}
             >
-                Chat ngay nhé!
+                Chọn cuộc trò chuyện để bắt đầu chat
             </div>
         );
     }
@@ -226,12 +275,11 @@ const ChatDetail = ({ chat, onClose, socket }) => {
     return (
         <div style={styles.chatDetail}>
             <div style={styles.chatHeader}>
-                <span>{chat.name}</span>
-                <button style={styles.closeButton} onClick={onClose} aria-label="Close chat">
-                    &times;
+                <span>{chat.user?.username || chat.shop?.shop_name}</span>
+                <button style={styles.closeButton} onClick={onClose} aria-label="Đóng chat">
+                    ×
                 </button>
             </div>
-
             <div style={styles.messagesContainer}>
                 {messages.map((msg, index) => (
                     <div
@@ -241,22 +289,32 @@ const ChatDetail = ({ chat, onClose, socket }) => {
                             ...(msg.fromMe ? styles.messageFromMe : styles.messageFromOther),
                         }}
                     >
-                        {msg.text}
+                        <div>{msg.text}</div>
+                        {msg.timestamp && (
+                            <div
+                                style={{
+                                    fontSize: 11,
+                                    color: "#888",
+                                    marginTop: 4,
+                                    textAlign: msg.fromMe ? "right" : "left",
+                                }}
+                            >
+                                {new Date(msg.timestamp).toLocaleTimeString()}
+                            </div>
+                        )}
                     </div>
                 ))}
-                <div ref={messagesEndRef}></div>
+                <div ref={messagesEndRef} />
             </div>
-
             <div style={styles.inputContainer}>
                 <input
                     style={styles.input}
-                    type="text"
                     placeholder="Nhập tin nhắn..."
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                 />
-                <button style={styles.sendButton} onClick={sendMessage}>
+                <button style={styles.sendButton} onClick={sendMessage} aria-label="Gửi tin nhắn">
                     Gửi
                 </button>
             </div>
@@ -264,35 +322,179 @@ const ChatDetail = ({ chat, onClose, socket }) => {
     );
 };
 
-// Widget tổng
 const ChatWidget = () => {
     const [open, setOpen] = useState(false);
-    const [selectedChatId, setSelectedChatId] = useState(null);
     const [socket, setSocket] = useState(null);
-
-    const selectedChat = dummyChats.find((c) => c.id === selectedChatId);
+    const [selectedChatId, setSelectedChatId] = useState(null);
+    const [messages, setMessages] = useState({});
+    const [chats, setChats] = useState([]);
+    const [userId, setUserId] = useState(null);
 
     useEffect(() => {
-        const socketIo = io(SOCKET_SERVER_URL);
-        setSocket(socketIo);
 
-        return () => {
-            socketIo.disconnect();
+        if (!TOKEN) {
+            console.error("Không có token, vui lòng đăng nhập.");
+            return;
+        }
+
+        const fetchChats = async () => {
+            try {
+                let payload;
+                try {
+                    payload = JSON.parse(atob(TOKEN.split(".")[1]));
+                    console.log("Payload token:", payload);
+                } catch (err) {
+                    console.error("Lỗi parse token:", err);
+                    return;
+                }
+
+                const userId = payload.user_id || payload.id;
+                const role = payload.roles?.[0] || "customer";
+
+                if (!userId || !role) {
+                    console.error("Token thiếu user_id hoặc roles:", payload);
+                    return;
+                }
+
+                setUserId(userId);
+                console.log("Gửi yêu cầu với userId:", userId, "role:", role);
+
+                const res = await fetch(`http://localhost:8080/api/v1/chat/user/${userId}`, {
+                    headers: {
+                        Authorization: `Bearer ${TOKEN}`,
+                    },
+                });
+
+                if (!res.ok) {
+                    const text = await res.text();
+                    console.error("Lỗi khi gọi API:", res.status, text);
+                    throw new Error("Không lấy được danh sách chat");
+                }
+
+                const data = await res.json();
+                console.log("Dữ liệu chat nhận được:", data);
+                setChats(data.data || data);
+            } catch (err) {
+                console.error("Lỗi lấy danh sách chat:", err);
+            }
         };
+
+        fetchChats();
+    }, [TOKEN]);
+
+
+    useEffect(() => {
+        if (selectedChatId !== null) {
+            localStorage.setItem("selectedChatId", selectedChatId);
+        }
+    }, [selectedChatId]);
+
+    useEffect(() => {
+        const savedId = localStorage.getItem("selectedChatId");
+        if (savedId) {
+            setSelectedChatId(savedId);
+            setOpen(true);
+        }
     }, []);
+
+    useEffect(() => {
+        if (!open || !TOKEN) return;
+
+        const socket = io(SOCKET_SERVER_URL, {
+            transports: ["websocket"],
+            auth: { token: TOKEN },
+        });
+
+        socket.on("connect", () => {
+            console.log("Socket kết nối:", socket.id);
+            socket.emit("auth", TOKEN);
+        });
+
+        socket.on("auth_success", (data) => {
+            console.log("Xác thực socket thành công:", data);
+        });
+
+        socket.on("auth_error", (msg) => {
+            console.error("Lỗi xác thực socket:", msg);
+            alert("Xác thực socket thất bại: " + msg);
+            socket.disconnect();
+        });
+
+        socket.on("connect_error", (err) => {
+            console.error("Lỗi kết nối socket:", err.message);
+        });
+
+        socket.on("disconnect", () => {
+            console.log("Socket ngắt kết nối");
+        });
+
+        setSocket(socket);
+        return () => {
+            socket.disconnect();
+            setSocket(null);
+        };
+    }, [open]);
+
+    const addMessage = (chatId, message) => {
+        setMessages((prev) => {
+            const oldMessages = prev[chatId] || [];
+            return {
+                ...prev,
+                [chatId]: [...oldMessages, message],
+            };
+        });
+    };
+
+    const handleSelectChat = (chatId) => {
+        setSelectedChatId(chatId);
+
+        // Kiểm tra xem đã có tin nhắn chưa, nếu chưa thì fetch
+        if (!messages[chatId]) {
+            fetch(`http://localhost:8080/api/v1/chat/${chatId}`, {
+                headers: {
+                    Authorization: `Bearer ${TOKEN}`,
+                },
+            })
+                .then((res) => {
+                    if (!res.ok) throw new Error("Lỗi khi tải tin nhắn");
+                    return res.json();
+                })
+                .then((data) => {
+                    const formattedMessages = data.data.map((msg) => ({
+                        text: msg.message,
+                        timestamp: msg.created_at,
+                        fromMe: msg.sender_id === userId,
+                    }));
+                    setMessages((prev) => ({
+                        ...prev,
+                        [chatId]: formattedMessages,
+                    }));
+                })
+                .catch((err) => {
+                    console.error("Lỗi tải tin nhắn:", err);
+                });
+        }
+    };
 
     return (
         <>
-            <ChatButton onClick={() => setOpen((v) => !v)} />
-
+            {!open && <ChatButton onClick={() => setOpen(true)} hasUnread={false} />}
             {open && (
                 <div style={styles.widgetContainer}>
                     <ChatList
-                        chats={dummyChats}
+                        chats={chats}
                         selectedChatId={selectedChatId}
-                        onSelect={setSelectedChatId}
+                        onSelect={handleSelectChat}
                     />
-                    <ChatDetail chat={selectedChat} onClose={() => setOpen(false)} socket={socket} />
+                    <ChatDetail
+                        selectedChatId={selectedChatId}
+                        chat={chats.find((c) => c.chat_id === selectedChatId)}
+                        onClose={() => setOpen(false)}
+                        socket={socket}
+                        messages={messages[selectedChatId] || []}
+                        addMessage={addMessage}
+                        userId={userId}
+                    />
                 </div>
             )}
         </>

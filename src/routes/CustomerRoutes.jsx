@@ -35,6 +35,7 @@ import ShipperRegister from "../pages/Shipper/ShipperRegister";
 import Payment from "../components/customer/Components/Payment";
 import ShopPage from "../components/customer/Components/ShopPage/ShopDetail";
 import VendorRegistration from "../components/seller/RegisterVendor/RegisterVendor"
+import PrivateRoute from "./PrivateRoute";
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
@@ -91,18 +92,16 @@ const CustomerRoutes = () => {
               exact={true}
               element={<ProductDetails />}
             />
-            <Route path="/cart" exact={true} element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/payment" element={<Payment />} />
-            {/* Thêm routes cho My Account */}
-            <Route path="/my-account" element={<MyAccount />}>
-              {/* Thay Dashboard bằng trang khác bạn muốn, ví dụ Profile */}
-              <Route index element={<Dashboard />} />
-              <Route path="profile/:user_id" element={<Profile />} />
-              {/* Thêm các routes con khác như Orders, Addresses nếu cần */}
-              <Route path="orders" element={<OrdersList />} />
-              <Route path="addresses" element={<AddressList />} />
-              {/* <Route path="wishlist" element={<Wishlist />} /> */}
+            <Route element={<PrivateRoute allowedRoles={['customer']} />}>
+              <Route path="/cart" exact={true} element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment" element={<Payment />} />
+              <Route path="/my-account" element={<MyAccount />}>
+                <Route index element={<Dashboard />} />
+                <Route path="profile/:user_id" element={<Profile />} />
+                <Route path="orders" element={<OrdersList />} />
+                <Route path="addresses" element={<AddressList />} />
+              </Route>
             </Route>
           </Route>
         </Routes>

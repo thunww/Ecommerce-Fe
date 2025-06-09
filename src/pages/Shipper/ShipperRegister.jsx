@@ -15,21 +15,51 @@ const ShipperRegister = () => {
   });
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      toast.warning("Vui lòng đăng nhập để đăng ký làm shipper");
-      setIsAuthenticated(false);
-    } else {
-      setIsAuthenticated(true);
-    }
-  }, []);
+    const checkAuth = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast.warning("Vui lòng đăng nhập để đăng ký làm shipper");
+        setIsAuthenticated(false);
+        navigate("/login");
+        return;
+      }
+
+      try {
+        // Kiểm tra xem người dùng đã là shipper chưa
+        const response = await axios.get("/api/v1/shippers/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data.success) {
+          // Nếu đã là shipper (có thông tin shipper), chuyển hướng về trang profile
+          toast.info("Bạn đã đăng ký làm shipper");
+          navigate("/shipper/profile");
+          return;
+        }
+
+        setIsAuthenticated(true);
+      } catch (error) {
+        // Nếu lỗi 404 (chưa là shipper) thì cho phép tiếp tục đăng ký
+        if (error.response && error.response.status === 404) {
+          setIsAuthenticated(true);
+        } else {
+          console.error("Error checking shipper status:", error);
+          toast.error("Có lỗi xảy ra khi kiểm tra thông tin shipper");
+          setIsAuthenticated(false);
+        }
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
 
   const vehicleTypes = [
-    { value: "motorcycle", label: "Xe máy" },
-    { value: "bike", label: "Xe đạp" },
-    { value: "car", label: "Ô tô" },
-    { value: "truck", label: "Xe tải" },
-    { value: "van", label: "Xe tải nhỏ" },
+    { value: 'bike', label: 'Xe máy' },
+    { value: 'car', label: 'Ô tô' },
+    { value: 'truck', label: 'Xe tải' },
+    { value: 'van', label: 'Xe tải nhỏ' }
   ];
 
   const handleChange = (e) => {
@@ -86,11 +116,52 @@ const ShipperRegister = () => {
         );
         navigate("/");
       } else {
-        toast.error(response.data.message || "Đăng ký thất bại");
+        if (response.data.errors && Array.isArray(response.data.errors)) {
+          response.data.errors.forEach(error => {
+            toast.error(error);
+          });
+        } else if (response.data.message) {
+          toast.error(response.data.message);
+        } else {
+          toast.error("Đăng ký thất bại. Vui lòng thử lại sau.");
+        }
       }
     } catch (error) {
       console.error("Error registering shipper:", error);
-      toast.error(error.response?.data?.message || "Đăng ký thất bại");
+      
+      if (error.response) {
+        if (error.response.data.code === "DUPLICATE_PHONE") {
+          toast.error("Số điện thoại này đã được đăng ký. Vui lòng sử dụng số điện thoại khác.");
+        } else if (error.response.data.code === "DUPLICATE_LICENSE_PLATE") {
+          toast.error("Biển số xe này đã được đăng ký. Vui lòng kiểm tra lại.");
+        } else if (error.response.data.errors && Array.isArray(error.response.data.errors)) {
+          error.response.data.errors.forEach(err => {
+            toast.error(err);
+          });
+        } else if (error.response.data.message) {
+          const message = error.response.data.message.toLowerCase();
+          if (message.includes("phone") && message.includes("exist")) {
+            toast.error("Số điện thoại này đã được đăng ký. Vui lòng sử dụng số điện thoại khác.");
+          } else if (message.includes("license") && message.includes("exist")) {
+            toast.error("Biển số xe này đã được đăng ký. Vui lòng kiểm tra lại.");
+          } else {
+            toast.error(error.response.data.message);
+          }
+        } else if (error.response.status === 401) {
+          toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+          navigate("/login");
+        } else if (error.response.status === 403) {
+          toast.error("Bạn không có quyền thực hiện thao tác này.");
+        } else if (error.response.status === 409) {
+          toast.error("Thông tin đăng ký đã tồn tại trong hệ thống. Vui lòng kiểm tra lại số điện thoại hoặc biển số xe.");
+        } else {
+          toast.error(`Lỗi: ${error.response.status} - Vui lòng thử lại sau.`);
+        }
+      } else if (error.request) {
+        toast.error("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.");
+      } else {
+        toast.error("Có lỗi xảy ra. Vui lòng thử lại sau.");
+      }
     } finally {
       setLoading(false);
     }
