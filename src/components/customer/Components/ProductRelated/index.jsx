@@ -25,7 +25,7 @@ const RelatedProducts = ({ categoryId, currentProductId }) => {
   return (
     <div className="mt-8">
       <Typography variant="h6" className="mb-4">
-        Related Products
+        Sản phầm liên quan
       </Typography>
 
       {loading ? (

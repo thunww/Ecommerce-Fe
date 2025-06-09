@@ -58,7 +58,7 @@ const orderService = {
   // Hủy đơn hàng
   cancelOrder: async (orderId) => {
     try {
-      await cartApi.cancelOrder(orderId);
+      await orderApi.cancelOrder(orderId);
       message.success("Đã hủy đơn hàng");
     } catch (error) {
       message.error("Lỗi khi hủy đơn hàng");

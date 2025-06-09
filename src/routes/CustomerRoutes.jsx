@@ -25,7 +25,7 @@ import { IoCloseSharp } from "react-icons/io5";
 import ProductDetailsComponent from "../components/customer/Components/ProductDetails";
 import MyContext from "../context/MyContext";
 import Cart from "../pages/Customer/Pages/Cart";
-import SearchResults from "../components/customer/Components/Search/SearchResult";
+import SearchPage from "../components/customer/Components/Search/SearchPage";
 import ResetPassword from "../pages/Auth/ResetPassword";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import Checkout from "../pages/Customer/Pages/Checkout";
@@ -33,6 +33,7 @@ import OrdersList from "../components/customer/Components/MyOrders";
 import AddressList from "../pages/Customer/Pages/Address/AddressList";
 import ShipperRegister from "../pages/Shipper/ShipperRegister";
 import Payment from "../components/customer/Components/Payment";
+import ShopPage from "../components/customer/Components/ShopPage/ShopDetail";
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
@@ -68,11 +69,11 @@ const CustomerRoutes = () => {
           <Route path="/" element={<CustomerLayout />}>
             <Route index element={<Home />} />
 
-            <Route path="/search" element={<SearchResults />} />
-
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/shop/:shopId" element={<ShopPage />} />
             <Route path="/login" exact={true} element={<Login />} />
             <Route path="register" exact={true} element={<Register />} />
-            <Route path="/shipper/register" element={<ShipperRegister />} />
+
             <Route
               path="forgot-password"
               exact={true}

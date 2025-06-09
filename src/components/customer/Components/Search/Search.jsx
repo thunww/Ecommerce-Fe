@@ -7,34 +7,47 @@ const Search = () => {
   const [searchValue, setSearchValue] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const timeoutRef = useRef(null);
   const dropdownRef = useRef(null);
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Reset khi rời khỏi trang /search
+  // Cập nhật từ khóa từ URL khi truy cập trang search
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const query = params.get("q") || "";
+    setSearchValue(decodeURIComponent(query));
+  }, [location.search]);
+
+  // Xóa từ khóa khi rời khỏi trang search
   useEffect(() => {
     if (!location.pathname.startsWith("/search")) {
       setSearchValue("");
       setSuggestions([]);
+      setShowDropdown(false);
     }
   }, [location.pathname]);
 
-  // Debounce gọi gợi ý
+  // Gợi ý từ khóa (debounce)
   useEffect(() => {
-    if (!searchValue.trim()) {
+    if (!searchValue.trim() || searchValue.length < 2) {
       setSuggestions([]);
+      setShowDropdown(false);
       return;
     }
 
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       fetchSuggestions(searchValue);
-    }, 300); // debounce 300ms
+    }, 300);
+
+    return () => clearTimeout(timeoutRef.current);
   }, [searchValue]);
 
   const fetchSuggestions = async (keyword) => {
+    setIsLoadingSuggestions(true);
     try {
       const res = await productService.searchSuggest(keyword);
       if (res.success) {
@@ -45,12 +58,15 @@ const Search = () => {
       }
     } catch (err) {
       setSuggestions([]);
+    } finally {
+      setIsLoadingSuggestions(false);
     }
   };
 
   const handleSearch = () => {
-    if (searchValue.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchValue.trim())}`);
+    const keyword = searchValue.trim();
+    if (keyword) {
+      navigate(`/search?q=${encodeURIComponent(keyword)}`);
       setShowDropdown(false);
     }
   };
@@ -59,10 +75,14 @@ const Search = () => {
     setSearchValue("");
     setSuggestions([]);
     setShowDropdown(false);
+    if (location.pathname.startsWith("/search")) {
+      navigate("/search");
+    }
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
+      e.preventDefault();
       handleSearch();
     }
   };
@@ -94,7 +114,7 @@ const Search = () => {
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Search for products, brands and more"
+              placeholder="Tìm kiếm sản phẩm..."
               className="w-full py-2 px-4 text-gray-700 focus:outline-none text-sm"
             />
           </div>
@@ -116,17 +136,23 @@ const Search = () => {
           </button>
         </div>
 
-        {showDropdown && suggestions.length > 0 && (
+        {showDropdown && (
           <ul className="absolute z-10 w-full bg-white border border-gray-200 mt-1 rounded-md shadow-md max-h-60 overflow-y-auto text-sm">
-            {suggestions.map((item) => (
-              <li
-                key={item.product_id}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => handleSelectSuggestion(item.product_name)}
-              >
-                {item.product_name}
-              </li>
-            ))}
+            {isLoadingSuggestions ? (
+              <li className="px-4 py-2 text-gray-500">Đang tải gợi ý...</li>
+            ) : suggestions.length > 0 ? (
+              suggestions.map((item) => (
+                <li
+                  key={item.product_id}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => handleSelectSuggestion(item.product_name)}
+                >
+                  {item.product_name}
+                </li>
+              ))
+            ) : (
+              <li className="px-4 py-2 text-gray-500">Không có gợi ý</li>
+            )}
           </ul>
         )}
       </div>

@@ -8,6 +8,8 @@ import {
   Clock,
   Calendar,
   Users,
+  Heart,
+  Eye,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { getShopById } from "../../../../redux/shopSlice";
@@ -39,118 +41,153 @@ const ShopInfoOfProduct = () => {
     created_at,
     status,
     User,
+    views,
   } = selectedShop;
+
+  const formatNumber = (num) => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+    if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+    return num?.toString() || "0";
+  };
 
   return (
     <>
-      <div className="mt-4 p-4 bg-white rounded-lg shadow-md border border-gray-100">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-          {/* Left Section: Avatar, Name, Online Status, and Buttons */}
-          <div className="flex items-center gap-4 lg:w-1/3">
-            <div className="relative">
-              <div className="w-12 h-12 rounded-full border-2 border-red-500 p-0.5">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        {/* Header Section */}
+        <div className="p-4 border-b border-gray-100 bg-gray-50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link to={`/shop/${shop_id}`} className="relative">
                 <img
                   src={
                     logo ||
                     "https://haycafe.vn/wp-content/uploads/2023/04/Hinh-anh-avatar-cute-TikTok.jpg"
                   }
                   alt="Shop Avatar"
-                  className="w-full h-full rounded-full object-cover"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-[#ee4d2d]"
                 />
+                {status === "active" && (
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                )}
+              </Link>
+
+              <div>
+                <h3 className="text-base font-semibold text-gray-800">
+                  {shop_name}
+                </h3>
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <span className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    {status === "active" ? "Đang hoạt động" : "Tạm dừng"}
+                  </span>
+                  <span>•</span>
+                  <span>@{User?.username || "unknown"}</span>
+                </div>
               </div>
-              <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></span>
             </div>
 
-            <div>
-              <h3 className="text-lg font-bold text-gray-800">{shop_name}</h3>
-              <p className="text-xs text-gray-600 font-medium flex items-center gap-1">
-                <span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span>
-                {status === "active" ? "Active" : "Inactive"}
-              </p>
-              <p className="text-xs text-gray-500 italic">
-                Owner: {User?.username || "Unknown"}
-              </p>
-              <div className="flex gap-2 mt-2">
-                <button
-                  onClick={() => setShowChat(true)}
-                  className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition flex items-center gap-1 text-sm font-medium"
-                >
-                  <MessageCircle size={14} />
-                  Chat Now
-                </button>
-                <Link
-                  to={`/shop/${shop_id}`}
-                  className="px-3 py-1 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition flex items-center gap-1 text-sm font-medium"
-                >
-                  <Store size={14} />
-                  View Shop
-                </Link>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowChat(true)}
+                className="px-3 py-1.5 bg-[#ee4d2d] hover:bg-[#d94424] text-white rounded text-sm flex items-center gap-1 transition-colors"
+              >
+                <MessageCircle size={14} />
+                Chat
+              </button>
+              <Link
+                to={`/shop/${shop_id}`}
+                className="px-3 py-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm flex items-center gap-1 transition-colors"
+              >
+                <Store size={14} />
+                Xem Shop
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Section */}
+        <div className="p-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-center mb-1">
+                <Heart size={16} className="text-[#ee4d2d]" />
               </div>
+              <p className="text-sm font-bold text-[#ee4d2d]">
+                {formatNumber(followers)}
+              </p>
+              <p className="text-xs text-gray-600">Theo dõi</p>
+            </div>
+
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-center mb-1">
+                <Package size={16} className="text-[#ee4d2d]" />
+              </div>
+              <p className="text-sm font-bold text-[#ee4d2d]">
+                {formatNumber(total_products)}
+              </p>
+              <p className="text-xs text-gray-600">Sản phẩm</p>
+            </div>
+
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-center mb-1">
+                <Star size={16} className="text-[#ee4d2d]" />
+              </div>
+              <p className="text-sm font-bold text-[#ee4d2d]">
+                {rating || "5.0"}
+              </p>
+              <p className="text-xs text-gray-600">Đánh giá</p>
+            </div>
+
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-center mb-1">
+                <Eye size={16} className="text-[#ee4d2d]" />
+              </div>
+              <p className="text-sm font-bold text-[#ee4d2d]">
+                {formatNumber(views)}
+              </p>
+              <p className="text-xs text-gray-600">Lượt xem</p>
             </div>
           </div>
 
-          {/* Right Section: Shop Statistics */}
-          <div className="bg-gray-50 p-3 rounded-lg grid grid-cols-3 gap-3 lg:w-2/3">
-            <StatItem
-              icon={<Star size={14} className="text-red-500" />}
-              label="Rating"
-              value={rating || "0"}
-              color="red"
-            />
-            <StatItem
-              icon={<Package size={14} className="text-blue-500" />}
-              label="Products"
-              value={total_products || "0"}
-              color="blue"
-            />
-            <StatItem
-              icon={<MessageCircle size={14} className="text-green-500" />}
-              label="Response"
-              value="100%"
-              color="green"
-            />
-            <StatItem
-              icon={<Clock size={14} className="text-yellow-500" />}
-              label="Response Time"
-              value="Within a few hours"
-              color="yellow"
-            />
-            <StatItem
-              icon={<Calendar size={14} className="text-purple-500" />}
-              label="Joined"
-              value={new Date(created_at).toLocaleDateString("en-GB")}
-              color="purple"
-            />
-            <StatItem
-              icon={<Users size={14} className="text-indigo-500" />}
-              label="Followers"
-              value={followers || "0"}
-              color="indigo"
-            />
+          {/* Additional Info */}
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+              <div className="flex items-center gap-2 text-gray-600">
+                <MessageCircle size={14} className="text-[#ee4d2d]" />
+                <span>
+                  Tỷ lệ phản hồi:{" "}
+                  <strong className="text-green-600">100%</strong>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-gray-600">
+                <Clock size={14} className="text-[#ee4d2d]" />
+                <span>
+                  Phản hồi trong:{" "}
+                  <strong className="text-green-600">vài giờ</strong>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-gray-600">
+                <Calendar size={14} className="text-[#ee4d2d]" />
+                <span>
+                  Tham gia:{" "}
+                  <strong>
+                    {new Date(created_at).toLocaleDateString("vi-VN")}
+                  </strong>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Chat Box hiển thị khi showChat = true */}
+      {/* Chat Box */}
       {showChat && (
-        <ChatBox
-          shopName={shop_name}
-          onClose={() => setShowChat(false)}
-        />
+        <ChatBox shopName={shop_name} onClose={() => setShowChat(false)} />
       )}
     </>
   );
 };
-
-// Small component to show each stat
-const StatItem = ({ icon, label, value, color }) => (
-  <div className="flex items-center gap-1.5">
-    <div className={`p-1.5 bg-${color}-100 rounded-md`}>{icon}</div>
-    <div>
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="text-sm font-semibold text-gray-800">{value}</p>
-    </div>
-  </div>
-);
 
 export default ShopInfoOfProduct;
