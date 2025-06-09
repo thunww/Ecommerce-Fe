@@ -175,8 +175,16 @@ const ProductDetailsComponent = ({
   // Mô tả sản phẩm
   const shortDescription = product?.description?.substring(0, 150);
   const hasLongDescription = product?.description?.length > 150;
+  const user = useSelector((state) => state.auth.user); // Thêm dòng này
 
   const handleBuyNow = async () => {
+
+    if (!user) {
+      toast.warning("Vui lòng đăng nhập để mua hàng");
+      navigate("/login");
+      return;
+    }
+
     if (hasVariants && !selected) {
       toast.error("Vui lòng chọn sản phẩm");
       return;
@@ -223,6 +231,12 @@ const ProductDetailsComponent = ({
   };
 
   const handleAddToCart = async () => {
+
+    if (!user) {
+      toast.warning("Vui lòng đăng nhập để mua hàng");
+      navigate("/login");
+      return;
+    }
     if (hasVariants && !selected) {
       toast.error("Vui lòng chọn sản phẩm");
       return;

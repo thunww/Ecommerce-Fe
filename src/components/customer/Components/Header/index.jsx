@@ -11,6 +11,7 @@ import { MdOutlineShoppingCart } from "react-icons/md";
 import { FaRegHeart } from "react-icons/fa";
 import { MdNotificationsNone } from "react-icons/md";
 import { fetchAllOrders } from "../../../../redux/orderSlice";
+
 import {
   FaUser,
   FaSignOutAlt,
@@ -43,6 +44,11 @@ const Header = () => {
   const user = useSelector((state) => state.admin.selectedUser);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const menuRef = useRef(null);
+
+  const users = useSelector((state) => state.auth.user);
+  const cartItems = useSelector((state) => state.cart.items);
+  const cartCount = users ? cartItems.reduce((total, item) => total + item.quantity, 0) : 0;
+
 
   const { orders, loading, error } = useSelector((state) => state.orders);
 
@@ -133,12 +139,11 @@ const Header = () => {
                   <Tooltip title="Cart">
                     <IconButton
                       aria-label="cart"
-                      // onClick={() => context.setOpenCartPanel(true)}
                       onClick={() => navigate("/cart")}
                       size="small"
                       className="p-1 sm:p-2"
                     >
-                      <StyledBadge badgeContent={69} color="secondary">
+                      <StyledBadge badgeContent={cartCount} color="secondary">
                         <MdOutlineShoppingCart className="text-base sm:text-lg" />
                       </StyledBadge>
                     </IconButton>
@@ -209,8 +214,7 @@ const Header = () => {
                         <div className="py-3 px-4 border-b border-gray-100">
                           <p className="text-sm font-medium text-gray-800 truncate">
                             {user
-                              ? `${user.first_name || ""} ${
-                                  user.last_name || ""
+                              ? `${user.first_name || ""} ${user.last_name || ""
                                 }`.trim()
                               : "User"}
                           </p>
