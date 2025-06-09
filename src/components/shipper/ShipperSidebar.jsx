@@ -9,7 +9,7 @@ import {
   ChevronRight,
   LineChart
 } from "lucide-react";
-import { FaHome, FaClipboardList, FaUser, FaMoneyBillWave, FaSignOutAlt } from 'react-icons/fa';
+import { FaHome, FaClipboardList, FaUser, FaMoneyBillWave, FaSignOutAlt, FaStore } from 'react-icons/fa';
 
 const SidebarItem = ({ to, icon: Icon, label, isActive, onClick, isCollapsed }) => {
   return (
@@ -54,7 +54,8 @@ const ShipperSidebar = ({ isOpen, toggleSidebar, currentPath, isCollapsed, toggl
     { to: "/shipper/dashboard", icon: FaHome, label: "Trang chủ" },
     { to: "/shipper/orders", icon: FaClipboardList, label: "Đơn hàng" },
     { to: "/shipper/income", icon: FaMoneyBillWave, label: "Thu nhập" },
-    { to: "/shipper/profile", icon: FaUser, label: "Hồ sơ" }
+    { to: "/shipper/profile", icon: FaUser, label: "Hồ sơ" },
+    { to: "/", icon: FaStore, label: "Trang khách hàng" }
   ];
 
   return (
