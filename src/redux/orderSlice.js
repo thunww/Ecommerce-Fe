@@ -42,6 +42,18 @@ export const deleteOrderById = createAsyncThunk(
   }
 );
 
+export const cancelOrder = createAsyncThunk(
+  "orders/cancelOrder",
+  async (orderId, { rejectWithValue }) => {
+    try {
+      await orderService.cancelOrder(orderId); // gọi hàm hủy đơn trong service
+      return orderId; // trả về orderId đã hủy
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to cancel order");
+    }
+  }
+);
+
 // Tạo slice cho orders
 const orderSlice = createSlice({
   name: "orders",
@@ -78,6 +90,23 @@ const orderSlice = createSlice({
         state.orders = state.orders.filter(
           (order) => order.id !== action.payload
         );
+      })
+      // ** xử lý cancelOrder **
+      .addCase(cancelOrder.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(cancelOrder.fulfilled, (state, action) => {
+        state.loading = false;
+        const canceledOrderId = action.payload;
+        const order = state.orders.find((o) => o.id === canceledOrderId);
+        if (order) {
+          order.status = "cancelled"; // hoặc "canceled", tùy theo backend
+        }
+      })
+      .addCase(cancelOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

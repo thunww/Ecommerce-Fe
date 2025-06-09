@@ -277,3 +277,79 @@ export const processOrder = async (productId) => {
     }
   }
 };
+
+export const getOrderStats = async () => {
+  try {
+    const response = await orderApi.getOrderStats();
+
+    if (!response.data || !response.data.data) {
+      throw new Error("Không nhận được dữ liệu thống kê từ server");
+    }
+
+    const rawStats = response.data.data; // Lấy dữ liệu thống kê từ thuộc tính 'data'
+
+    // Xử lý và format dữ liệu thống kê
+    const formattedStats = {
+      // Cập nhật để lấy từ rawStats
+      totalOrders: rawStats.total_orders || 0,
+      totalRevenue: parseFloat(rawStats.total_revenue || 0),
+      averageOrderValue: parseFloat(rawStats.average_order_value || 0),
+      // Xử lý mảng orderStats để tạo đối tượng ordersByStatus
+      ordersByStatus: rawStats.orderStats?.reduce(
+        (acc, stat) => {
+          if (stat.status) {
+            acc[stat.status.toLowerCase()] = stat.count;
+          }
+          return acc;
+        },
+        {
+          // Đảm bảo có đủ các trạng thái với giá trị mặc định là 0
+          pending: 0,
+          processing: 0,
+          shipped: 0,
+          delivered: 0,
+          cancelled: 0,
+        }
+      ),
+      // rawStats.ordersByDate không có trong ảnh, giữ nguyên nếu có
+      ordersByDate: rawStats.orders_by_date || [],
+      // Xử lý topProducts (từ productStats trong ảnh?) - cần làm rõ cấu trúc backend
+      // Dựa trên ảnh, productStats chỉ có totalProducts và averagePrice, không có top_products
+      // Nếu backend có trả về top_products ở đâu đó, cần điều chỉnh.
+      // Tạm thời lấy productStats nếu có, nhưng không dùng cho topProducts table
+      productStatsSummary: rawStats.productStats || {
+        totalProducts: 0,
+        averagePrice: 0,
+      },
+      views: rawStats.views || 0,
+      // Xử lý recentOrders (không có trong ảnh) - giữ nguyên nếu có
+      recentOrders:
+        rawStats.recent_orders?.map((order) => ({
+          orderId: order.order_id,
+          customerName: order.customer_name,
+          totalAmount: parseFloat(order.total_amount || 0),
+          status: order.status,
+          orderDate: new Date(order.order_date),
+        })) || [],
+      // Nếu backend trả về top_products, điều chỉnh lại phần này
+      topProducts:
+        rawStats.top_products?.map((product) => ({
+          productId: product.product_id,
+          name: product.name,
+          quantity: product.quantity,
+          revenue: parseFloat(product.revenue || 0),
+        })) || [],
+    };
+
+    return formattedStats;
+  } catch (error) {
+    if (error.response) {
+      const errorMessage = error.response.data?.message || "Lỗi từ server";
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      throw new Error("Không thể kết nối đến server");
+    } else {
+      throw error;
+    }
+  }
+};

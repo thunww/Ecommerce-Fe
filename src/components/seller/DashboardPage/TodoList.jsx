@@ -1,102 +1,89 @@
 import React, { useState, useEffect } from "react";
-import { getAllOrders, getRevenue } from "../../../services/vendorService";
+import { getOrderStats } from "../../../services/vendorService";
+import { Bar } from "react-chartjs-2";
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Title, Tooltip } from "chart.js";
+
+// Register Chart.js components
+ChartJS.register(BarElement, CategoryScale, LinearScale, Title, Tooltip);
 
 const ToDoList = () => {
-  const [orderCounts, setOrderCounts] = useState({
-    pending: 0,
-    processing: 0,
-    shipped: 0,
-    delivered: 0,
-    cancelled: 0
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    totalRevenue: 0,
+    averageOrderValue: 0,
+    ordersByStatus: {
+      pending: 0,
+      processing: 0,
+      shipped: 0,
+      delivered: 0,
+      cancelled: 0,
+    },
   });
-  const [debug, setDebug] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchOrderStats = async () => {
       try {
         setLoading(true);
         setError(null);
-        
-        // Debug authentication info
-        const token = localStorage.getItem('accessToken');
+
+        const token = localStorage.getItem("accessToken");
         if (!token) {
-          throw new Error('You are not logged in');
-        }
-        
-        // Get user from localStorage
-        const userStr = localStorage.getItem('user');
-        if (!userStr) {
-          throw new Error('User information not found');
-        }
-        
-        const user = JSON.parse(userStr);
-        if (!user || !user.user_id) {
-          throw new Error('Invalid user information');
+          throw new Error("You are not logged in");
         }
 
-        // Check user role
-        const roles = JSON.parse(localStorage.getItem('roles') || '[]');
-        if (!roles.includes('vendor')) {
-          throw new Error('You do not have permission to access this page');
+        const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+        if (!roles.includes("vendor")) {
+          throw new Error("You don't have permission to access this page");
         }
 
-        const response = await getAllOrders(user.user_id);
-        
-        
-        // Get revenue
-        const revenue = await getRevenue(user.user_id);
-        
-        // Lưu response để debug
-        // setDebug({
-        //   token: "Có token",
-        //   user: user,
-        //   response: response,
-        //   revenue: revenue,
-        //   timestamp: new Date().toISOString()
-        // });
-        
-        // Kiểm tra response
-        if (!response || !Array.isArray(response)) {
-          throw new Error('Invalid data from server');
-        }
-
-        // Đếm số lượng đơn hàng theo trạng thái
-        const counts = response.reduce((acc, order) => {
-          const status = order.status?.toLowerCase() || '';
-          if (status in acc) {
-            acc[status] += 1;
-          }
-          return acc;
-        }, {
-          pending: 0,
-          processing: 0,
-          shipped: 0,
-          delivered: 0,
-          cancelled: 0
-        });
-
-        
-        setOrderCounts(counts);
-
+        const response = await getOrderStats();
+        setStats(response);
       } catch (error) {
-        
-        setError(error.message || 'Error loading data');
-        setDebug({ 
-          error: error.message,
-          stack: error.stack,
-          token: localStorage.getItem('accessToken') ? "Has token" : "No token",
-          user: localStorage.getItem('user'),
-          timestamp: new Date().toISOString()
-        });
+        setError(error.message || "Error loading data");
+        console.error("Error fetching order stats:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrders();
+    fetchOrderStats();
   }, []);
+
+  // Chart data
+  const chartData = {
+    labels: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"],
+    datasets: [{
+      label: "Order Status Statistics",
+      data: [
+        stats.ordersByStatus.pending,
+        stats.ordersByStatus.processing,
+        stats.ordersByStatus.shipped,
+        stats.ordersByStatus.delivered,
+        stats.ordersByStatus.cancelled
+      ],
+      backgroundColor: ["#3B82F6", "#F59E0B", "#8B5CF6", "#10B981", "#EF4444"],
+      borderColor: ["#2563EB", "#D97706", "#7C3AED", "#059669", "#DC2626"],
+      borderWidth: 1
+    }]
+  };
+
+  const chartOptions = {
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: "Number of Orders" }
+      },
+      x: {
+        title: { display: true, text: "Order Status" }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: "Order Status Statistics" }
+    }
+  };
 
   if (loading) {
     return (
@@ -112,51 +99,120 @@ const ToDoList = () => {
       <div className="text-center p-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-600 font-medium">Error: {error}</p>
-          {debug && (
-            <details className="mt-2">
-              <summary className="text-sm text-gray-600 cursor-pointer">View details</summary>
-              <pre className="mt-2 text-xs bg-gray-100 p-4 rounded overflow-auto">
-                {JSON.stringify(debug, null, 2)}
-              </pre>
-            </details>
-          )}
         </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Order List</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="text-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-          <p className="text-2xl font-bold text-blue-600">{orderCounts.pending}</p>
-          <p className="text-sm text-gray-500">Pending</p>
-        </div>
-        <div className="text-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-          <p className="text-2xl font-bold text-yellow-600">{orderCounts.processing}</p>
-          <p className="text-sm text-gray-500">Processing</p>
-        </div>
-        <div className="text-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-          <p className="text-2xl font-bold text-purple-600">{orderCounts.shipped}</p>
-          <p className="text-sm text-gray-500">Shipped</p>
-        </div>
-        <div className="text-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-          <p className="text-2xl font-bold text-green-600">{orderCounts.delivered}</p>
-          <p className="text-sm text-gray-500">Delivered</p>
-        </div>
-        <div className="text-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-          <p className="text-2xl font-bold text-red-600">{orderCounts.cancelled}</p>
-          <p className="text-sm text-gray-500">Cancelled</p>
+    <div className="space-y-6">
+      {/* Order Status Statistics Chart */}
+      <div>
+        <h2 className="text-xl font-bold mb-4">Order Status Statistics</h2>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <Bar data={chartData} options={chartOptions} />
         </div>
       </div>
-      {process.env.NODE_ENV === 'development' && debug && (
-        <details className="mt-4">
-          <summary className="text-sm text-gray-600 cursor-pointer">Debug Info</summary>
-          <pre className="mt-2 text-xs bg-gray-100 p-4 rounded overflow-auto">
-            {JSON.stringify(debug, null, 2)}
-          </pre>
-        </details>
+
+      {/* Top Selling Products */}
+      {stats.topProducts && stats.topProducts.length > 0 && (
+        <div>
+          <h2 className="text-xl font-bold mb-4">Top Selling Products</h2>
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Product
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Quantity
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Revenue
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {stats.topProducts.map((product) => (
+                  <tr key={product.productId}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {product.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {product.quantity}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      ${product.revenue.toLocaleString("en-US")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Recent Orders */}
+      {stats.recentOrders && stats.recentOrders.length > 0 && (
+        <div>
+          <h2 className="text-xl font-bold mb-4">Recent Orders</h2>
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Order ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Order Date
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {stats.recentOrders.map((order) => (
+                  <tr key={order.orderId}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {order.orderId}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {order.customerName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      ${order.totalAmount.toLocaleString("en-US")}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${
+                          order.status === "delivered"
+                            ? "bg-green-100 text-green-800"
+                            : order.status === "cancelled"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {new Date(order.orderDate).toLocaleDateString("en-US")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   );

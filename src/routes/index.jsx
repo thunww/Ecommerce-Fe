@@ -4,6 +4,7 @@ import CustomerRoutes from "./CustomerRoutes";
 import PrivateRoute from "./PrivateRoute";
 import ShipperRoutes from "./ShipperRoutes";
 import VendorRoutes from "./VendorRoutes";
+import ShipperRegister from "../pages/Shipper/ShipperRegister";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -12,6 +13,7 @@ const AppRoutes = () => {
         <Route path="/admin/*" element={<AdminRoutes />} />
       </Route>
       {/* Routes cho Shipper */}
+      <Route path="/shipper/register" element={<ShipperRegister />} />
       <Route element={<PrivateRoute allowedRoles={["shipper"]} />}>
         <Route path="/shipper/*" element={<ShipperRoutes />} />
       </Route>
