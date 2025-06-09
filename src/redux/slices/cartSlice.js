@@ -1,213 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import cartService from "../../services/cartService";
-import orderService from "../../services/orderService";
-import paymentService from "../../services/paymentService";
-import {
-    getCart,
-    addToCart as addToCartApi,
-    updateCartItem as updateCartItemApi,
-    removeFromCart as removeFromCartApi
-} from "../../api/cartApi";
 import couponApi from "../../api/couponApi";
 import { message } from "antd";
 
-// Dữ liệu giả mẫu cho giỏ hàng
-const mockCartData = {
-    items: [
-        {
-            id: 1,
-            cart_item_id: 1,
-            name: "Sản phẩm mẫu 1",
-            product_name: "Sản phẩm mẫu 1",
-            product_image: "https://placehold.co/600x400?text=SP1",
-            variant_name: "Xanh / M",
-            price: 150000,
-            original_price: 200000,
-            quantity: 2,
-            stock: 10
-        },
-        {
-            id: 2,
-            cart_item_id: 2,
-            name: "Sản phẩm mẫu 2",
-            product_name: "Sản phẩm mẫu 2",
-            product_image: "https://placehold.co/600x400?text=SP2",
-            variant_name: "Đỏ / L",
-            price: 250000,
-            quantity: 1,
-            stock: 5
-        }
-    ],
-    shippingFee: 30000,
-    discount: 50000
-};
-
-// Async thunks
-export const fetchCart = createAsyncThunk(
-    "cart/fetchCart",
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await getCart();
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
-        }
-    }
-);
-
-export const addToCart = createAsyncThunk(
-    "cart/addToCart",
-    async ({ product_id, quantity, variant_id }, { rejectWithValue }) => {
-        try {
-            const response = await addToCartApi(product_id, quantity, variant_id);
-            return response;
-        } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
-        }
-    }
-);
-
-export const updateCartItem = createAsyncThunk(
-    "cart/updateCartItem",
-    async ({ cart_item_id, quantity }, { rejectWithValue }) => {
-        try {
-            const response = await updateCartItemApi(cart_item_id, quantity);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
-        }
-    }
-);
-
-export const removeFromCart = createAsyncThunk(
-    "cart/removeFromCart",
-    async (cart_item_id, { rejectWithValue }) => {
-        try {
-            const response = await removeFromCartApi(cart_item_id);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
-        }
-    }
-);
-
-export const validateCoupon = createAsyncThunk(
-    "cart/validateCoupon",
-    async (code, { rejectWithValue }) => {
-        try {
-            const response = await couponApi.validateCoupon(code);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
-        }
-    }
-);
-
-export const applyCoupon = createAsyncThunk(
-    "cart/applyCoupon",
-    async ({ code, cart_id }, { rejectWithValue }) => {
-        try {
-            const response = await couponApi.applyCoupon(code, cart_id);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
-        }
-    }
-);
-
-export const removeCoupon = createAsyncThunk(
-    "cart/removeCoupon",
-    async (cart_id, { rejectWithValue }) => {
-        try {
-            const response = await couponApi.removeCoupon(cart_id);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
-        }
-    }
-);
-
-export const calculateShipping = createAsyncThunk(
-    "cart/calculateShipping",
-    async (address, { rejectWithValue }) => {
-        try {
-            return await cartService.calculateShipping(address);
-        } catch (error) {
-            return rejectWithValue(error.message);
-        }
-    }
-);
-
-export const checkout = createAsyncThunk(
-    "cart/checkout",
-    async (data, { rejectWithValue }) => {
-        try {
-            return await orderService.checkout(data);
-        } catch (error) {
-            return rejectWithValue(error.message);
-        }
-    }
-);
-
-export const getOrderStatus = createAsyncThunk(
-    "cart/getOrderStatus",
-    async (orderId, { rejectWithValue }) => {
-        try {
-            return await orderService.getOrderStatus(orderId);
-        } catch (error) {
-            return rejectWithValue(error.message);
-        }
-    }
-);
-
-export const trackOrder = createAsyncThunk(
-    "cart/trackOrder",
-    async (orderId, { rejectWithValue }) => {
-        try {
-            return await orderService.trackOrder(orderId);
-        } catch (error) {
-            return rejectWithValue(error.message);
-        }
-    }
-);
-
-export const getPaymentMethods = createAsyncThunk(
-    "cart/getPaymentMethods",
-    async (_, { rejectWithValue }) => {
-        try {
-            return await paymentService.getPaymentMethods();
-        } catch (error) {
-            return rejectWithValue(error.message);
-        }
-    }
-);
-
-export const createPayment = createAsyncThunk(
-    "cart/createPayment",
-    async ({ orderId, method }, { rejectWithValue }) => {
-        try {
-            return await paymentService.createPayment(orderId, method);
-        } catch (error) {
-            return rejectWithValue(error.message);
-        }
-    }
-);
-
-export const updateCartItemQuantity = createAsyncThunk(
-    'cart/updateCartItemQuantity',
-    async ({ cart_item_id, quantity }, { rejectWithValue }) => {
-        try {
-            const response = await updateCartItemApi(cart_item_id, quantity);
-            return response;
-        } catch (error) {
-            return rejectWithValue(error.message);
-        }
-    }
-);
-
 const initialState = {
     items: [],
-    selectedItems: [], // Mảng chứa các cart_item_id được chọn
+    selectedItems: [],
     loading: false,
     error: null,
     shippingFee: 0,
@@ -216,7 +14,6 @@ const initialState = {
     selectedAddress: null,
     paymentMethods: [],
     orderStatus: null,
-    orderHistory: [],
     shippingMethods: [],
     estimatedDeliveryTime: null,
     trackingInfo: null,
@@ -224,8 +21,76 @@ const initialState = {
     couponError: null
 };
 
+// Thunks
+export const fetchCart = createAsyncThunk("cart/fetchCart", async (_, { rejectWithValue }) => {
+    try {
+        const response = await cartService.getCart();
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response?.data || error.message);
+    }
+});
+
+export const addToCart = createAsyncThunk("cart/addToCart", async ({ product_id, quantity, variant_id }, { rejectWithValue }) => {
+    try {
+        return await cartService.addToCart(product_id, quantity, variant_id);
+    } catch (error) {
+        return rejectWithValue(error.response?.data || error.message);
+    }
+});
+
+export const updateCartItem = createAsyncThunk("cart/updateCartItem", async ({ cart_item_id, quantity }, { rejectWithValue }) => {
+    try {
+        const response = await cartService.updateCartItem(cart_item_id, quantity);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error.response?.data || error.message);
+    }
+});
+
+export const removeFromCart = createAsyncThunk("cart/removeFromCart", async (cart_item_id, { rejectWithValue }) => {
+    try {
+        const response = await cartService.removeFromCart(cart_item_id);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response?.data || error.message);
+    }
+});
+
+export const validateCoupon = createAsyncThunk("cart/validateCoupon", async (code, { rejectWithValue }) => {
+    try {
+        const response = await couponApi.validateCoupon(code);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response?.data || error.message);
+    }
+});
+
+export const applyCoupon = createAsyncThunk("cart/applyCoupon", async ({ code }, { dispatch, rejectWithValue }) => {
+    try {
+        const response = await couponApi.applyCoupon(code);
+        await dispatch(fetchCart());
+        return response.data; // <-- bạn đang trả về { status, message, data }
+    } catch (error) {
+        return rejectWithValue(error.response?.data || error.message);
+    }
+});
+
+
+export const removeCoupon = createAsyncThunk("cart/removeCoupon", async (_, { dispatch, rejectWithValue }) => {
+    try {
+        const response = await couponApi.removeCoupon(); // ✅ đúng
+        await dispatch(fetchCart());
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response?.data || error.message);
+    }
+});
+
+
+
 const cartSlice = createSlice({
-    name: 'cart',
+    name: "cart",
     initialState,
     reducers: {
         clearCart: (state) => {
@@ -233,20 +98,11 @@ const cartSlice = createSlice({
             state.shippingFee = 0;
             state.discount = 0;
         },
-        setSelectedAddress: (state, action) => {
-            state.selectedAddress = action.payload;
-        },
-        setPaymentMethod: (state, action) => {
-            state.selectedPaymentMethod = action.payload;
-        },
         toggleSelectItem: (state, action) => {
             const { cart_item_id } = action.payload;
             const index = state.selectedItems.indexOf(cart_item_id);
-            if (index === -1) {
-                state.selectedItems.push(cart_item_id);
-            } else {
-                state.selectedItems.splice(index, 1);
-            }
+            if (index === -1) state.selectedItems.push(cart_item_id);
+            else state.selectedItems.splice(index, 1);
         },
         clearSelectedItems: (state) => {
             state.selectedItems = [];
@@ -255,10 +111,6 @@ const cartSlice = createSlice({
             state.coupon = null;
             state.discount = 0;
             state.couponError = null;
-        },
-        selectItemForCheckout: (state, action) => {
-            const { cart_item_id } = action.payload;
-            state.selectedItems = [cart_item_id];
         }
     },
     extraReducers: (builder) => {
@@ -268,40 +120,18 @@ const cartSlice = createSlice({
                 state.error = null;
             })
             .addCase(fetchCart.fulfilled, (state, action) => {
-                console.log('Setting cart data:', action.payload);
                 state.items = action.payload.items || [];
                 state.shippingFee = action.payload.shippingFee || 0;
                 state.discount = action.payload.discount || 0;
+                state.coupon = action.payload.coupon || null;
                 state.loading = false;
-                state.error = null;
             })
+
+
+
             .addCase(fetchCart.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
-            })
-            .addCase(addToCart.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(addToCart.fulfilled, (state, action) => {
-                state.loading = false;
-                state.items = action.payload.items;
-                message.success("Đã thêm vào giỏ hàng");
-                if (action.meta.arg.navigate) {
-                    const newItem = action.payload.items[action.payload.items.length - 1];
-                    state.selectedItems = [newItem.cart_item_id];
-                }
-            })
-            .addCase(addToCart.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload;
-                message.error(action.payload || "Có lỗi xảy ra");
-            })
-            .addCase(updateCartItem.fulfilled, (state, action) => {
-                state.items = action.payload.items || [];
-            })
-            .addCase(removeFromCart.fulfilled, (state, action) => {
-                state.items = action.payload.items || [];
             })
             .addCase(validateCoupon.pending, (state) => {
                 state.loading = true;
@@ -315,77 +145,54 @@ const cartSlice = createSlice({
                 state.loading = false;
                 state.couponError = action.payload;
             })
-            .addCase(applyCoupon.pending, (state) => {
-                state.loading = true;
-                state.couponError = null;
-            })
             .addCase(applyCoupon.fulfilled, (state, action) => {
-                state.loading = false;
-                state.coupon = action.payload.coupon;
-                state.discount = action.payload.discount;
-            })
-            .addCase(applyCoupon.rejected, (state, action) => {
-                state.loading = false;
-                state.couponError = action.payload;
-            })
-            .addCase(removeCoupon.pending, (state) => {
-                state.loading = true;
-            })
-            .addCase(removeCoupon.fulfilled, (state) => {
-                state.loading = false;
-                state.coupon = null;
-                state.discount = 0;
-            })
-            .addCase(removeCoupon.rejected, (state, action) => {
-                state.loading = false;
-                state.couponError = action.payload;
-            })
-            .addCase(calculateShipping.fulfilled, (state, action) => {
-                state.shippingFee = action.payload.shippingFee || 0;
-            })
-            .addCase(checkout.fulfilled, (state, action) => {
-                state.orderStatus = action.payload;
-            })
-            .addCase(checkout.rejected, (state, action) => {
-                state.error = action.payload;
-            })
-            .addCase(getOrderStatus.fulfilled, (state, action) => {
-                state.orderStatus = action.payload;
-            })
-            .addCase(getOrderStatus.rejected, (state, action) => {
-                state.error = action.payload;
-            })
-            .addCase(trackOrder.fulfilled, (state, action) => {
-                state.trackingInfo = action.payload;
-            })
-            .addCase(trackOrder.rejected, (state, action) => {
-                state.error = action.payload;
-            })
-            .addCase(getPaymentMethods.fulfilled, (state, action) => {
-                state.paymentMethods = action.payload;
-            })
-            .addCase(getPaymentMethods.rejected, (state, action) => {
-                state.error = action.payload;
-            })
-            .addCase(createPayment.fulfilled, (state, action) => {
-                // Handle payment creation success
-            })
-            .addCase(createPayment.rejected, (state, action) => {
-                state.error = action.payload;
-            })
-            .addCase(updateCartItemQuantity.fulfilled, (state, action) => {
-                if (action.payload && action.payload.data) {
-                    state.items = action.payload.data.items || [];
-                    state.shippingFee = action.payload.data.shippingFee || 0;
-                    state.discount = action.payload.data.discount || 0;
+                const coupon = action.payload?.data?.coupon;
+
+                if (coupon && typeof coupon.discount_amount !== 'undefined') {
+                    state.coupon = {
+                        code: coupon.code,
+                        discount_type: 'percentage',
+                        discount_value: parseFloat(coupon.discount_percent),
+                        max_discount: null,
+                        discount_amount: Number(coupon.discount_amount) || 0 // 👈 thêm dòng này
+                    };
+
+                    state.discount = Number(coupon.discount_amount) || 0;
+                } else {
+                    console.warn('applyCoupon payload không hợp lệ:', action.payload);
+                    state.coupon = null;
+                    state.discount = 0;
                 }
             })
-            .addCase(updateCartItemQuantity.rejected, (state, action) => {
-                state.error = action.payload;
-                message.error(action.payload || 'Có lỗi xảy ra khi cập nhật số lượng');
+            .addCase(updateCartItem.fulfilled, (state, action) => {
+                const updatedCart = action.payload.data;  // toàn bộ cart
+
+                // Cập nhật toàn bộ state cart
+                state.items = updatedCart.items;
+                state.total_price = updatedCart.total_price;
+                state.shippingFee = updatedCart.shippingFee;
+                state.discount = updatedCart.discount;
+                state.subtotal = updatedCart.subtotal;
+                // cập nhật thêm các trường khác nếu cần
+            })
+
+
+
+
+
+
+
+
+
+            .addCase(applyCoupon.rejected, (state, action) => {
+                state.couponError = action.payload;
+            })
+            .addCase(removeCoupon.fulfilled, (state) => {
+                state.coupon = null;
+                state.discount = 0;
             });
     }
 });
 
-export const { clearCart, setSelectedAddress, setPaymentMethod, toggleSelectItem, clearSelectedItems, clearCoupon, selectItemForCheckout } = cartSlice.actions;
-export default cartSlice.reducer; 
+export const { clearCart, toggleSelectItem, clearSelectedItems, clearCoupon } = cartSlice.actions;
+export default cartSlice.reducer;

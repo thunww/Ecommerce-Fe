@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import {
     Card,
     CardContent,
@@ -51,35 +53,7 @@ import {
 const { Title, Text } = Typography;
 
 // Dữ liệu giả để kiểm tra hiển thị
-const mockCartData = {
-    items: [
-        {
-            id: 1,
-            cart_item_id: 1,
-            name: "Sản phẩm mẫu 1",
-            product_name: "Sản phẩm mẫu 1",
-            product_image: "https://placehold.co/600x400?text=SP1",
-            variant_name: "Xanh / M",
-            price: 150000,
-            original_price: 200000,
-            quantity: 2,
-            stock: 10
-        },
-        {
-            id: 2,
-            cart_item_id: 2,
-            name: "Sản phẩm mẫu 2",
-            product_name: "Sản phẩm mẫu 2",
-            product_image: "https://placehold.co/600x400?text=SP2",
-            variant_name: "Đỏ / L",
-            price: 250000,
-            quantity: 1,
-            stock: 5
-        }
-    ],
-    shippingFee: 30000,
-    discount: 50000
-};
+
 
 const CartPage = () => {
     console.log("=== Rendering Cart Component ===");
@@ -143,6 +117,8 @@ const CartPage = () => {
                 delete newVariants[cartItemId];
                 return newVariants;
             });
+            await dispatch(fetchCart());
+            toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
             console.log("Đã xóa sản phẩm khỏi giỏ hàng");
         } catch (error) {
             console.error("Không thể xóa sản phẩm");
@@ -161,6 +137,7 @@ const CartPage = () => {
         try {
             await dispatch(updateCartItem({ cart_item_id: cartItemId, quantity: newQuantity })).unwrap();
             console.log("Cập nhật số lượng thành công");
+
         } catch (error) {
             console.error(error.message || "Có lỗi xảy ra khi cập nhật số lượng");
         }
@@ -173,25 +150,17 @@ const CartPage = () => {
         }
 
         setApplyingCoupon(true);
+
         try {
-            // Validate mã giảm giá
-            const validationResult = await dispatch(validateCoupon(couponCode)).unwrap();
+            // Gọi validateCoupon để kiểm tra hợp lệ
+            await dispatch(validateCoupon(couponCode)).unwrap();
 
-            if (validationResult.isValid) {
-                // Áp dụng mã giảm giá vào giỏ hàng ngay sau khi validate thành công
-                const applyResult = await dispatch(applyCoupon({
-                    code: couponCode,
-                    cart_id: items[0]?.cart_id
-                })).unwrap();
+            // Nếu không lỗi → tiến hành applyCoupon
+            await dispatch(applyCoupon({ code: couponCode })).unwrap();
 
-                console.log("Coupon applied successfully:", applyResult);
-                setCouponCode("");
-
-                // Cập nhật lại giỏ hàng để hiển thị số tiền đã giảm
-                await dispatch(fetchCart());
-            } else {
-                console.error(validationResult.message || "Mã giảm giá không hợp lệ");
-            }
+            // Reset input và gọi lại giỏ hàng để cập nhật giảm giá
+            setCouponCode("");
+            await dispatch(fetchCart());
         } catch (error) {
             console.error("Coupon error:", error);
             console.error(error.message || "Có lỗi xảy ra khi áp dụng mã giảm giá");
@@ -200,30 +169,13 @@ const CartPage = () => {
         }
     };
 
+
     const handleRemoveCoupon = async () => {
         try {
-            // Kiểm tra xem có cart_id không
-            if (!items || items.length === 0) {
-                console.error("Không tìm thấy giỏ hàng");
-                return;
-            }
+            await dispatch(removeCoupon()).unwrap(); // ✅ không truyền gì cả
 
-            const cartId = items[0]?.cart_id;
-            if (!cartId) {
-                console.error("Không tìm thấy cart_id");
-                return;
-            }
-
-            // Gọi API xóa mã giảm giá với cart_id
-            await dispatch(removeCoupon(cartId)).unwrap();
-
-            // Xóa mã giảm giá khỏi state
             dispatch(clearCoupon());
-
-            // Reset input để có thể nhập mã mới
             setCouponCode("");
-
-            // Cập nhật lại giỏ hàng
             await dispatch(fetchCart());
         } catch (error) {
             console.error("Lỗi khi xóa mã giảm giá:", error);
@@ -231,9 +183,11 @@ const CartPage = () => {
         }
     };
 
+
     const handleCheckout = () => {
         if (selectedItems.length === 0) {
-            console.warn("Vui lòng chọn ít nhất một sản phẩm để thanh toán");
+            toast.warn("Vui lòng chọn ít nhất một sản phẩm để thanh toán");
+
             return;
         }
 
@@ -583,8 +537,9 @@ const CartPage = () => {
                                     </button>
                                 </div>
                                 {couponError && (
-                                    <p className="mt-2 text-sm text-red-600">{couponError}</p>
+                                    <p className="mt-2 text-sm text-red-600">{couponError.message || String(couponError)}</p>
                                 )}
+
                             </div>
                         )}
 

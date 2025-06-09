@@ -8,10 +8,12 @@ import AnalyticsPage from "../pages/Vendor/Analytics";
 import Settings from "../pages/Vendor/Setting";
 import NotFound from "../pages/Vendor/NotFound";
 import BulkShippingPage from "../pages/Vendor/bulk-shipping";
-import AddProductPage from "../pages/Vendor/AddProduct";
 import ShopProfile from "../components/seller/ShopProfile/ShopProfile";
 import UserProfile from "../components/seller/ShopProfile/UserProfile";
-
+import DetailOrder from "../components/seller/AllOrder/DetailOrder";
+import EditOrder from "../pages/Vendor/EditOrder";
+import UpdateProduct from "../components/seller/Productpage/HomeProduct/UpdateProduct";
+import AddProduct from "../components/seller/Productpage/AddProduct/AddProduct";
 const VendorRoutes = () => {
   return (
     <Routes>
@@ -20,10 +22,13 @@ const VendorRoutes = () => {
         <Route index element={<Dashboard />} />
 
         <Route path="orders" element={<Orders />} />
+        <Route path="orders/detailOrder" element={<DetailOrder />} />
+        <Route path="orders/edit/:productId" element={<EditOrder />} />
         <Route path="bulk-shipping" element={<BulkShippingPage />} />
 
         <Route path="products" element={<Products />} />
-        <Route path="products/add" element={<AddProductPage />} />
+        <Route path="products/edit/:productId" element={<UpdateProduct />} />
+        <Route path="products/add" element={<AddProduct />} />
         <Route path="products/settings" element={<Settings />} />
         <Route path="shop-profile" element={<ShopProfile />} />
         <Route path="user-profile" element={<UserProfile />} />

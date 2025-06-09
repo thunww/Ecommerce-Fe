@@ -1,12 +1,12 @@
 import React, { Component } from "react";
 
-import OrderManagementContainer from '../../components/seller/AllOrder/OrderManagementContainer'
+import OrderManagement from '../../components/seller/AllOrder/OrderManagement'
 
 class Orders extends Component {
   render() {
     return (
       <>
-        <OrderManagementContainer></OrderManagementContainer>
+        <OrderManagement></OrderManagement>
       </>
     );
   }
