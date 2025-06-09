@@ -34,6 +34,7 @@ import AddressList from "../pages/Customer/Pages/Address/AddressList";
 import ShipperRegister from "../pages/Shipper/ShipperRegister";
 import Payment from "../components/customer/Components/Payment";
 import ShopPage from "../components/customer/Components/ShopPage/ShopDetail";
+import VendorRegistration from "../components/seller/RegisterVendor/RegisterVendor"
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
@@ -68,7 +69,7 @@ const CustomerRoutes = () => {
           {/* Bọc tất cả route con trong CustomerLayout */}
           <Route path="/" element={<CustomerLayout />}>
             <Route index element={<Home />} />
-
+            <Route path="/register-vendor" element={<VendorRegistration />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/shop/:shopId" element={<ShopPage />} />
             <Route path="/login" exact={true} element={<Login />} />

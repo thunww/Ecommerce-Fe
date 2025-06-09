@@ -11,6 +11,7 @@ import {
   FaChartLine,
   FaMoneyBillWave,
   FaTools,
+  FaHome,
 } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -148,8 +149,6 @@ const Header = () => {
       localStorage.removeItem("user");
       localStorage.removeItem("roles");
 
-     
-
       // Thêm một timeout trước khi chuyển hướng để đảm bảo Redux state được cập nhật đầy đủ
       setTimeout(() => {
         navigate("/login");
@@ -190,6 +189,14 @@ const Header = () => {
           {/* Main Dropdown Menu */}
           {isDropdownOpen && (
             <div className="absolute top-10 right-0 bg-white shadow-md rounded-lg p-3 w-48">
+              <Link
+                to="/"
+                className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded"
+                onClick={handleMenuItemClick}
+              >
+                <FaHome className="text-gray-500" />
+                <span>Home</span>
+              </Link>
               <Link
                 to="/vendor/orders"
                 className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded"
@@ -280,6 +287,14 @@ const Header = () => {
               )}
 
               <div className="py-1">
+                <Link
+                  to="/"
+                  className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100"
+                  onClick={handleMenuItemClick}
+                >
+                  <FaHome className="text-gray-500" />
+                  <span>Home</span>
+                </Link>
                 <Link
                   to="/vendor/user-profile"
                   className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100"

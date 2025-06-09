@@ -223,30 +223,44 @@ const ProductCreateInterface = () => {
 
     setLoading(true);
     try {
-      const productPayload = {
-        product_name: productData.name,
-        description: productData.description,
-        discount: productData.discount,
-        weight: productData.weight,
-        dimensions: productData.dimensions,
-        category: productData.category,
-        stock: getTotalStock(),
-        variants: productData.variants.map((v) => ({
-          size: v.size,
-          color: v.color,
-          material: v.material,
-          storage: v.storage,
-          ram: v.ram,
-          processor: v.processor,
-          price: v.price,
-          stock: v.stock,
-          image_url: v.image,
-        })),
-        mainImage: mainImageFile,
-        variantImages: variantImageFiles,
-      };
+      const formData = new FormData();
 
-      const response = await productApi.createProduct(productPayload);
+      // Thêm thông tin cơ bản
+      formData.append("product_name", productData.name);
+      formData.append("description", productData.description);
+      formData.append("discount", productData.discount);
+      formData.append("weight", productData.weight);
+      formData.append("dimensions", productData.dimensions);
+      formData.append("category", productData.category);
+      formData.append("stock", getTotalStock());
+
+      // Thêm variants (không bao gồm image_url vì sẽ xử lý riêng)
+      const variantsWithoutImages = productData.variants.map((variant) => ({
+        size: variant.size,
+        color: variant.color,
+        material: variant.material,
+        storage: variant.storage,
+        ram: variant.ram,
+        processor: variant.processor,
+        price: variant.price,
+        stock: variant.stock,
+      }));
+      formData.append("variants", JSON.stringify(variantsWithoutImages));
+
+      // Thêm ảnh chính
+      if (mainImageFile) {
+        formData.append("mainImage", mainImageFile);
+      }
+
+      // Thêm ảnh variant
+      productData.variants.forEach((variant, index) => {
+        const variantImageFile = variantImageFiles[variant.id];
+        if (variantImageFile) {
+          formData.append(`variantImage_${index}`, variantImageFile);
+        }
+      });
+
+      const response = await productApi.createProduct(formData);
 
       if (response.data.success) {
         Swal.fire({

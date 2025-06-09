@@ -2,6 +2,15 @@
 import axiosClient from "../axiosClient";
 
 const shopApi = {
+  // Đăng ký trở thành vendor
+  registerVendor: (formData) => {
+    return axiosClient.post("/vendor/register", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+
   // Lấy thông tin shop của vendor
   getShopInfo: () => {
     return axiosClient.get("/vendor/my-shop");
@@ -53,6 +62,12 @@ const shopApi = {
   // Lấy danh sách đánh giá của shop
   getShopReviews: (params) => {
     return axiosClient.get("/vendor/shop/reviews", { params });
+  },
+
+  // Lấy thông tin chi tiết shop của người dùng đang đăng nhập
+
+  getMyShopDetails: () => {
+    return axiosClient.get("/vendor/my-shop");
   },
 };
 
