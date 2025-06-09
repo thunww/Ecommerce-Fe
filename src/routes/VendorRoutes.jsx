@@ -8,15 +8,19 @@ import AnalyticsPage from "../pages/Vendor/Analytics";
 import Settings from "../pages/Vendor/Setting";
 import NotFound from "../pages/Vendor/NotFound";
 import BulkShippingPage from "../pages/Vendor/bulk-shipping";
-import ShopProfile from "../components/seller/ShopProfile/ShopProfile";
 import UserProfile from "../components/seller/ShopProfile/UserProfile";
 import DetailOrder from "../components/seller/AllOrder/DetailOrder";
 import EditOrder from "../pages/Vendor/EditOrder";
 import UpdateProduct from "../components/seller/Productpage/HomeProduct/UpdateProduct";
 import AddProduct from "../components/seller/Productpage/AddProduct/AddProduct";
+import ShopPage from "../components/customer/Components/ShopPage/ShopDetail";
+import ShopProfile from "../components/seller/ShopProfile/ShopProfile"
+
 const VendorRoutes = () => {
   return (
     <Routes>
+      
+      <Route path="shop-profile" element={<ShopProfile />} />
       {/* Bọc tất cả route trong VendorLayout */}
       <Route path="/" element={<VendorLayout />}>
         <Route index element={<Dashboard />} />
@@ -25,7 +29,7 @@ const VendorRoutes = () => {
         <Route path="orders/detailOrder" element={<DetailOrder />} />
         <Route path="orders/edit/:productId" element={<EditOrder />} />
         <Route path="bulk-shipping" element={<BulkShippingPage />} />
-
+        
         <Route path="products" element={<Products />} />
         <Route path="products/edit/:productId" element={<UpdateProduct />} />
         <Route path="products/add" element={<AddProduct />} />
@@ -36,6 +40,7 @@ const VendorRoutes = () => {
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<NotFound />} />
       </Route>
+      
     </Routes>
   );
 };

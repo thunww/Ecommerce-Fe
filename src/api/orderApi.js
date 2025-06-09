@@ -2,7 +2,6 @@ import axiosClient from "./axiosClient";
 
 const orderApi = {
   createOrder: async (orderData) => {
-    console.log("Gọi API tạo đơn hàng với dữ liệu:", orderData);
     const url = "orders/create";
     try {
       const response = await axiosClient.post(url, orderData);
@@ -25,8 +24,8 @@ const orderApi = {
     return axiosClient.get(url);
   },
 
-  cancelOrder: (orderId) => {
-    const url = `orders/cancel/${orderId}`;
+  cancelSubOrder: (sub_order_id) => {
+    const url = `orders/cancel-suborder/${sub_order_id}`;
     return axiosClient.patch(url);
   },
 };

@@ -40,7 +40,7 @@ const SalesPerformance = () => {
         const response = await shopApi.getShopInfo();
         
         // Use shop rating directly from shop info
-        const shopInfo = response.data;
+        const shopInfo = response.data.data;
         
         // Nếu không có rating từ API, sử dụng dữ liệu mẫu
         if (!shopInfo || shopInfo.rating === undefined) {
@@ -63,7 +63,7 @@ const SalesPerformance = () => {
         setShopData({
           rating: formattedRating,
           totalReviews: shopInfo.totalReviews || 120, // Sử dụng từ API hoặc fallback
-          responseRate: shopInfo.responseRate || 98, // Sử dụng từ API hoặc fallback
+          responseRate: shopInfo.rating || 98, // Sử dụng từ API hoặc fallback
           followers: shopInfo.followers || 0, // Thêm followers từ API
           views: shopInfo.views || 0, // Thêm views từ API
           loading: false,

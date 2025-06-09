@@ -1,21 +1,22 @@
-// FE/src/components/vendor/SalesAnalytics.jsx
-import React, { useState, useEffect } from 'react';
-import revenueApi from '../../../api/VendorAPI/revenueApi';
-import shopApi from '../../../api/VendorAPI/shopApi';
+import React, { useState, useEffect } from "react";
+import revenueApi from "../../../api/VendorAPI/revenueApi";
+import shopApi from "../../../api/VendorAPI/shopApi";
 
 const SalesAnalytics = () => {
-  const [analytics, setAnalytics] = useState({
+  const [revenueAnalytics, setRevenueAnalytics] = useState({
     revenue: 0,
-    visits: 0,
-    views: 0,
     orders: 0,
-    conversionRate: 0,
-    revenueByStatus: []
+    revenueByStatus: [],
   });
-  
+
+  const [shopAnalytics, setShopAnalytics] = useState({
+    views: 0,
+    visits: 0,
+    conversionRate: 0,
+  });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [debug, setDebug] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,53 +25,42 @@ const SalesAnalytics = () => {
         setError(null);
 
         // Check token
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem("accessToken");
         if (!token) {
-          throw new Error('Please login again');
+          throw new Error("Please login again");
         }
-
-        
 
         // Call API to get revenue
         const revenueResponse = await revenueApi.getRevenue();
-        
-        
+
         // Call API to get shop info
         const shopResponse = await shopApi.getShopInfo();
-        
 
-        // Parse and validate numeric values
+        // Parse revenue data
         const revenue = parseFloat(revenueResponse?.data?.totalRevenue) || 0;
-        const orders = parseInt(revenueResponse?.data?.totalOrders) || 0;
-        const views = parseInt(shopResponse?.data?.views) || 0;
-        const visits = Math.round(views * 0.7);
-        const conversionRate = visits > 0 ? ((orders / visits) * 100).toFixed(2) : 0;
+        const totalOrders = parseInt(revenueResponse?.data?.totalOrders) || 0;
 
-        const debugInfo = {
-          revenueResponse,
-          shopResponse,
-          calculatedValues: {
-            revenue,
-            orders,
-            views,
-            visits,
-            conversionRate
-          }
-        };
-      
-        // setDebug(debugInfo);
+        // Parse shop data
+        const views = parseInt(shopResponse?.data?.data?.views) || 0;
+        const visits = Math.round(views * 0.7); // Assumption: 70% of views are unique visits
+        const deliveredOrders =
+          parseFloat(shopResponse?.data?.data?.order_stats?.delivered) || 0;
+        const conversionRate =
+          visits > 0 ? ((deliveredOrders / visits) * 100).toFixed(2) : 0;
 
-        setAnalytics({
+        setRevenueAnalytics({
           revenue,
-          visits,
+          orders: totalOrders,
+          revenueByStatus: revenueResponse?.data?.deliveredOrders || [],
+        });
+
+        setShopAnalytics({
           views,
-          orders,
+          visits,
           conversionRate,
-          revenueByStatus: revenueResponse?.data?.deliveredOrders || []
         });
       } catch (error) {
-        
-        setError(error.message || 'Unable to load statistics');
+        setError(error.message || "Unable to load statistics");
       } finally {
         setLoading(false);
       }
@@ -80,10 +70,10 @@ const SalesAnalytics = () => {
   }, []);
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      maximumFractionDigits: 0,
     }).format(value);
   };
 
@@ -102,17 +92,12 @@ const SalesAnalytics = () => {
       <div className="bg-white rounded-lg shadow p-6">
         <div className="text-center text-red-500 py-4">
           <p className="font-medium">{error}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
           >
             Try again
           </button>
-          {debug && (
-            <pre className="mt-4 text-left text-xs bg-gray-100 p-4 rounded">
-              {JSON.stringify(debug, null, 2)}
-            </pre>
-          )}
         </div>
       </div>
     );
@@ -124,40 +109,35 @@ const SalesAnalytics = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <div className="text-center p-4 bg-gray-50 rounded-lg">
           <p className="text-2xl font-bold text-gray-800">
-            {formatCurrency(analytics.revenue)}
+            {formatCurrency(revenueAnalytics.revenue)}
           </p>
           <p className="text-sm text-gray-500">Revenue</p>
         </div>
         <div className="text-center p-4 bg-gray-50 rounded-lg">
           <p className="text-2xl font-bold text-gray-800">
-            {analytics.visits.toLocaleString('en-US')}
+            {shopAnalytics.visits.toLocaleString("en-US")}
           </p>
           <p className="text-sm text-gray-500">Visits</p>
         </div>
         <div className="text-center p-4 bg-gray-50 rounded-lg">
           <p className="text-2xl font-bold text-gray-800">
-            {analytics.views.toLocaleString('en-US')}
+            {shopAnalytics.views.toLocaleString("en-US")}
           </p>
           <p className="text-sm text-gray-500">Views</p>
         </div>
         <div className="text-center p-4 bg-gray-50 rounded-lg">
           <p className="text-2xl font-bold text-gray-800">
-            {analytics.orders.toLocaleString('en-US')}
+            {revenueAnalytics.orders.toLocaleString("en-US")}
           </p>
           <p className="text-sm text-gray-500">Orders</p>
         </div>
         <div className="text-center p-4 bg-gray-50 rounded-lg">
           <p className="text-2xl font-bold text-gray-800">
-            {analytics.conversionRate}%
+            {shopAnalytics.conversionRate}%
           </p>
           <p className="text-sm text-gray-500">Conversion Rate</p>
         </div>
       </div>
-      {debug && (
-        <pre className="mt-4 text-xs bg-gray-100 p-4 rounded">
-          {JSON.stringify(debug, null, 2)}
-        </pre>
-      )}
     </div>
   );
 };
