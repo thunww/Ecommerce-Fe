@@ -111,6 +111,19 @@ const orderApi = {
       throw error;
     }
   },
+
+  // Cập nhật sản phẩm hoặc biến thể
+  updateProductOrVariant: (productId, variantId, data) => {
+    let url = `/vendor/product/update/${productId}`;
+    if (variantId) {
+      url += `/${variantId}`;
+    }
+    return axiosClient.put(url, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
 };
 
 export default orderApi;

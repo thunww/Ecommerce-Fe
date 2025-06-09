@@ -17,11 +17,15 @@ import {
   MapPin,
   Phone,
   Mail,
+  ShoppingCart,
+  ShoppingBag,
+  CheckSquare,
 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import orderApi from "../../../api/VendorAPI/orderApi";
 import debounce from "lodash/debounce";
+import Swal from "sweetalert2";
 
 // Helper function to format date to YYYY-MM-DD
 const formatDateToYYYYMMDD = (date) => {
@@ -64,7 +68,7 @@ const SearchInput = ({ searchInput, setSearchInput, onSearch }) => {
   }, [searchInput]);
 
   return (
-    <div className="relative flex">
+    <div className="relative flex ">
       <div className="relative flex-1">
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
         <input
@@ -233,89 +237,103 @@ const OrderManagement = () => {
 
   const handleUpdateStatus = async (status) => {
     if (selectedOrders.length === 0) {
-      alert("Please select at least one order to update status.");
+      Swal.fire({
+        title: "No Orders Selected",
+        text: "Please select at least one order to update status.",
+        icon: "warning",
+        confirmButtonColor: "#3085d6",
+      });
       return;
     }
 
-    // Show confirmation dialog with detailed information
-    const confirmed = window.confirm(
-      `Are you sure you want to update the status of ${selectedOrders.length} selected order(s) to "Processing"?\n\n` +
-        `The orders will be updated to the new status and cannot be undone.`
-    );
+    const result = await Swal.fire({
+      title: "Update Order Status",
+      text: `Are you sure you want to update the status of ${selectedOrders.length} selected order(s) to "Processing"?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, update status!",
+      cancelButtonText: "Cancel",
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
+        try {
+          const result = await orderApi.updateSubordersStatusToProcessing(
+            selectedOrders
+          );
+          if (!result.success) {
+            throw new Error(result.message || "Failed to update status");
+          }
+          return result;
+        } catch (error) {
+          Swal.showValidationMessage(`Request failed: ${error.message}`);
+        }
+      },
+      allowOutsideClick: () => !Swal.isLoading(),
+    });
 
-    if (!confirmed) {
-      return;
-    }
+    if (result.isConfirmed) {
+      Swal.fire({
+        title: "Success!",
+        text: `Successfully updated ${result.value.affectedCount} order(s) to "Processing".`,
+        icon: "success",
+        confirmButtonColor: "#3085d6",
+      });
 
-    try {
-      setLoading(true);
-      const result = await orderApi.updateSubordersStatusToProcessing(
-        selectedOrders
-      );
-
-      if (result.success) {
-        // Show success message
-        alert(
-          `Successfully updated ${result.affectedCount} order(s) to "Processing".`
-        );
-
-        // Refresh order list
-        handleSearch(searchTerm);
-
-        // Reset selected orders
-        setSelectedOrders([]);
-      } else {
-        // Show server error message
-        alert(
-          result.message || "Failed to update status. Please try again later."
-        );
-      }
-    } catch (error) {
-      console.error("Error updating status:", error);
-      alert("An error occurred while updating status. Please try again later.");
-    } finally {
-      setLoading(false);
+      // Refresh order list
+      handleSearch(searchTerm);
+      // Reset selected orders
+      setSelectedOrders([]);
     }
   };
 
   const handleDeleteSelected = async () => {
     if (selectedOrders.length === 0) {
-      alert("Please select at least one order to delete.");
+      Swal.fire({
+        title: "No Orders Selected",
+        text: "Please select at least one order to delete.",
+        icon: "warning",
+        confirmButtonColor: "#3085d6",
+      });
       return;
     }
 
-    // Show confirmation dialog with detailed information
-    const confirmed = window.confirm(
-      `Are you sure you want to delete ${selectedOrders.length} selected order(s)?\n\n` +
-        `The orders will be permanently deleted and cannot be recovered.`
-    );
+    const result = await Swal.fire({
+      title: "Delete Orders",
+      text: `Are you sure you want to delete ${selectedOrders.length} selected order(s)? This action cannot be undone.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete orders!",
+      cancelButtonText: "Cancel",
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
+        try {
+          const result = await orderApi.deleteSuborders(selectedOrders);
+          if (!result.success) {
+            throw new Error(result.message || "Failed to delete orders");
+          }
+          return result;
+        } catch (error) {
+          Swal.showValidationMessage(`Request failed: ${error.message}`);
+        }
+      },
+      allowOutsideClick: () => !Swal.isLoading(),
+    });
 
-    if (!confirmed) {
-      return;
-    }
+    if (result.isConfirmed) {
+      Swal.fire({
+        title: "Deleted!",
+        text: `Successfully deleted ${result.value.deletedCount} order(s).`,
+        icon: "success",
+        confirmButtonColor: "#3085d6",
+      });
 
-    try {
-      setLoading(true);
-      const result = await orderApi.deleteSuborders(selectedOrders);
-
-      if (result.success) {
-        // Show success message
-        alert(`Successfully deleted ${result.deletedCount} order(s).`);
-
-        // Refresh order list
-        handleSearch(searchTerm);
-
-        // Reset selected orders
-        setSelectedOrders([]);
-      } else {
-        // Show server error message
-        alert(result.message || "Failed to delete orders. Please try again later.");
-      }
-    } catch (error) {
-      console.error("Error deleting orders:", error);
-      alert("An error occurred while deleting orders. Please try again later.");
-    } finally {
-      setLoading(false);
+      // Refresh order list
+      handleSearch(searchTerm);
+      // Reset selected orders
+      setSelectedOrders([]);
     }
   };
 
@@ -343,7 +361,9 @@ const OrderManagement = () => {
       }
 
       const queryString = params.toString();
-      const exportUrl = `/vendor/orders/export${queryString ? `?${queryString}` : ""}`;
+      const exportUrl = `/vendor/orders/export${
+        queryString ? `?${queryString}` : ""
+      }`;
 
       console.log("Exporting data with filters:", {
         statusFilter: currentStatusFilter,
@@ -406,7 +426,12 @@ const OrderManagement = () => {
 
   const formatPrice = (price) => {
     if (price == null) return "0";
-    return parseFloat(price).toLocaleString("vi-VN");
+    return parseFloat(price).toLocaleString("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
   };
 
   const formatDate = (dateString) => {
@@ -594,9 +619,7 @@ const OrderManagement = () => {
               </h4>
               <div className="space-y-3 text-sm">
                 <div>
-                  <p className="text-slate-600 font-medium">
-                    Shipping Address
-                  </p>
+                  <p className="text-slate-600 font-medium">Shipping Address</p>
                   <p className="text-slate-900">
                     {order.address_line ? `${order.address_line}, ` : ""}
                     {order.ward ? `${order.ward}, ` : ""}
@@ -694,16 +717,14 @@ const OrderManagement = () => {
                                   item.product_discount,
                                   item.quantity
                                 )
-                              )}{" "}
-                              $
+                              )}
                             </p>
                             {item.product_discount && (
                               <p className="text-sm text-slate-500 line-through">
                                 {formatPrice(
                                   (parseFloat(item.variant_price) || 0) *
                                     (item.quantity || 1)
-                                )}{" "}
-                                $
+                                )}
                               </p>
                             )}
                           </div>
@@ -730,13 +751,13 @@ const OrderManagement = () => {
                 <p className="text-slate-700">
                   Total Item Price:{" "}
                   <span className="font-bold text-slate-800">
-                    {formatPrice(totalPrice)} $
+                    {formatPrice(totalPrice)}
                   </span>
                 </p>
                 <p className="text-slate-700">
                   Shipping Fee:{" "}
                   <span className="font-bold text-slate-800">
-                    {formatPrice(order.shipping_fee)} $
+                    {formatPrice(order.shipping_fee)}
                   </span>
                 </p>
               </div>
@@ -744,8 +765,7 @@ const OrderManagement = () => {
                 <p className="text-2xl font-bold text-emerald-700">
                   {formatPrice(
                     totalPrice + (parseFloat(order.shipping_fee) || 0)
-                  )}{" "}
-                  $
+                  )}
                 </p>
                 <p className="text-sm text-emerald-600">Total Payment</p>
               </div>
@@ -790,30 +810,47 @@ const OrderManagement = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="container mx-auto px-6 py-12">
+      <div className="container mx-auto px-6 py-6">
         {/* Header with Overview Information */}
-        <div className="mb-12">
+        <div className="mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div>
-              <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-                Order Management
-              </h1>
-              <p className="text-slate-600 text-lg">
-                Track and manage all your orders
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                <ShoppingCart className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Orders Management
+                </h1>
+                <div className="h-1 w-20 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mt-1"></div>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="bg-white rounded-2xl shadow-lg p-4 border border-slate-200">
-                <div className="text-2xl font-bold text-slate-900">
-                  {filteredOrders.length}
+              <div className="bg-white rounded-2xl shadow-lg p-4 border border-slate-200 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <ShoppingBag className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-slate-900">
+                      {filteredOrders.length}
+                    </div>
+                    <div className="text-slate-600 text-sm">Current Orders</div>
+                  </div>
                 </div>
-                <div className="text-slate-600">Current Orders</div>
               </div>
-              <div className="bg-white rounded-2xl shadow-lg p-4 border border-slate-200">
-                <div className="text-2xl font-bold text-blue-600">
-                  {selectedOrders.length}
+              <div className="bg-white rounded-2xl shadow-lg p-4 border border-slate-200 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-indigo-50 rounded-lg">
+                    <CheckSquare className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-indigo-600">
+                      {selectedOrders.length}
+                    </div>
+                    <div className="text-slate-600 text-sm">Selected</div>
+                  </div>
                 </div>
-                <div className="text-slate-600">Selected</div>
               </div>
             </div>
           </div>
@@ -880,10 +917,14 @@ const OrderManagement = () => {
               <div className="flex items-center space-x-4">
                 <button
                   onClick={handleSelectAll}
-                  className="flex items-center px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-7
-                  00 text-white rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                  className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 dark:from-indigo-500 dark:to-indigo-600 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 dark:hover:from-indigo-600 dark:hover:to-indigo-700 border border-indigo-500/50 dark:border-indigo-400/50 shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 font-semibold uppercase tracking-wide focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400 focus-visible:ring-offset-2"
+                  aria-label={
+                    selectedOrders.length === filteredOrders.length
+                      ? "Deselect all orders"
+                      : "Select all orders"
+                  }
                 >
-                  <CheckCircle className="mr-2 w-5 h-5" />
+                  <CheckCircle className="mr-2 w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
                   {selectedOrders.length === filteredOrders.length
                     ? "Deselect All"
                     : "Select All"}
@@ -910,7 +951,8 @@ const OrderManagement = () => {
                   className="flex items-center px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl hover:from-red-700 hover:to-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                   disabled={selectedOrders.length === 0}
                 >
-                  <AlertCircle className="mr-2 w-5 h-5" /> Delete Selected Orders
+                  <AlertCircle className="mr-2 w-5 h-5" /> Delete Selected
+                  Orders
                 </button>
                 <button
                   onClick={handleExportData}
@@ -945,8 +987,10 @@ const OrderManagement = () => {
             <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
               <div className="text-slate-600">
                 Showing{" "}
-                <span className="font-medium">{filteredOrders.length}</span> orders
-                out of <span className="font-medium">{pagination.totalItems}</span> total
+                <span className="font-medium">{filteredOrders.length}</span>{" "}
+                orders out of{" "}
+                <span className="font-medium">{pagination.totalItems}</span>{" "}
+                total
               </div>
               <div className="flex items-center space-x-4">
                 <button

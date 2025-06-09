@@ -3,24 +3,74 @@ import axiosClient from "../axiosClient";
 
 const productApi = {
   // Lấy danh sách sản phẩm của shop
-  getProductsByShopId: (shopId) => {
-    // Sửa để lấy sản phẩm của shop hiện tại (token đã có thông tin vendor)
-    return axiosClient.get("/vendor/shop/products");
+  getProductsByShopId: (
+    page = 1,
+    limit = 9,
+    search = "",
+    categoryId = null,
+    sortBy = "name"
+  ) => {
+    return axiosClient.get(`/vendor/shop/products`, {
+      params: {
+        page,
+        limit,
+        search,
+        categoryId,
+        sortBy,
+      },
+    });
   },
 
   // Lấy thông tin chi tiết sản phẩm
   getProductById: (productId) => {
-    return axiosClient.get(`/vendor/product/${productId}`);
+    return axiosClient.get(`/products/${productId}`);
   },
 
   // Tạo sản phẩm mới
-  createProduct: (formData) => {
-    return axiosClient.post("/products/create", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-      timeout: 30000, // Tăng timeout lên 30s vì có upload ảnh
-    });
+  createProduct: async (productData) => {
+    try {
+      const formData = new FormData();
+
+      // Thêm thông tin cơ bản
+      formData.append("product_name", productData.product_name);
+      formData.append("description", productData.description);
+      formData.append("discount", productData.discount);
+      formData.append("weight", productData.weight);
+      formData.append("dimensions", productData.dimensions);
+      formData.append("category", productData.category);
+      formData.append("stock", productData.stock);
+
+      // Thêm variants
+      formData.append("variants", JSON.stringify(productData.variants));
+
+      // Thêm ảnh chính
+      if (productData.mainImage) {
+        formData.append("mainImage", productData.mainImage);
+      }
+
+      // Thêm ảnh biến thể
+      if (productData.variantImages) {
+        Object.entries(productData.variantImages).forEach(([key, file]) => {
+          if (file) {
+            formData.append(`variantImage_${key}`, file);
+          }
+        });
+      }
+
+      const response = await axiosClient.post(
+        "/vendor/product/create",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          timeout: 30000, // 30 giây timeout cho việc upload ảnh
+        }
+      );
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   // Cập nhật sản phẩm
@@ -29,8 +79,10 @@ const productApi = {
   },
 
   // Xóa sản phẩm
-  deleteProduct: (productId) => {
-    return axiosClient.delete(`/products/${productId}`);
+  deleteProduct: (productIds) => {
+    // Nếu productIds là mảng, chuyển thành chuỗi các ID phân cách bằng dấu phẩy
+    const ids = Array.isArray(productIds) ? productIds.join(",") : productIds;
+    return axiosClient.delete(`/products/${ids}`);
   },
 
   // Upload ảnh sản phẩm
@@ -78,6 +130,45 @@ const productApi = {
       : "/vendor/shop/category";
 
     return axiosClient.get(url);
+  },
+
+  // Xóa một biến thể của sản phẩm
+  deleteVariant: (productId, variantId) => {
+    return axiosClient.delete(
+      `/vendor/product/${productId}/variant/${variantId}`
+    );
+  },
+
+  // Cập nhật sản phẩm và các biến thể (variant) kèm ảnh
+  updateProductWithVariants: (productId, productData) => {
+    const formData = new FormData();
+
+    formData.append("product_name", productData.product_name);
+    formData.append("description", productData.description);
+    formData.append("discount", productData.discount);
+    formData.append("dimensions", productData.dimensions);
+    formData.append("weight", productData.weight);
+    if (productData.category !== undefined) {
+      formData.append("category", productData.category);
+    }
+    formData.append("stock", productData.stock);
+
+    formData.append("variants", JSON.stringify(productData.variants));
+
+    if (productData.variantImages) {
+      Object.entries(productData.variantImages).forEach(([variantId, file]) => {
+        if (file) {
+          formData.append(`variantImage_${variantId}`, file);
+        }
+      });
+    }
+
+    return axiosClient.put(`/vendor/product/update/${productId}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 30000,
+    });
   },
 };
 
