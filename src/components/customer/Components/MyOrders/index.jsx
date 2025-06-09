@@ -116,12 +116,6 @@ const OrderItem = ({ sub, order, handleRateClick, handleCancelOrder }) => {
             {/* Ẩn nếu sub.status === "cancelled" */}
             {sub.status !== "cancelled" && (
               <>
-                <p
-                  className={`text-sm font-medium flex items-center ${paymentColor}`}
-                >
-                  {paymentIcon}
-                  Trạng thái thanh toán: {paymentLabel}
-                </p>
                 <p className="text-sm font-medium flex items-center text-gray-600">
                   {methodIcon}
                   Phương thức thanh toán: {paymentMethod}
