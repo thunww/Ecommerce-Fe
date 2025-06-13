@@ -62,7 +62,7 @@ function Sha256Demo() {
     113926993, 338241895, 666307205, 773529912, 1294757372, 1396182291,
     1695183700, 1986661051, -2117940946, -1838011259, -1564481375, -1474664885,
     -1035236496, -949202525, -778901479, -694614492, -200395387, 275423344,
-    430227734, 506948616, 659060556, 883997001, 958139571, 1322822218,
+    430227734, 506948616, 659060556, 883997877, 958139571, 1322822218,
     1537002063, 1747873779, 1955562222, 2024104815, -2067236844, -1933114872,
     -1866530822, -1538233109, -1090935817, -965641998,
   ];
@@ -467,7 +467,7 @@ function Sha256Demo() {
     };
   }
   return (
-    <div className="App font-mono text-xs text-indigo-300 px-2 leading-3 bg-gray-900 h-screen transition">
+    <div className="App font-mono text-xs text-indigo-300 px-2 leading-3 bg-gray-900  transition">
       <div className="flex flex-col lg:flex-row w-full mb-2">
         <div className="w-full">
           <div className="flex">
@@ -523,16 +523,16 @@ function Sha256Demo() {
               <div className="">
                 Created by{" "}
                 <a
-                  href="https://twitter.com/manceraio"
+                  href="#"
                   target="_blank"
                   className="text-indigo-200 hover:underline"
                 >
-                  @manceraio
+                  @Nhom10
                 </a>{" "}
                 /
               </div>
               <a
-                href="https://github.com/dmarman/sha256algorithm"
+                href="https://github.com/thunww/Ecommerce-Fe.git"
                 target="_blank"
                 className="ml-2"
               >
@@ -559,7 +559,7 @@ function Sha256Demo() {
 
       <div className="flex flex-col sm:flex-row">
         <div className="px-3 py-2 bg-yellow-800 text-yellow-200 border border-yellow-200 rounded text-center m-4 text-sm leading-4 sm:hidden">
-          Please visit this website on desktop :)
+          Please visit this website on desktop :
         </div>
         <div className="col pr-1 w-[290px]">
           <MessageBlock

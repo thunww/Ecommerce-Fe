@@ -1,6 +1,7 @@
+import { Tooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
 import { decimalToBinary } from "../../classes/utils";
 import { rotateRight } from "../../classes/utils";
-import { Tooltip } from "react-tooltip";
 import { sha256 } from "../../classes/sha";
 
 function displayHex(value) {
@@ -54,6 +55,7 @@ function UpdateLetters({
 
   return (
     <div className="mb-3">
+      <Tooltip id="tooltip" />
       <div className="flex">
         <div className="w-32 mr-3">
           <div>Temp1</div>
@@ -65,21 +67,36 @@ function UpdateLetters({
         </div>
 
         <div>
-          <div>{decimalToBinary(temp1).padStart(32, "0")}</div>
+          <div
+            data-tooltip-id="tooltip"
+            data-tooltip-content={displayHex(temp1)}
+          >
+            {decimalToBinary(temp1).padStart(32, "0")}
+          </div>
           <div className="border-b">
             {decimalToBinary(temp2).padStart(32, "0")} +
           </div>
-          <div className="mb-2">
+          <div
+            className="mb-2"
+            data-tooltip-id="tooltip"
+            data-tooltip-content={displayHex(((temp1 + temp2) >>> 0) % 2 ** 32)}
+          >
             {decimalToBinary(((temp1 + temp2) >>> 0) % 2 ** 32).padStart(
               32,
               "0"
             )}
           </div>
-          <div>{decimalToBinary(d).padStart(32, "0")}</div>
+          <div data-tooltip-id="tooltip" data-tooltip-content={displayHex(d)}>
+            {decimalToBinary(d).padStart(32, "0")}
+          </div>
           <div className="border-b">
             {decimalToBinary(temp1).padStart(32, "0")} +
           </div>
-          <div className="mb-2">
+          <div
+            className="mb-2"
+            data-tooltip-id="tooltip"
+            data-tooltip-content={displayHex(((d + temp1) >>> 0) % 2 ** 32)}
+          >
             {decimalToBinary(((d + temp1) >>> 0) % 2 ** 32).padStart(32, "0")}
           </div>
         </div>
@@ -152,7 +169,7 @@ function UpdateLetters({
           </div>
           <div className="mr-3">
             <div
-              data-tooltip-id="temp1-temp2"
+              data-tooltip-id="tooltip"
               data-tooltip-content={displayHex((temp1 + temp2) % 2 ** 32)}
             >
               {decimalToBinary(((temp1 + temp2) >>> 0) % 2 ** 32).padStart(
@@ -160,8 +177,6 @@ function UpdateLetters({
                 "0"
               )}
             </div>
-            <Tooltip id="temp1-temp2" />
-
             {execute && (
               <div>
                 <div className="border-b">
@@ -174,14 +189,12 @@ function UpdateLetters({
             )}
 
             <div
-              data-tooltip-id="var-a"
+              data-tooltip-id="tooltip"
               data-tooltip-content={displayHex(a)}
               className="text-fuchsia-500"
             >
               {decimalToBinary(a).padStart(32, "0")}
             </div>
-            <Tooltip id="var-a" />
-
             {execute && (
               <div>
                 <div className="border-b">
@@ -194,14 +207,12 @@ function UpdateLetters({
             )}
 
             <div
-              data-tooltip-id="var-b"
+              data-tooltip-id="tooltip"
               data-tooltip-content={displayHex(b)}
               className="text-lime-500"
             >
               {decimalToBinary(b).padStart(32, "0")}
             </div>
-            <Tooltip id="var-b" />
-
             {execute && (
               <div>
                 <div className="border-b">
@@ -214,14 +225,12 @@ function UpdateLetters({
             )}
 
             <div
-              data-tooltip-id="var-c"
+              data-tooltip-id="tooltip"
               data-tooltip-content={displayHex(c)}
               className="text-orange-500"
             >
               {decimalToBinary(c).padStart(32, "0")}
             </div>
-            <Tooltip id="var-c" />
-
             {execute && (
               <div>
                 <div className="border-b">
@@ -234,13 +243,11 @@ function UpdateLetters({
             )}
 
             <div
-              data-tooltip-id="d-temp1"
+              data-tooltip-id="tooltip"
               data-tooltip-content={displayHex(((d + temp1) >>> 0) % 2 ** 32)}
             >
               {decimalToBinary(((d + temp1) >>> 0) % 2 ** 32).padStart(32, "0")}
             </div>
-            <Tooltip id="d-temp1" />
-
             {execute && (
               <div>
                 <div className="border-b">
@@ -253,14 +260,12 @@ function UpdateLetters({
             )}
 
             <div
-              data-tooltip-id="var-e"
+              data-tooltip-id="tooltip"
               data-tooltip-content={displayHex(e)}
               className="text-green-500"
             >
               {decimalToBinary(e).padStart(32, "0")}
             </div>
-            <Tooltip id="var-e" />
-
             {execute && (
               <div>
                 <div className="border-b">
@@ -273,14 +278,12 @@ function UpdateLetters({
             )}
 
             <div
-              data-tooltip-id="var-f"
+              data-tooltip-id="tooltip"
               data-tooltip-content={displayHex(f)}
               className="text-red-500"
             >
               {decimalToBinary(f).padStart(32, "0")}
             </div>
-            <Tooltip id="var-f" />
-
             {execute && (
               <div>
                 <div className="border-b">
@@ -293,14 +296,12 @@ function UpdateLetters({
             )}
 
             <div
-              data-tooltip-id="var-g"
+              data-tooltip-id="tooltip"
               data-tooltip-content={displayHex(g)}
               className="text-indigo-500"
             >
               {decimalToBinary(g).padStart(32, "0")}
             </div>
-            <Tooltip id="var-g" />
-
             {execute && (
               <div>
                 <div className="border-b">
@@ -325,7 +326,7 @@ function UpdateLetters({
                 </div>
               </div>
             )}
-            <div>&nbsp;</div>
+            <div> </div>
             {execute && (
               <div className="mb-1">
                 <div>+</div>
@@ -337,7 +338,7 @@ function UpdateLetters({
                 </div>
               </div>
             )}
-            <div>&nbsp;</div>
+            <div> </div>
             {execute && (
               <div className="mb-1">
                 <div>+</div>
@@ -349,7 +350,7 @@ function UpdateLetters({
                 </div>
               </div>
             )}
-            <div>&nbsp;</div>
+            <div> </div>
             {execute && (
               <div className="mb-1">
                 <div>+</div>
@@ -373,7 +374,7 @@ function UpdateLetters({
                 </div>
               </div>
             )}
-            <div>&nbsp;</div>
+            <div> </div>
             {execute && (
               <div className="mb-1">
                 <div>+</div>
@@ -385,7 +386,7 @@ function UpdateLetters({
                 </div>
               </div>
             )}
-            <div>&nbsp;</div>
+            <div> </div>
             {execute && (
               <div className="mb-1">
                 <div>+</div>
@@ -397,7 +398,7 @@ function UpdateLetters({
                 </div>
               </div>
             )}
-            <div>&nbsp;</div>
+            <div> </div>
             {execute && (
               <div className="mb-1">
                 <div>+</div>

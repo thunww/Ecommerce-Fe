@@ -16,7 +16,6 @@ function BeforeLetters({ letters, base, labels = [], clock }) {
     if (6 === key) return "text-indigo-500";
     if (5 === key) return "text-red-500";
     if (4 === key) return "text-green-500";
-
     if (2 === key) return "text-orange-500";
     if (1 === key) return "text-lime-500";
     if (0 === key) return "text-fuchsia-500";
@@ -28,15 +27,18 @@ function BeforeLetters({ letters, base, labels = [], clock }) {
 
   return (
     <div className="ml-8">
+      {/* Tooltip Global Config */}
+      <Tooltip id="hex-tooltip" />
+
       <h2 className="font-bold my-1 text-indigo-200">Working Variables</h2>
       <div className="flex">
         <div>
           {base === "bin" &&
             letters.map((word, key) => (
               <div
-                key={key.toString()}
                 className="flex"
-                data-tooltip-id={`working-var-${key}`}
+                key={key}
+                data-tooltip-id="hex-tooltip"
                 data-tooltip-content={displayHex(word)}
               >
                 <span className="mr-2 font-bold text-green-600">
@@ -48,7 +50,6 @@ function BeforeLetters({ letters, base, labels = [], clock }) {
                     .match(new RegExp(".{1," + 32 + "}", "g"))
                     .join(" ")}
                 </div>
-                <Tooltip id={`working-var-${key}`} />
               </div>
             ))}
         </div>

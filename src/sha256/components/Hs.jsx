@@ -5,7 +5,7 @@ function displayHex(value) {
   return Number(value >>> 0)
     .toString(16)
     .padStart(8, "0")
-    .match(new RegExp(".{1," + 2 + "}", "g"))
+    .match(/.{1,2}/g)
     .join(" ");
 }
 
@@ -14,24 +14,26 @@ function Hs({ hs, base, clock }) {
 
   return (
     <div className="ml-8">
+      <Tooltip id="hs-tooltip" />
+
       <h2 className="font-bold my-1 text-indigo-200">Initial hash value</h2>
       <div className="flex">
         <div>
           {base === "bin" &&
             hs.map((word, key) => (
               <div
-                key={key.toString()}
+                key={key}
                 className="flex"
-                data-tooltip-id={`tooltip-${key}`}
+                data-tooltip-id="hs-tooltip"
+                data-tooltip-content={displayHex(word)}
               >
                 <span className="mr-2 font-bold text-green-600">h{key}</span>
-                <div className={"px-1"}>
+                <div className="px-1">
                   {decimalToBinary(word)
                     .padStart(32, "0")
-                    .match(new RegExp(".{1," + 32 + "}", "g"))
+                    .match(/.{1,32}/g)
                     .join(" ")}
                 </div>
-                <Tooltip id={`tooltip-${key}`} content={displayHex(word)} />
               </div>
             ))}
         </div>
