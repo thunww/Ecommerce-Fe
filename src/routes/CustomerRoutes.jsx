@@ -34,7 +34,7 @@ import AddressList from "../pages/Customer/Pages/Address/AddressList";
 import ShipperRegister from "../pages/Shipper/ShipperRegister";
 import Payment from "../components/customer/Components/Payment";
 import ShopPage from "../components/customer/Components/ShopPage/ShopDetail";
-import VendorRegistration from "../components/seller/RegisterVendor/RegisterVendor"
+import VendorRegistration from "../components/seller/RegisterVendor/RegisterVendor";
 import PrivateRoute from "./PrivateRoute";
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
@@ -67,7 +67,7 @@ const CustomerRoutes = () => {
     <>
       <MyContext.Provider value={values}>
         <Routes>
-        <Route path="/register-vendor" element={<VendorRegistration />} />
+          <Route path="/register-vendor" element={<VendorRegistration />} />
           {/* Bọc tất cả route con trong CustomerLayout */}
           <Route path="/" element={<CustomerLayout />}>
             <Route index element={<Home />} />
@@ -92,7 +92,7 @@ const CustomerRoutes = () => {
               exact={true}
               element={<ProductDetails />}
             />
-            <Route element={<PrivateRoute allowedRoles={['customer']} />}>
+            <Route element={<PrivateRoute allowedRoles={["customer"]} />}>
               <Route path="/cart" exact={true} element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/payment" element={<Payment />} />
