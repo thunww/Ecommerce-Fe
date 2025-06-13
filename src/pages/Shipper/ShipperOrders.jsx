@@ -40,7 +40,7 @@ const ShipperOrders = () => {
           return parts.join(', ');
         };
 
-        const user = order.Order?.User || {};
+        const user = order.order?.User || {};
         console.log('Processing order:', {
           orderId: order.sub_order_id,
           user: user,
@@ -57,7 +57,7 @@ const ShipperOrders = () => {
           customerPhone: user.phone || 'Không có SĐT',
           customerEmail: user.email || '',
           customerAvatar: user.profile_picture || null,
-          address: formatAddress(order.Order?.shipping_address),
+          address: formatAddress(order.order?.shipping_address),
           time: order.created_at ? new Date(order.created_at).toLocaleString() : 'Không xác định',
           deliveredTime: order.status === 'delivered' && order.shipment?.actual_delivery_date 
             ? new Date(order.shipment.actual_delivery_date).toLocaleString() 
