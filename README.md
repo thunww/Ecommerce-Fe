@@ -1,12 +1,10 @@
 # E-Commerce Frontend
 
-Đây là giao diện người dùng (Frontend) của hệ thống E-Commerce – đồ án môn học **Nhập môn Công nghệ Phần mềm** tại **Học viện Công nghệ Bưu chính Viễn thông cơ sở TP.HCM**.
+Đây là giao diện người dùng (Frontend) của hệ thống E-Commerce – đồ án môn học tại **Học viện Công nghệ Bưu chính Viễn thông cơ sở TP.HCM**.
 
 ##  Thông tin đồ án
 - **Tên đề tài:** Hệ thống E-Commerce
-- **Môn học:** Nhập môn Công nghệ Phần mềm
-- **Giảng viên hướng dẫn:** Thầy Châu Văn Vân
-- **Thành viên nhóm 3:**
+- **Thành viên:**
   - N22DCAT001 – Nguyễn Văn An
   - N22DCAT018 – Trần Xuân Đông
   - N22DCAT038 – Lê Đình Nghĩa
