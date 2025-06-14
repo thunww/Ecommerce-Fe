@@ -13,8 +13,8 @@
   - N22DCAT050 – Trần Gia Thân
 
 ## Liên kết liên quan
--  [Frontend Repository](https://github.com/thunww/Ecommerce-Fe)
--  [Backend Repository (https://github.com/thunww/Ecommerce-Be)
+-  [Frontend Repository] (https://github.com/thunww/Ecommerce-Fe)
+-  [Backend Repository] (https://github.com/thunww/Ecommerce-Be)
 
 ##  Mô tả
 Frontend xây dựng bằng **ReactJS** để phục vụ giao diện người dùng cho hệ thống bán hàng trực tuyến. Hệ thống hỗ trợ các tính năng cơ bản của một sàn thương mại điện tử như:
