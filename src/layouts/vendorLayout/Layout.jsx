@@ -8,10 +8,9 @@ import { useSelector } from "react-redux";
 const VendorLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user } = useSelector((state) => state.auth);
-  
-  // Kiểm tra token và user, nếu không có thì chuyển hướng về trang login
-  const token = localStorage.getItem("accessToken");
-  if (!token || !user) {
+
+  // Kiểm tra user, nếu không có thì chuyển hướng về trang login
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
@@ -23,7 +22,11 @@ const VendorLayout = () => {
       </div>
 
       {/* Nội dung chính */}
-      <div className={`flex flex-col flex-1 overflow-y-auto scrollbar-hide pt-16 transition-all duration-300 ${isSidebarOpen ? 'pr-96' : 'pr-16'}`}>
+      <div
+        className={`flex flex-col flex-1 overflow-y-auto scrollbar-hide pt-16 transition-all duration-300 ${
+          isSidebarOpen ? "pr-96" : "pr-16"
+        }`}
+      >
         <Header />
         <main className="p-6">
           <Outlet />

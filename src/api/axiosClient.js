@@ -5,16 +5,13 @@ const axiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Cho phép gửi cookie trong request
   timeout: 10000, // 10 seconds
 });
 
-// Request interceptor
+// Không cần interceptor nữa vì cookie sẽ tự động được gửi
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     return config;
   },
   (error) => {

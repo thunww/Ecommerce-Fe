@@ -1,9 +1,10 @@
-import axios from 'axios';
+import axios from "axios";
 
 // Cấu hình mặc định cho axios
-axios.defaults.baseURL = 'http://localhost:8080';
+axios.defaults.baseURL = "http://localhost:8080";
 
-// Thêm interceptor để tự động thêm token vào header
+// Xóa interceptor để tự động thêm token vào header vì token sẽ được gửi qua HttpOnly cookie
+/*
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
@@ -16,5 +17,6 @@ axios.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+*/
 
-export default axios; 
+export default axios;

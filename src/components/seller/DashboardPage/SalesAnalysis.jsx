@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import revenueApi from "../../../api/VendorAPI/revenueApi";
 import shopApi from "../../../api/VendorAPI/shopApi";
+import { useSelector } from "react-redux";
 
 const SalesAnalytics = () => {
   const [revenueAnalytics, setRevenueAnalytics] = useState({
@@ -18,31 +19,26 @@ const SalesAnalytics = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const { user } = useSelector((state) => state.auth);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Check token
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
+        if (!user || !user.user_id) {
           throw new Error("Please login again");
         }
 
-        // Call API to get revenue
         const revenueResponse = await revenueApi.getRevenue();
-
-        // Call API to get shop info
         const shopResponse = await shopApi.getShopInfo();
 
-        // Parse revenue data
         const revenue = parseFloat(revenueResponse?.data?.totalRevenue) || 0;
         const totalOrders = parseInt(revenueResponse?.data?.totalOrders) || 0;
 
-        // Parse shop data
         const views = parseInt(shopResponse?.data?.data?.views) || 0;
-        const visits = Math.round(views * 0.7); // Assumption: 70% of views are unique visits
+        const visits = Math.round(views * 0.7);
         const deliveredOrders =
           parseFloat(shopResponse?.data?.data?.order_stats?.delivered) || 0;
         const conversionRate =
@@ -66,8 +62,10 @@ const SalesAnalytics = () => {
       }
     };
 
-    fetchData();
-  }, []);
+    if (user && user.user_id) {
+      fetchData();
+    }
+  }, [user]);
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat("vi-VN", {

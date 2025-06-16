@@ -5,12 +5,10 @@ const authService = {
   login: async (userData) => {
     try {
       const response = await authApi.login(userData);
-      const { token, user, message } = response.data;
-      console.log("res", response.data);
-      localStorage.setItem("accessToken", token);
+      const { user, message } = response.data;
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("roles", JSON.stringify(user.roles));
-      return { user, token, message };
+      return { user, message };
     } catch (error) {
       throw new Error(error.response?.data?.message || "Login failed");
     }
@@ -29,8 +27,8 @@ const authService = {
     } catch (error) {
       console.error("Logout failed", error);
     } finally {
-      localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
+      localStorage.removeItem("roles");
     }
   },
   getProfile: async () => {
