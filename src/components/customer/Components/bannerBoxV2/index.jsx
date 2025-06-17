@@ -1,7 +1,7 @@
 import React from 'react'
 import '../bannerBoxV2/style.css'
 import { Link } from 'react-router-dom'
-const bannerBoxV2 = (props) => {
+const BannerBoxV2 = (props) => {
     return (
         <div className='bannerBoxV2 w-full overflow-hidden round-md group relative'>
             <img src={props.image}
@@ -23,4 +23,4 @@ const bannerBoxV2 = (props) => {
     )
 }
 
-export default bannerBoxV2
+export default BannerBoxV2
