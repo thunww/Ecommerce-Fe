@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchAllOrders, cancelOrder } from "../../../../redux/orderSlice";
+import { fetchAllOrders, cancelSubOrder } from "../../../../redux/orderSlice";
 import {
   FiClock,
   FiSettings,
@@ -14,6 +14,7 @@ import {
 import { Link } from "react-router-dom";
 import RateModal from "../ProductReviews";
 import Swal from "sweetalert2";
+
 const OrderItem = ({ sub, order, handleRateClick, handleCancelOrder }) => {
   const statusStyles = {
     pending: {
@@ -159,7 +160,7 @@ const OrderItem = ({ sub, order, handleRateClick, handleCancelOrder }) => {
                 <p className="text-sm text-gray-500">
                   Phân loại: {item.productVariant.color}{" "}
                   {item.productVariant.size
-                    ? `- ${item.productVariant.size}`
+                    ? ` - ${item.productVariant.size}`
                     : ""}
                 </p>
                 <p className="text-sm text-gray-500">
@@ -173,7 +174,7 @@ const OrderItem = ({ sub, order, handleRateClick, handleCancelOrder }) => {
                 </p>
                 <p className="text-base font-semibold text-gray-800">
                   <span className="text-xs">đ</span>
-                  {Number(item.total).toLocaleString()}
+                  {Number(item.total - item.discount).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -185,7 +186,7 @@ const OrderItem = ({ sub, order, handleRateClick, handleCancelOrder }) => {
       <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-2">
         {sub.status === "pending" && (
           <button
-            onClick={() => handleCancelOrder(order.order_id)}
+            onClick={() => handleCancelOrder(sub.sub_order_id)}
             className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
           >
             Hủy đơn hàng
@@ -254,7 +255,7 @@ const OrdersList = () => {
 
     if (result.isConfirmed) {
       try {
-        await dispatch(cancelOrder(subOrderId)).unwrap();
+        await dispatch(cancelSubOrder(subOrderId)).unwrap();
         dispatch(fetchAllOrders());
         Swal.fire("Đã hủy!", "Đơn hàng đã được hủy thành công.", "success");
       } catch (error) {
@@ -266,13 +267,12 @@ const OrdersList = () => {
   const tabs = [
     { id: "all", label: "Tất cả" },
     { id: "payment_pending", label: "Chờ thanh toán" },
-    { id: "pending_processing", label: "Đang xử lý" }, // Gộp chung 2 trạng thái pending + processing
+    { id: "pending_processing", label: "Đang xử lý" },
     { id: "shipped", label: "Đang giao hàng" },
     { id: "delivered", label: "Hoàn thành" },
     { id: "cancelled", label: "Đã hủy" },
   ];
 
-  // Lọc sub-order theo tab, với yêu cầu ở tab "Chờ thanh toán"
   const filteredOrders = orders
     .flatMap((order) => order.subOrders.map((sub) => ({ sub, order })))
     .filter(({ sub, order }) => {

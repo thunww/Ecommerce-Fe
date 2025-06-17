@@ -2,14 +2,13 @@ import axiosClient from "./axiosClient";
 
 const orderApi = {
   createOrder: async (orderData) => {
-
-    const url = 'orders/create';
+    const url = "orders/create";
     try {
       const response = await axiosClient.post(url, orderData);
-      console.log('API response:', response);
+      console.log("API response:", response);
       return response;
     } catch (error) {
-      console.error('Lỗi khi gọi API tạo đơn hàng:', error);
+      console.error("Lỗi khi gọi API tạo đơn hàng:", error);
       throw error;
     }
   },
@@ -25,8 +24,8 @@ const orderApi = {
     return axiosClient.get(url);
   },
 
-  cancelOrder: (orderId) => {
-    const url = `orders/cancel/${orderId}`;
+  cancelSubOrder: (sub_order_id) => {
+    const url = `orders/cancel-suborder/${sub_order_id}`;
     return axiosClient.patch(url);
   },
 };
