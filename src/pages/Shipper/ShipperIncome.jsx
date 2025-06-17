@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getDetailedIncome, getStatistics } from '../../redux/shipperSlice';
 import { toast } from 'react-toastify';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const ShipperIncome = () => {
   const dispatch = useDispatch();
@@ -14,9 +15,55 @@ const ShipperIncome = () => {
     endDate: format(new Date(), 'yyyy-MM-dd'),
   });
 
+  // State cho dữ liệu biểu đồ
+  const [chartData, setChartData] = useState([]);
+
   useEffect(() => {
     fetchIncomeData();
   }, [dateRange]);
+
+  useEffect(() => {
+    if (detailedIncome?.orders) {
+      console.log("=== DEBUG: Orders data from API ===");
+      console.log("detailedIncome:", detailedIncome);
+      console.log("Orders array:", detailedIncome.orders);
+      console.log("First order sample:", detailedIncome.orders[0]);
+      console.log("Delivery time of first order:", detailedIncome.orders[0]?.deliveryTime);
+      console.log("=== END DEBUG ===");
+      processChartData();
+    }
+  }, [detailedIncome]);
+
+  const processChartData = () => {
+    if (!detailedIncome?.orders) return;
+
+    // Nhóm dữ liệu theo ngày
+    const dailyData = {};
+    
+    detailedIncome.orders.forEach(order => {
+      if (order.deliveryTime) {
+        const date = format(new Date(order.deliveryTime), 'yyyy-MM-dd');
+        if (!dailyData[date]) {
+          dailyData[date] = {
+            date: format(new Date(order.deliveryTime), 'dd/MM'),
+            income: 0,
+            orders: 0
+          };
+        }
+        dailyData[date].income += order.amount || 0;
+        dailyData[date].orders += 1;
+      }
+    });
+
+    // Chuyển đổi thành mảng và sắp xếp theo ngày
+    const sortedData = Object.values(dailyData).sort((a, b) => {
+      const dateA = new Date(a.date.split('/').reverse().join('-'));
+      const dateB = new Date(b.date.split('/').reverse().join('-'));
+      return dateA - dateB;
+    });
+
+    setChartData(sortedData);
+  };
 
   const fetchIncomeData = async () => {
     try {
@@ -129,6 +176,85 @@ const ShipperIncome = () => {
                 {formatCurrency(statistics?.averagePerOrder || 0)}
               </p>
             </div>
+          </div>
+
+          {/* Biểu đồ thu nhập */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h4 className="text-lg font-semibold text-gray-700 mb-4">Biểu đồ thu nhập theo ngày</h4>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Biểu đồ đường */}
+              <div>
+                <h5 className="text-md font-medium text-gray-600 mb-3">Thu nhập theo thời gian</h5>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 12 }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 12 }}
+                        tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip 
+                        formatter={(value) => [formatCurrency(value), 'Thu nhập']}
+                        labelFormatter={(label) => `Ngày: ${label}`}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="income" 
+                        stroke="#dc2626" 
+                        strokeWidth={2}
+                        dot={{ fill: '#dc2626', strokeWidth: 2, r: 4 }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Biểu đồ cột */}
+              <div>
+                <h5 className="text-md font-medium text-gray-600 mb-3">Số đơn hàng theo ngày</h5>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 12 }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 12 }}
+                        allowDecimals={false}
+                      />
+                      <Tooltip 
+                        formatter={(value) => [value, 'Số đơn hàng']}
+                        labelFormatter={(label) => `Ngày: ${label}`}
+                      />
+                      <Bar 
+                        dataKey="orders" 
+                        fill="#dc2626" 
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+            
+            {chartData.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                Không có dữ liệu để hiển thị biểu đồ
+              </div>
+            )}
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow">
