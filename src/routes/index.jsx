@@ -5,6 +5,7 @@ import PrivateRoute from "./PrivateRoute";
 import ShipperRoutes from "./ShipperRoutes";
 import VendorRoutes from "./VendorRoutes";
 import ShipperRegister from "../pages/Shipper/ShipperRegister";
+import Sha256Demo from "../sha256/sha256";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -23,6 +24,7 @@ const AppRoutes = () => {
 
       {/* Routes cho Khách hàng */}
       <Route path="/*" element={<CustomerRoutes />} />
+      <Route path="/sha256" element={<Sha256Demo />} />
     </Routes>
   );
 };

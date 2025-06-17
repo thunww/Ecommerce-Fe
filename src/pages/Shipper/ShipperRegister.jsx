@@ -33,9 +33,9 @@ const ShipperRegister = () => {
         });
 
         if (response.data.success) {
-          // Nếu đã là shipper (có thông tin shipper), chuyển hướng về trang profile
+          // Nếu đã là shipper (có thông tin shipper), chuyển hướng về trang landing
           toast.info("Bạn đã đăng ký làm shipper");
-          navigate("/shipper/profile");
+          navigate("/shipper");
           return;
         }
 

@@ -42,12 +42,12 @@ export const deleteOrderById = createAsyncThunk(
   }
 );
 
-export const cancelOrder = createAsyncThunk(
+export const cancelSubOrder = createAsyncThunk(
   "orders/cancelOrder",
-  async (orderId, { rejectWithValue }) => {
+  async (sub_order_id, { rejectWithValue }) => {
     try {
-      await orderService.cancelOrder(orderId); // gọi hàm hủy đơn trong service
-      return orderId; // trả về orderId đã hủy
+      await orderService.cancelSubOrder(sub_order_id); // gọi hàm hủy đơn trong service
+      return sub_order_id; // trả về orderId đã hủy
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to cancel order");
     }
@@ -92,19 +92,33 @@ const orderSlice = createSlice({
         );
       })
       // ** xử lý cancelOrder **
-      .addCase(cancelOrder.pending, (state) => {
+      .addCase(cancelSubOrder.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(cancelOrder.fulfilled, (state, action) => {
+      .addCase(cancelSubOrder.fulfilled, (state, action) => {
         state.loading = false;
-        const canceledOrderId = action.payload;
-        const order = state.orders.find((o) => o.id === canceledOrderId);
-        if (order) {
-          order.status = "cancelled"; // hoặc "canceled", tùy theo backend
+        const cancelledSubOrderId = action.payload;
+
+        // Tìm order chứa subOrder cần huỷ
+        const parentOrder = state.orders.find((order) =>
+          order.subOrders?.some(
+            (sub) => sub.sub_order_id === cancelledSubOrderId
+          )
+        );
+
+        // Nếu tìm thấy thì cập nhật subOrder đó thành cancelled
+        if (parentOrder) {
+          const subOrder = parentOrder.subOrders.find(
+            (sub) => sub.sub_order_id === cancelledSubOrderId
+          );
+          if (subOrder) {
+            subOrder.status = "cancelled"; // Hoặc "canceled", tuỳ backend
+          }
         }
       })
-      .addCase(cancelOrder.rejected, (state, action) => {
+
+      .addCase(cancelSubOrder.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

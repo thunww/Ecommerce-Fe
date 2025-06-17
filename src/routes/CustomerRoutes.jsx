@@ -31,6 +31,7 @@ import ShipperRegister from "../pages/Shipper/ShipperRegister";
 import Payment from "../components/customer/Components/Payment";
 import ShopPage from "../components/customer/Components/ShopPage/ShopDetail";
 import VendorRegistration from "../components/seller/RegisterVendor/RegisterVendor";
+import VendorRegistration from "../components/seller/RegisterVendor/RegisterVendor";
 import PrivateRoute from "./PrivateRoute";
 
 const CustomerRoutes = () => {
