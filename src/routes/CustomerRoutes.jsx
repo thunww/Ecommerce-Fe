@@ -4,15 +4,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { checkAuthStatus } from "../redux/authSlice";
 import CustomerLayout from "../layouts/CustomerLayout";
 import Home from "../pages/Customer/Pages/Home";
-import ProductListing from "../Pages/Customer/Pages/ProductListing";
-import Login from "../Pages/Auth/Login";
+import ProductListing from "../pages/Customer/Pages/ProductListing";
+import Login from "../pages/Auth/Login";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Register from "../pages/Auth/Register";
-import ProductDetails from "../Pages/Customer/Pages/ProductDetails";
-import MyAccount from "../Pages/Customer/Pages/MyAccount";
+import ProductDetails from "../pages/Customer/Pages/ProductDetails";
+import MyAccount from "../pages/Customer/Pages/MyAccount";
 import Dashboard from "../pages/Customer/Pages/MyAccount/Dashboard";
-import Profile from "../Pages/Customer/Pages/MyAccount/Profile";
+import Profile from "../pages/Customer/Pages/MyAccount/Profile";
 
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
@@ -34,7 +34,7 @@ import AddressList from "../pages/Customer/Pages/Address/AddressList";
 import ShipperRegister from "../pages/Shipper/ShipperRegister";
 import Payment from "../components/customer/Components/Payment";
 import ShopPage from "../components/customer/Components/ShopPage/ShopDetail";
-import VendorRegistration from "../components/seller/RegisterVendor/RegisterVendor"
+import VendorRegistration from "../components/seller/RegisterVendor/RegisterVendor";
 import PrivateRoute from "./PrivateRoute";
 const CustomerRoutes = () => {
   const dispatch = useDispatch();
@@ -67,7 +67,7 @@ const CustomerRoutes = () => {
     <>
       <MyContext.Provider value={values}>
         <Routes>
-        <Route path="/register-vendor" element={<VendorRegistration />} />
+          <Route path="/register-vendor" element={<VendorRegistration />} />
           {/* Bọc tất cả route con trong CustomerLayout */}
           <Route path="/" element={<CustomerLayout />}>
             <Route index element={<Home />} />
@@ -92,7 +92,7 @@ const CustomerRoutes = () => {
               exact={true}
               element={<ProductDetails />}
             />
-            <Route element={<PrivateRoute allowedRoles={['customer']} />}>
+            <Route element={<PrivateRoute allowedRoles={["customer"]} />}>
               <Route path="/cart" exact={true} element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/payment" element={<Payment />} />
