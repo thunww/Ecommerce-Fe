@@ -5,7 +5,7 @@ import { checkAuthStatus } from "../redux/authSlice";
 import CustomerLayout from "../layouts/CustomerLayout";
 import Home from "../pages/Customer/Pages/Home";
 
-import Login from "../Pages/Auth/Login";
+import Login from "../Pages/Auth/login";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Register from "../pages/Auth/Register";
