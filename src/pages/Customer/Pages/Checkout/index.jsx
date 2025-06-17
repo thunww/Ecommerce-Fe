@@ -72,7 +72,10 @@ const Checkout = () => {
   const totalAmount = selectedProducts().reduce(
     (total, item) => total + parseFloat(item.price) * item.quantity,
     0
+
+
   );
+
 
   useEffect(() => {
     dispatch(fetchAllAddresses());
@@ -168,7 +171,7 @@ const Checkout = () => {
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
-          "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!"
+        "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!"
       );
     } finally {
       setLoading(false);
@@ -561,6 +564,7 @@ const Checkout = () => {
                   Tổng thanh toán:
                 </Typography>
                 <Typography variant="h6" color="#ee4d2d" fontWeight="bold">
+
                   {formatPrice(totalAmount - discount)}
                 </Typography>
               </Box>
