@@ -78,7 +78,7 @@ const ShipperDashboard = () => {
           return parts.join(', ');
         };
 
-        const user = order.Order?.User || {};
+        const user = order.order?.User || {};
         const fullName = user.first_name && user.last_name ? 
           `${user.first_name} ${user.last_name}` : 'Không xác định';
 
@@ -94,7 +94,7 @@ const ShipperDashboard = () => {
           customerPhone: user.phone || 'Không có SĐT',
           customerEmail: user.email || '',
           customerAvatar: user.profile_picture || null,
-          address: formatAddress(order.Order?.shipping_address),
+          address: formatAddress(order.order?.shipping_address),
           time: order.created_at ? new Date(order.created_at).toLocaleString() : 'Không xác định',
           deliveredTime: order.status === 'delivered' && order.shipment?.actual_delivery_date 
             ? new Date(order.shipment.actual_delivery_date).toLocaleString() 
