@@ -1,7 +1,12 @@
 // File cấu hình cho ứng dụng
 
-// API URL - sử dụng URL mặc định khi không có biến môi trường
-export const API_BASE_URL = "http://localhost:5000/api/v1";
+// Lấy cổng backend từ biến môi trường hoặc mặc định là 8080 cho local
+const BACKEND_PORT = import.meta.env.VITE_BACKEND_PORT || "8080";
+const API_URL =
+  import.meta.env.VITE_API_URL || `http://localhost:${BACKEND_PORT}/api/v1`;
+
+// API URL - sử dụng biến môi trường hoặc fallback về localhost
+export const API_BASE_URL = API_URL;
 
 // Upload URL
 export const UPLOAD_URL = `${API_BASE_URL}/products/images/upload`;

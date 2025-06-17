@@ -13,8 +13,11 @@ RUN npm install --force
 # Copy source code (excluding node_modules due to .dockerignore)
 COPY . .
 
+# Copy .env.docker to .env
+COPY .env.docker .env
+
 # Build the app
-RUN npm run build
+RUN npm run build -- --mode docker
 
 # Production stage
 FROM nginx:alpine
