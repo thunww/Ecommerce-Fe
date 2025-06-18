@@ -56,10 +56,10 @@ const ShipperRegister = () => {
   }, [navigate]);
 
   const vehicleTypes = [
-    { value: 'bike', label: 'Xe máy' },
-    { value: 'car', label: 'Ô tô' },
-    { value: 'truck', label: 'Xe tải' },
-    { value: 'van', label: 'Xe tải nhỏ' }
+    { value: "bike", label: "Xe máy" },
+    { value: "car", label: "Ô tô" },
+    { value: "truck", label: "Xe tải" },
+    { value: "van", label: "Xe tải nhỏ" },
   ];
 
   const handleChange = (e) => {
@@ -117,7 +117,7 @@ const ShipperRegister = () => {
         navigate("/");
       } else {
         if (response.data.errors && Array.isArray(response.data.errors)) {
-          response.data.errors.forEach(error => {
+          response.data.errors.forEach((error) => {
             toast.error(error);
           });
         } else if (response.data.message) {
@@ -128,22 +128,31 @@ const ShipperRegister = () => {
       }
     } catch (error) {
       console.error("Error registering shipper:", error);
-      
+
       if (error.response) {
         if (error.response.data.code === "DUPLICATE_PHONE") {
-          toast.error("Số điện thoại này đã được đăng ký. Vui lòng sử dụng số điện thoại khác.");
+          toast.error(
+            "Số điện thoại này đã được đăng ký. Vui lòng sử dụng số điện thoại khác."
+          );
         } else if (error.response.data.code === "DUPLICATE_LICENSE_PLATE") {
           toast.error("Biển số xe này đã được đăng ký. Vui lòng kiểm tra lại.");
-        } else if (error.response.data.errors && Array.isArray(error.response.data.errors)) {
-          error.response.data.errors.forEach(err => {
+        } else if (
+          error.response.data.errors &&
+          Array.isArray(error.response.data.errors)
+        ) {
+          error.response.data.errors.forEach((err) => {
             toast.error(err);
           });
         } else if (error.response.data.message) {
           const message = error.response.data.message.toLowerCase();
           if (message.includes("phone") && message.includes("exist")) {
-            toast.error("Số điện thoại này đã được đăng ký. Vui lòng sử dụng số điện thoại khác.");
+            toast.error(
+              "Số điện thoại này đã được đăng ký. Vui lòng sử dụng số điện thoại khác."
+            );
           } else if (message.includes("license") && message.includes("exist")) {
-            toast.error("Biển số xe này đã được đăng ký. Vui lòng kiểm tra lại.");
+            toast.error(
+              "Biển số xe này đã được đăng ký. Vui lòng kiểm tra lại."
+            );
           } else {
             toast.error(error.response.data.message);
           }
@@ -153,12 +162,16 @@ const ShipperRegister = () => {
         } else if (error.response.status === 403) {
           toast.error("Bạn không có quyền thực hiện thao tác này.");
         } else if (error.response.status === 409) {
-          toast.error("Thông tin đăng ký đã tồn tại trong hệ thống. Vui lòng kiểm tra lại số điện thoại hoặc biển số xe.");
+          toast.error(
+            "Thông tin đăng ký đã tồn tại trong hệ thống. Vui lòng kiểm tra lại số điện thoại hoặc biển số xe."
+          );
         } else {
           toast.error(`Lỗi: ${error.response.status} - Vui lòng thử lại sau.`);
         }
       } else if (error.request) {
-        toast.error("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.");
+        toast.error(
+          "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng."
+        );
       } else {
         toast.error("Có lỗi xảy ra. Vui lòng thử lại sau.");
       }
