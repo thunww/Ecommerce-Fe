@@ -240,36 +240,6 @@ const ShipperOrderDetail = () => {
                 : "Chưa cập nhật"}
             </div>
           </div>
-          <div style={{ display: "flex", marginBottom: "10px" }}>
-            <div style={{ width: "150px", fontWeight: "bold" }}>Tiền hàng:</div>
-            <div>
-              {(
-                parseFloat(order.total_price || 0) -
-                parseFloat(order.shipping_fee || 0)
-              ).toLocaleString("vi-VN")}
-              đ
-            </div>
-          </div>
-          <div style={{ display: "flex", marginBottom: "10px" }}>
-            <div style={{ width: "150px", fontWeight: "bold" }}>
-              Phí vận chuyển:
-            </div>
-            <div>
-              {parseFloat(order.shipping_fee || 0).toLocaleString("vi-VN")}đ
-            </div>
-          </div>
-          <div style={{ display: "flex", marginBottom: "10px" }}>
-            <div style={{ width: "150px", fontWeight: "bold" }}>Tổng cộng:</div>
-            <div
-              style={{
-                fontWeight: "bold",
-                color: "#1890ff",
-                fontSize: "1.1em",
-              }}
-            >
-              {parseFloat(order.total_price || 0).toLocaleString("vi-VN")}đ
-            </div>
-          </div>
         </div>
 
         <div style={{ marginBottom: "20px" }}>
