@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axiosClient from "../../api/axiosClient";
 import moment from "moment";
 import "moment/locale/vi";
 
@@ -21,8 +21,8 @@ const ShipperOrderDetail = () => {
 
   const fetchOrderDetails = async () => {
     try {
-      const response = await axios.get(
-        `/api/v1/shippers/sub_orders/${orderId}`
+      const response = await axiosClient.get(
+        `/shippers/sub_orders/${orderId}`
       );
       if (response.data.success) {
         console.log("Order details:", response.data.data);
@@ -40,8 +40,8 @@ const ShipperOrderDetail = () => {
   const handleAcceptOrder = async () => {
     try {
       setAccepting(true);
-      const response = await axios.post(
-        `/api/v1/shippers/sub_orders/${orderId}/accept`
+      const response = await axiosClient.post(
+        `/shippers/sub_orders/${orderId}/accept`
       );
       if (response.data.success) {
         console.log("Nhận đơn hàng thành công");
@@ -59,8 +59,8 @@ const ShipperOrderDetail = () => {
   const handleCompleteOrder = async () => {
     try {
       setAccepting(true);
-      const response = await axios.put(
-        `/api/v1/shippers/sub_orders/${orderId}/complete`
+      const response = await axiosClient.post(
+        `/shippers/sub_orders/${orderId}/complete`
       );
       if (response.data.success) {
         console.log("Hoàn thành đơn hàng thành công");
@@ -238,36 +238,6 @@ const ShipperOrderDetail = () => {
                     "DD/MM/YYYY HH:mm"
                   )
                 : "Chưa cập nhật"}
-            </div>
-          </div>
-          <div style={{ display: "flex", marginBottom: "10px" }}>
-            <div style={{ width: "150px", fontWeight: "bold" }}>Tiền hàng:</div>
-            <div>
-              {(
-                parseFloat(order.total_price || 0) -
-                parseFloat(order.shipping_fee || 0)
-              ).toLocaleString("vi-VN")}
-              đ
-            </div>
-          </div>
-          <div style={{ display: "flex", marginBottom: "10px" }}>
-            <div style={{ width: "150px", fontWeight: "bold" }}>
-              Phí vận chuyển:
-            </div>
-            <div>
-              {parseFloat(order.shipping_fee || 0).toLocaleString("vi-VN")}đ
-            </div>
-          </div>
-          <div style={{ display: "flex", marginBottom: "10px" }}>
-            <div style={{ width: "150px", fontWeight: "bold" }}>Tổng cộng:</div>
-            <div
-              style={{
-                fontWeight: "bold",
-                color: "#1890ff",
-                fontSize: "1.1em",
-              }}
-            >
-              {parseFloat(order.total_price || 0).toLocaleString("vi-VN")}đ
             </div>
           </div>
         </div>
