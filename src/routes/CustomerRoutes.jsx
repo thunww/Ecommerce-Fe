@@ -4,13 +4,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { checkAuthStatus } from "../redux/authSlice";
 import CustomerLayout from "../layouts/CustomerLayout";
 import Home from "../pages/Customer/Pages/Home";
+
 import ProductListing from "../pages/Customer/Pages/ProductListing";
+
+
 import Login from "../pages/Auth/Login";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Register from "../pages/Auth/Register";
 import ProductDetails from "../pages/Customer/Pages/ProductDetails";
 import MyAccount from "../pages/Customer/Pages/MyAccount";
+
 
 import Dashboard from "../pages/Customer/Pages/MyAccount/Dashboard";
 import Profile from "../pages/Customer/Pages/MyAccount/Profile";
@@ -66,10 +70,17 @@ const CustomerRoutes = () => {
     <>
       <MyContext.Provider value={values}>
         <Routes>
+
           <Route element={<PrivateRoute allowedRoles={["customer"]} />}>
             <Route path="/register-vendor" element={<VendorRegistration />} />
           </Route>
           {/* Bọc tất cả route con trong CustomerLayout */}
+
+
+          {/* <Route path="/register-vendor" element={<VendorRegistration />} />
+          Bọc tất cả route con trong CustomerLayout */}
+
+
           <Route path="/" element={<CustomerLayout />}>
             <Route index element={<Home />} />
             <Route path="search" element={<SearchPage />} />
