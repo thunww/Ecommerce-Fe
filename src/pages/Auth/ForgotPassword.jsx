@@ -18,9 +18,10 @@ const ForgotPassword = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/v1/auth/forgot-password",
+        `${import.meta.env.VITE_API_URL}/api/v1/auth/forgot-password`,
         { email }
       );
+
       toast.success(response.data.message || "Reset email has been sent!", {
         position: "top-right",
       });

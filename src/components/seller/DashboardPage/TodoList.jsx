@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { getOrderStats } from "../../../services/vendorService";
 import { Bar } from "react-chartjs-2";
-import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Title, Tooltip } from "chart.js";
+import {
+  Chart as ChartJS,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Title,
+  Tooltip,
+} from "chart.js";
+import { useSelector } from "react-redux";
 
 // Register Chart.js components
 ChartJS.register(BarElement, CategoryScale, LinearScale, Title, Tooltip);
@@ -22,18 +30,19 @@ const ToDoList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Lấy user và roles từ Redux store
+  const { user, roles } = useSelector((state) => state.auth);
+
   useEffect(() => {
     const fetchOrderStats = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
+        // Kiểm tra trạng thái đăng nhập và vai trò từ Redux store
+        if (!user || !user.user_id) {
           throw new Error("You are not logged in");
         }
-
-        const roles = JSON.parse(localStorage.getItem("roles") || "[]");
         if (!roles.includes("vendor")) {
           throw new Error("You don't have permission to access this page");
         }
@@ -48,41 +57,52 @@ const ToDoList = () => {
       }
     };
 
-    fetchOrderStats();
-  }, []);
+    // Chỉ gọi fetchOrderStats nếu user và roles đã có (người dùng đã đăng nhập và được xác định)
+    if (user && roles.length > 0) {
+      fetchOrderStats();
+    }
+  }, [user, roles]); // Thêm user và roles vào dependency array
 
   // Chart data
   const chartData = {
     labels: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"],
-    datasets: [{
-      label: "Order Status Statistics",
-      data: [
-        stats.ordersByStatus.pending,
-        stats.ordersByStatus.processing,
-        stats.ordersByStatus.shipped,
-        stats.ordersByStatus.delivered,
-        stats.ordersByStatus.cancelled
-      ],
-      backgroundColor: ["#3B82F6", "#F59E0B", "#8B5CF6", "#10B981", "#EF4444"],
-      borderColor: ["#2563EB", "#D97706", "#7C3AED", "#059669", "#DC2626"],
-      borderWidth: 1
-    }]
+    datasets: [
+      {
+        label: "Order Status Statistics",
+        data: [
+          stats.ordersByStatus.pending,
+          stats.ordersByStatus.processing,
+          stats.ordersByStatus.shipped,
+          stats.ordersByStatus.delivered,
+          stats.ordersByStatus.cancelled,
+        ],
+        backgroundColor: [
+          "#3B82F6",
+          "#F59E0B",
+          "#8B5CF6",
+          "#10B981",
+          "#EF4444",
+        ],
+        borderColor: ["#2563EB", "#D97706", "#7C3AED", "#059669", "#DC2626"],
+        borderWidth: 1,
+      },
+    ],
   };
 
   const chartOptions = {
     scales: {
       y: {
         beginAtZero: true,
-        title: { display: true, text: "Number of Orders" }
+        title: { display: true, text: "Number of Orders" },
       },
       x: {
-        title: { display: true, text: "Order Status" }
-      }
+        title: { display: true, text: "Order Status" },
+      },
     },
     plugins: {
       legend: { display: false },
-      title: { display: true, text: "Order Status Statistics" }
-    }
+      title: { display: true, text: "Order Status Statistics" },
+    },
   };
 
   if (loading) {

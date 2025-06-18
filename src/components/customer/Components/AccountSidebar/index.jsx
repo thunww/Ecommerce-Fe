@@ -9,6 +9,7 @@ import { IoLocationOutline } from "react-icons/io5";
 import { CiHeart } from "react-icons/ci";
 import { MdOutlineLogout } from "react-icons/md";
 import { fetchAllOrders } from "../../../../redux/orderSlice";
+import { fetchReviewsByUser } from "../../../../redux/reviewsSilce";
 
 const AccountSidebar = ({ user }) => {
   const navigate = useNavigate();
@@ -19,8 +20,12 @@ const AccountSidebar = ({ user }) => {
     navigate("/login");
   };
   const { orders, loading, error } = useSelector((state) => state.orders);
+  const { reviews: reviewList } = useSelector((state) => state.reviews);
+  const reviewCount = reviewList?.length || 0;
+
   useEffect(() => {
     dispatch(fetchAllOrders());
+    dispatch(fetchReviewsByUser());
   }, [dispatch]);
 
   const orderCount =
@@ -70,7 +75,7 @@ const AccountSidebar = ({ user }) => {
               <p className="text-xs">Favorites</p>
             </div>
             <div className="px-1">
-              <p className="font-bold text-lg sm:text-xl">0</p>
+              <p className="font-bold text-lg sm:text-xl">{reviewCount}</p>
               <p className="text-xs">Reviews</p>
             </div>
           </div>

@@ -174,7 +174,7 @@ const OrderItem = ({ sub, order, handleRateClick, handleCancelOrder }) => {
                 </p>
                 <p className="text-base font-semibold text-gray-800">
                   <span className="text-xs">đ</span>
-                  {Number(item.total).toLocaleString()}
+                  {Number(item.total - item.discount).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -322,7 +322,7 @@ const OrdersList = () => {
         {/* Modal đánh giá */}
         {showRateModal && selectedOrderItem && (
           <RateModal
-            show={showRateModal}
+            isOpen={showRateModal}
             onClose={() => setShowRateModal(false)}
             orderItem={selectedOrderItem}
           />

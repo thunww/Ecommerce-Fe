@@ -11,7 +11,9 @@ import ProductsSlider from "../../../../components/customer/Components/ProductsS
 import { Link } from "react-router-dom";
 import Footer from "../../../../components/customer/Components/Footer";
 import HomeBannerV2 from "../../../../components/customer/Components/HomeSliderV2";
-import BannerBoxV2 from "../../../../components/customer/Components/BannerBoxV2";
+
+import BannerBoxV2 from "../../../../components/customer/Components/bannerBoxV2";
+
 import Header from "../../../../components/customer/Components/Header";
 import { fetchUserById } from "../../../../redux/adminSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -197,11 +199,10 @@ const Home = () => {
               <button
                 key={index + 1}
                 onClick={() => handlePageChange(index + 1)}
-                className={`w-9 h-9 flex items-center justify-center rounded-full border ${
-                  currentPage === index + 1
-                    ? "bg-blue-500 text-white font-bold"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`w-9 h-9 flex items-center justify-center rounded-full border ${currentPage === index + 1
+                  ? "bg-blue-500 text-white font-bold"
+                  : "text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 {index + 1}
               </button>

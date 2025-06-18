@@ -27,6 +27,12 @@ export const login = createAsyncThunk(
   }
 );
 
+// Action: Đăng xuất (Logout)
+export const logout = createAsyncThunk("auth/logout", async () => {
+  await authService.logout();
+  return null;
+});
+
 // Action: Lấy thông tin user (getProfile)
 export const getProfile = createAsyncThunk(
   "auth/getProfile",
@@ -39,12 +45,6 @@ export const getProfile = createAsyncThunk(
     }
   }
 );
-
-// Action: Đăng xuất (Logout)
-export const logout = createAsyncThunk("auth/logout", async () => {
-  await authService.logout();
-  return null;
-});
 
 const initialState = {
   user: (() => {
@@ -63,11 +63,11 @@ const initialState = {
       return [];
     }
   })(),
-  token: localStorage.getItem("accessToken") || null,
-  isAuthenticated: !!localStorage.getItem("accessToken"),
+  token: null, // Token không còn được quản lý ở frontend
+  isAuthenticated: !!localStorage.getItem("user"), // Kiểm tra dựa trên sự tồn tại của user
   isLoading: false,
-  message: null, // Thêm để lưu message (thành công)
-  error: null, // Lưu message lỗi
+  message: null,
+  error: null,
 };
 
 // Tạo slice
@@ -76,9 +76,7 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     checkAuthStatus: (state) => {
-      const token = localStorage.getItem("accessToken");
-      state.isAuthenticated = !!token;
-      state.token = token;
+      state.isAuthenticated = !!state.user;
     },
     resetMessage: (state) => {
       state.message = null;
@@ -91,21 +89,20 @@ const authSlice = createSlice({
       .addCase(register.pending, (state) => {
         state.isLoading = true;
         state.error = null;
-        state.message = null; // Reset message
+        state.message = null;
       })
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
         state.roles = action.payload.user?.roles || [];
-        state.token = action.payload.token;
-        state.isAuthenticated = false;
-        state.message = action.payload.message; // Lưu message
+        state.isAuthenticated = false; // Sau đăng ký thường chưa tự động đăng nhập
+        state.message = action.payload.message;
         localStorage.setItem("user", JSON.stringify(action.payload.user));
-        localStorage.setItem("accessToken", action.payload.token);
         localStorage.setItem(
           "roles",
           JSON.stringify(action.payload.user?.roles || [])
         );
+        // Không lưu accessToken vào localStorage sau khi đăng ký
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
@@ -116,32 +113,31 @@ const authSlice = createSlice({
       .addCase(login.pending, (state) => {
         state.isLoading = true;
         state.error = null;
-        state.message = null; // Reset message
+        state.message = null;
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
-        state.token = action.payload.token;
         state.roles = action.payload.user.roles;
         state.isAuthenticated = true;
-        state.message = action.payload.message; // Lưu message
+        state.message = action.payload.message;
         localStorage.setItem("user", JSON.stringify(action.payload.user));
-        localStorage.setItem("accessToken", action.payload.token);
         localStorage.setItem(
           "roles",
           JSON.stringify(action.payload.user.roles)
         );
+        // Không lưu accessToken vào localStorage nữa vì nó được đặt trong HttpOnly cookie
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload; // Lưu message lỗi
+        state.error = action.payload;
       })
 
       // Lấy profile
       .addCase(getProfile.pending, (state) => {
         state.isLoading = true;
         state.error = null;
-        state.message = null; // Reset message
+        state.message = null;
       })
       .addCase(getProfile.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -158,14 +154,13 @@ const authSlice = createSlice({
       // Đăng xuất
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
-        state.token = null;
         state.roles = [];
         state.isAuthenticated = false;
-        state.message = null; // Reset message
-        state.error = null; // Reset error
+        state.message = null;
+        state.error = null;
         localStorage.removeItem("user");
-        localStorage.removeItem("accessToken");
         localStorage.removeItem("roles");
+        // Không cần xóa accessToken khỏi localStorage
       });
   },
 });
