@@ -14,6 +14,49 @@ export const fetchReviewsByProductId = createAsyncThunk(
   }
 );
 
+// Lấy tất cả review của user
+export const fetchReviewsByUser = createAsyncThunk(
+  "reviews/fetchReviewsByUser",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await reviewsService.getReviewsByUser();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to fetch user reviews"
+      );
+    }
+  }
+);
+
+// Lấy tất cả review cho admin
+export const fetchAllReviews = createAsyncThunk(
+  "reviews/fetchAllReviews",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await reviewsService.getAllReviews();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to fetch all reviews"
+      );
+    }
+  }
+);
+
+// Lấy chi tiết 1 review
+export const fetchReviewById = createAsyncThunk(
+  "reviews/fetchReviewById",
+  async (reviewId, { rejectWithValue }) => {
+    try {
+      const response = await reviewsService.getReviewById(reviewId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to fetch review");
+    }
+  }
+);
+
 // Tạo mới review
 export const createReview = createAsyncThunk(
   "reviews/createReview",
@@ -23,6 +66,23 @@ export const createReview = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to create review");
+    }
+  }
+);
+
+export const updateReviewStatus = createAsyncThunk(
+  "reviews/updateReviewStatus",
+  async ({ reviewId, statusData }, { rejectWithValue }) => {
+    try {
+      const response = await reviewsService.updateReviewStatus(
+        reviewId,
+        statusData
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to update review status"
+      );
     }
   }
 );
@@ -57,13 +117,14 @@ const reviewSlice = createSlice({
   name: "reviews",
   initialState: {
     reviews: [],
+    reviewDetail: null,
     loading: false,
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Fetch reviews
+      // --- GET BY PRODUCT ID ---
       .addCase(fetchReviewsByProductId.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -77,7 +138,49 @@ const reviewSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Create review
+      // --- GET BY USER ---
+      .addCase(fetchReviewsByUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchReviewsByUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.reviews = action.payload;
+      })
+      .addCase(fetchReviewsByUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // --- GET ALL (admin) ---
+      .addCase(fetchAllReviews.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllReviews.fulfilled, (state, action) => {
+        state.loading = false;
+        state.reviews = action.payload;
+      })
+      .addCase(fetchAllReviews.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // --- GET ONE ---
+      .addCase(fetchReviewById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchReviewById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.reviewDetail = action.payload;
+      })
+      .addCase(fetchReviewById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // --- CREATE ---
       .addCase(createReview.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -91,7 +194,7 @@ const reviewSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Update review
+      // --- UPDATE ---
       .addCase(updateReview.fulfilled, (state, action) => {
         const index = state.reviews.findIndex(
           (r) => r.review_id === action.payload.review_id
@@ -101,7 +204,17 @@ const reviewSlice = createSlice({
         }
       })
 
-      // Delete review
+      // --- UPDATE STATUS ---
+      .addCase(updateReviewStatus.fulfilled, (state, action) => {
+        const index = state.reviews.findIndex(
+          (r) => r.review_id === action.payload.review_id
+        );
+        if (index !== -1) {
+          state.reviews[index] = action.payload;
+        }
+      })
+
+      // --- DELETE ---
       .addCase(deleteReview.fulfilled, (state, action) => {
         state.reviews = state.reviews.filter(
           (r) => r.review_id !== action.payload
