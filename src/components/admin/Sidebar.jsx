@@ -151,7 +151,7 @@ const Sidebar = ({ isOpen }) => {
           isOpen={isOpen}
         />
         <SidebarItem
-          to="/admin/comments"
+          to="/admin/reviews"
           icon={<MessageSquare size={20} />}
           label="Comments"
           isOpen={isOpen}
