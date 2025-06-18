@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosClient from '../../api/axiosClient';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 
@@ -34,9 +34,8 @@ const OrdersTable = ({ orders, onOrderUpdate }) => {
         return;
       }
 
-      const API_URL = 'http://localhost:8080';
-      const response = await axios.post(
-        `${API_URL}/api/v1/shippers/sub_orders/${orderId}/accept`,
+      const response = await axiosClient.post(
+        `/shippers/sub_orders/${orderId}/accept`,
         {},
         {
           headers: {
@@ -64,9 +63,8 @@ const OrdersTable = ({ orders, onOrderUpdate }) => {
         return;
       }
 
-      const API_URL = 'http://localhost:8080';
-      const response = await axios.post(
-        `${API_URL}/api/v1/shippers/sub_orders/${orderId}/complete`,
+      const response = await axiosClient.post(
+        `/shippers/sub_orders/${orderId}/complete`,
         {},
         {
           headers: {
@@ -94,9 +92,8 @@ const OrdersTable = ({ orders, onOrderUpdate }) => {
         return;
       }
 
-      const API_URL = 'http://localhost:8080';
-      const response = await axios.post(
-        `${API_URL}/api/v1/shippers/sub_orders/${orderId}/cancel`,
+      const response = await axiosClient.post(
+        `/shippers/sub_orders/${orderId}/cancel`,
         {},
         {
           headers: {

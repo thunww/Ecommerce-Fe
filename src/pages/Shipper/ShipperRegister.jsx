@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import axiosClient from "../../api/axiosClient";
 import { toast } from "react-toastify";
 import ShipperLogo from "../../components/shipper/ShipperLogo";
 
@@ -26,7 +26,7 @@ const ShipperRegister = () => {
 
       try {
         // Kiểm tra xem người dùng đã là shipper chưa
-        const response = await axios.get("/api/v1/shippers/profile", {
+        const response = await axiosClient.get("/shippers/profile", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -104,7 +104,7 @@ const ShipperRegister = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("accessToken");
-      const response = await axios.post("/api/v1/shippers/register", formData, {
+      const response = await axiosClient.post("/shippers/register", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

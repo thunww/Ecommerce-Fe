@@ -1,13 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "../config/axios";
+import axiosClient from "../api/axiosClient";
 import shipperService from "../services/shipperService";
 // Async thunk for shipper registration
 export const registerShipper = createAsyncThunk(
   "shipper/register",
   async (shipperData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "/api/v1/shippers/register",
+      const response = await axiosClient.post(
+        "/shippers/register",
         shipperData
       );
       return response.data;
@@ -22,8 +22,8 @@ export const acceptOrder = createAsyncThunk(
   "shipper/acceptOrder",
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        `/api/v1/shippers/sub_orders/${orderId}/accept`
+      const response = await axiosClient.post(
+        `/shippers/sub_orders/${orderId}/accept`
       );
       return response.data;
     } catch (error) {
@@ -37,8 +37,8 @@ export const completeOrder = createAsyncThunk(
   "shipper/completeOrder",
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        `/api/v1/shippers/sub_orders/${orderId}/complete`
+      const response = await axiosClient.post(
+        `/shippers/sub_orders/${orderId}/complete`
       );
       return response.data;
     } catch (error) {
@@ -52,8 +52,8 @@ export const getOrderDetails = createAsyncThunk(
   "shipper/getOrderDetails",
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `/api/v1/shippers/sub_orders/${orderId}`
+      const response = await axiosClient.get(
+        `/shippers/sub_orders/${orderId}`
       );
       return response.data;
     } catch (error) {
@@ -67,19 +67,7 @@ export const getOrders = createAsyncThunk(
   "shipper/getOrders",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        throw new Error("No access token found");
-      }
-
-      const response = await axios.get(
-        `${API_URL}/api/v1/shippers/sub_orders`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axiosClient.get("/shippers/sub_orders");
 
       console.log("API Response:", response.data);
       if (response.data.success) {
@@ -98,7 +86,7 @@ export const getShipperProfile = createAsyncThunk(
   "shipper/getProfile",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("/api/v1/shippers/profile", {
+      const response = await axiosClient.get("/shippers/profile", {
         headers: {
           "Cache-Control": "no-cache",
           Pragma: "no-cache",
@@ -117,8 +105,8 @@ export const updateAvatar = createAsyncThunk(
   "shipper/updateAvatar",
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await axios.put(
-        "/api/v1/shippers/profile/avatar",
+      const response = await axiosClient.put(
+        "/shippers/profile/avatar",
         formData,
         {
           headers: {
@@ -138,8 +126,8 @@ export const updateOrderLocation = createAsyncThunk(
   "shipper/updateOrderLocation",
   async ({ orderId, location }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(
-        `/api/shippers/orders/${orderId}/location`,
+      const response = await axiosClient.put(
+        `/shippers/orders/${orderId}/location`,
         {
           latitude: location.latitude,
           longitude: location.longitude,
@@ -159,8 +147,8 @@ export const updateShipperProfile = createAsyncThunk(
     try {
       console.log("Sending profile update data:", profileData);
 
-      const response = await axios.put(
-        "/api/v1/shippers/profile",
+      const response = await axiosClient.put(
+        "/shippers/profile",
         {
           vehicle_type: profileData.vehicle_type,
           license_plate: profileData.license_plate,
@@ -197,7 +185,7 @@ export const getDetailedIncome = createAsyncThunk(
   "shipper/getDetailedIncome",
   async ({ startDate, endDate }, { rejectWithValue }) => {
     try {
-      const response = await axios.get("/api/v1/shippers/income/filter", {
+      const response = await axiosClient.get("/shippers/income/filter", {
         params: {
           startDate,
           endDate,
@@ -215,7 +203,7 @@ export const getStatistics = createAsyncThunk(
   "shipper/getStatistics",
   async ({ startDate, endDate }, { rejectWithValue }) => {
     try {
-      const response = await axios.get("/api/v1/shippers/income/filter", {
+      const response = await axiosClient.get("/shippers/income/filter", {
         params: {
           startDate,
           endDate,

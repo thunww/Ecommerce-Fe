@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import ShipperStatsCards from "../../components/shipper/ShipperStatsCards";
 import OrdersTable from "../../components/shipper/OrdersTable";
 import { FaSearch } from "react-icons/fa";
-import axios from "axios";
+import axiosClient from "../../api/axiosClient";
 import { toast } from "react-toastify";
 
 const ShipperDashboard = () => {
@@ -19,21 +19,10 @@ const ShipperDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // setIsLoading(true);
-      // const token = localStorage.getItem("accessToken");
-      // console.log("Token:", token);
-
-      // if (!token) {
-      //   toast.error("Vui lòng đăng nhập lại");
-      //   return;
-      // }
-
-      const API_URL = import.meta.env.VITE_API_URL;
+      setIsLoading(true);
 
       // Lấy danh sách đơn hàng gần đây
-      const ordersResponse = await axios.get(`${API_URL}/shippers/sub_orders`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const ordersResponse = await axiosClient.get("/shippers/sub_orders");
       console.log("Orders Response:", ordersResponse.data);
 
       const allOrders = ordersResponse.data.data || [];
@@ -84,7 +73,7 @@ const ShipperDashboard = () => {
           return parts.join(", ");
         };
 
-        const user = order.order?.User || {};
+        const user = order.Order?.User || {};
         const fullName =
           user.first_name && user.last_name
             ? `${user.first_name} ${user.last_name}`
@@ -102,7 +91,7 @@ const ShipperDashboard = () => {
           customerPhone: user.phone || "Không có SĐT",
           customerEmail: user.email || "",
           customerAvatar: user.profile_picture || null,
-          address: formatAddress(order.order?.shipping_address),
+          address: formatAddress(order.Order?.shipping_address),
           time: order.created_at
             ? new Date(order.created_at).toLocaleString()
             : "Không xác định",
@@ -154,22 +143,8 @@ const ShipperDashboard = () => {
 
   const handleAcceptOrder = async (orderId) => {
     try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        toast.error("Vui lòng đăng nhập lại");
-        return;
-      }
-
-      const API_URL = import.meta.env.VITE_API_URL;
-      const response = await axios.post(
-        `${API_URL}/shippers/sub_orders/${orderId}/accept`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
+      const response = await axiosClient.post(
+        `/shippers/sub_orders/${orderId}/accept`
       );
 
       if (response.data.success) {
@@ -184,22 +159,8 @@ const ShipperDashboard = () => {
 
   const handleCompleteOrder = async (orderId) => {
     try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        toast.error("Vui lòng đăng nhập lại");
-        return;
-      }
-
-      const API_URL = import.meta.env.VITE_API_URL;
-      const response = await axios.post(
-        `${API_URL}/shippers/sub_orders/${orderId}/complete`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
+      const response = await axiosClient.post(
+        `/shippers/sub_orders/${orderId}/complete`
       );
 
       if (response.data.success) {

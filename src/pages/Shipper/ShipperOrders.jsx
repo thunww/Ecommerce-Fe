@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import OrdersTable from "../../components/shipper/OrdersTable";
 import { FaSearch } from "react-icons/fa";
-import axios from "axios";
+import axiosClient from "../../api/axiosClient";
 import { toast } from "react-toastify";
 
 const ShipperOrders = () => {
@@ -19,8 +19,7 @@ const ShipperOrders = () => {
         return;
       }
 
-      const API_URL = 'http://localhost:8080';
-      const response = await axios.get(`${API_URL}/api/v1/shippers/sub_orders`, {
+      const response = await axiosClient.get("/shippers/sub_orders", {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -40,7 +39,7 @@ const ShipperOrders = () => {
           return parts.join(', ');
         };
 
-        const user = order.order?.User || {};
+        const user = order.Order?.User || {};
         console.log('Processing order:', {
           orderId: order.sub_order_id,
           user: user,
@@ -57,7 +56,7 @@ const ShipperOrders = () => {
           customerPhone: user.phone || 'Không có SĐT',
           customerEmail: user.email || '',
           customerAvatar: user.profile_picture || null,
-          address: formatAddress(order.order?.shipping_address),
+          address: formatAddress(order.Order?.shipping_address),
           time: order.created_at ? new Date(order.created_at).toLocaleString() : 'Không xác định',
           deliveredTime: order.status === 'delivered' && order.shipment?.actual_delivery_date 
             ? new Date(order.shipment.actual_delivery_date).toLocaleString() 
