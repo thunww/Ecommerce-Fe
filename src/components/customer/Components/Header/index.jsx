@@ -47,8 +47,9 @@ const Header = () => {
 
   const users = useSelector((state) => state.auth.user);
   const cartItems = useSelector((state) => state.cart.items);
-  const cartCount = users ? cartItems.reduce((total, item) => total + item.quantity, 0) : 0;
-
+  const cartCount = users
+    ? cartItems.reduce((total, item) => total + item.quantity, 0)
+    : 0;
 
   const { orders, loading, error } = useSelector((state) => state.orders);
 
@@ -156,7 +157,7 @@ const Header = () => {
                       size="small"
                       className="p-1 sm:p-2"
                     >
-                      <StyledBadge badgeContent={69} color="secondary">
+                      <StyledBadge color="secondary">
                         <FaRegHeart className="text-base sm:text-lg" />
                       </StyledBadge>
                     </IconButton>
@@ -164,17 +165,15 @@ const Header = () => {
                 </li>
                 <li>
                   <Tooltip title="Notification">
-                    <Link to="#">
-                      <IconButton
-                        aria-label="notification"
-                        size="small"
-                        className="p-1 sm:p-2"
-                      >
-                        <StyledBadge badgeContent={69} color="secondary">
-                          <MdNotificationsNone className="text-base sm:text-lg" />
-                        </StyledBadge>
-                      </IconButton>
-                    </Link>
+                    <IconButton
+                      aria-label="notification"
+                      size="small"
+                      className="p-1 sm:p-2"
+                    >
+                      <StyledBadge badgeContent={10} color="secondary">
+                        <MdNotificationsNone className="text-base sm:text-lg" />
+                      </StyledBadge>
+                    </IconButton>
                   </Tooltip>
                 </li>
 
@@ -214,7 +213,8 @@ const Header = () => {
                         <div className="py-3 px-4 border-b border-gray-100">
                           <p className="text-sm font-medium text-gray-800 truncate">
                             {user
-                              ? `${user.first_name || ""} ${user.last_name || ""
+                              ? `${user.first_name || ""} ${
+                                  user.last_name || ""
                                 }`.trim()
                               : "User"}
                           </p>

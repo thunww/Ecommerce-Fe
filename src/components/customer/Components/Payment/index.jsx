@@ -34,7 +34,7 @@ const Payment = () => {
 
       try {
         const response = await axios.get(
-          `/api/v1/payments/vnpay/callback?${queryParams.toString()}`
+          `/payments/vnpay/callback?${queryParams.toString()}`
         );
         const result = response.data;
 
