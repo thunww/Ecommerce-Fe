@@ -282,7 +282,12 @@ const ShipperOrderDetail = () => {
                       {item.price.toLocaleString('vi-VN')}đ
                     </td>
                     <td style={{ padding: '8px', border: '1px solid #d9d9d9', textAlign: 'right' }}>
-                      {(item.price * item.quantity).toLocaleString('vi-VN')}đ
+                      {(() => {
+                        const itemTotal = item.price * item.quantity;
+                        const totalOrderValue = order.orderItems.reduce((sum, orderItem) => sum + (orderItem.price * orderItem.quantity), 0);
+                        const shippingFeePerItem = totalOrderValue > 0 ? (parseFloat(order.shipping_fee || 0) * itemTotal / totalOrderValue) : 0;
+                        return (itemTotal + shippingFeePerItem).toLocaleString('vi-VN');
+                      })()}đ
                     </td>
                   </tr>
                 ))}
