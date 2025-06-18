@@ -1,12 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchReviewsByProductId } from "../../../../redux/reviewsSilce";
 import dayjs from "dayjs";
 
 const ProductReviewSection = ({ productId }) => {
   const dispatch = useDispatch();
-  const { reviews, loading } = useSelector((state) => state.reviews);
+  const {
+    reviews = [],
+    loading,
+    error,
+  } = useSelector((state) => state.reviews);
   const [expandedReviews, setExpandedReviews] = useState({});
+  const [page, setPage] = useState(1);
+  const reviewsPerPage = 3;
 
   useEffect(() => {
     if (productId) {
@@ -21,27 +27,59 @@ const ProductReviewSection = ({ productId }) => {
     }));
   };
 
-  // Calculate average rating
-  const averageRating =
-    Array.isArray(reviews) && reviews.length > 0
-      ? (
-          reviews.reduce((sum, review) => sum + review.rating, 0) /
-          reviews.length
-        ).toFixed(1)
-      : 0;
+  // Filter only verified reviews
+  const verifiedReviews = useMemo(() => {
+    if (!Array.isArray(reviews)) return [];
+    return reviews.filter((review) => review.is_verified === true);
+  }, [reviews]);
+
+  // Calculate average rating for verified reviews
+  const averageRating = useMemo(() => {
+    if (verifiedReviews.length === 0) return 0;
+    return (
+      verifiedReviews.reduce((sum, review) => sum + (review.rating || 0), 0) /
+      verifiedReviews.length
+    ).toFixed(1);
+  }, [verifiedReviews]);
+
+  // Paginate verified reviews
+  const paginatedReviews = useMemo(() => {
+    return verifiedReviews.slice(0, page * reviewsPerPage);
+  }, [verifiedReviews, page]);
+
+  // Handle load more
+  const handleLoadMore = () => {
+    setPage((prev) => prev + 1);
+  };
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="mt-12 border-t pt-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-8">
+          Product Reviews
+        </h2>
+        <div className="bg-red-50 rounded-lg p-6 text-center">
+          <p className="text-red-500">Failed to load reviews: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-12 border-t pt-8">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-bold text-gray-800">Product Reviews</h2>
-        {Array.isArray(reviews) && reviews.length > 0 && (
+        {verifiedReviews.length > 0 && (
           <div className="flex items-center gap-2">
             <div className="flex text-yellow-500 text-lg">
               {"★".repeat(Math.round(averageRating))}
               {"☆".repeat(5 - Math.round(averageRating))}
             </div>
             <span className="font-medium">{averageRating}/5</span>
-            <span className="text-gray-500">({reviews.length} reviews)</span>
+            <span className="text-gray-500">
+              ({verifiedReviews.length} verified reviews)
+            </span>
           </div>
         )}
       </div>
@@ -59,15 +97,15 @@ const ProductReviewSection = ({ productId }) => {
             </div>
           </div>
         </div>
-      ) : Array.isArray(reviews) && reviews.length === 0 ? (
+      ) : verifiedReviews.length === 0 ? (
         <div className="bg-gray-50 rounded-lg p-6 text-center">
           <p className="text-gray-500">
-            No reviews yet. Be the first to review this product!
+            No verified reviews yet. Be the first to leave a verified review!
           </p>
         </div>
       ) : (
         <div className="space-y-6">
-          {reviews.map((review) => {
+          {paginatedReviews.map((review) => {
             const isExpanded = expandedReviews[review.review_id];
             const longComment = review.comment && review.comment.length > 150;
 
@@ -85,6 +123,7 @@ const ProductReviewSection = ({ productId }) => {
                       }
                       alt={review.user?.username || "User"}
                       className="w-12 h-12 rounded-full object-cover border border-gray-200"
+                      onError={(e) => (e.target.src = "/placeholder.png")}
                     />
                   </div>
 
@@ -96,16 +135,18 @@ const ProductReviewSection = ({ productId }) => {
                         </h4>
                         <div className="flex items-center gap-2 mt-1">
                           <div className="text-yellow-500">
-                            {"★".repeat(review.rating)}
-                            {"☆".repeat(5 - review.rating)}
+                            {"★".repeat(review.rating || 0)}
+                            {"☆".repeat(5 - (review.rating || 0))}
                           </div>
                           <span className="text-sm text-gray-500">
-                            ({review.rating}/5)
+                            ({review.rating || 0}/5)
                           </span>
                         </div>
                       </div>
                       <span className="text-sm text-gray-500">
-                        {dayjs(review.created_at).format("MMM D, YYYY")}
+                        {review.created_at
+                          ? dayjs(review.created_at).format("MMM D, YYYY")
+                          : "Unknown Date"}
                       </span>
                     </div>
 
@@ -125,19 +166,34 @@ const ProductReviewSection = ({ productId }) => {
                           </button>
                         </>
                       ) : (
-                        <p className="text-gray-700">{review.comment}</p>
+                        <p className="text-gray-700">
+                          {review.comment || "No comment provided"}
+                        </p>
                       )}
                     </div>
 
-                    {review.images && (
+                    {review.images && Array.isArray(review.images) ? (
+                      <div className="mt-4 flex gap-2">
+                        {review.images.map((img, index) => (
+                          <img
+                            key={index}
+                            src={img}
+                            alt={`Review attachment ${index + 1}`}
+                            className="w-24 h-24 rounded-lg border border-gray-200 object-cover hover:opacity-90 transition-opacity cursor-pointer"
+                            onError={(e) => (e.target.src = "/placeholder.png")}
+                          />
+                        ))}
+                      </div>
+                    ) : review.images ? (
                       <div className="mt-4">
                         <img
                           src={review.images}
                           alt="Review attachment"
                           className="w-24 h-24 rounded-lg border border-gray-200 object-cover hover:opacity-90 transition-opacity cursor-pointer"
+                          onError={(e) => (e.target.src = "/placeholder.png")}
                         />
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -146,10 +202,13 @@ const ProductReviewSection = ({ productId }) => {
         </div>
       )}
 
-      {Array.isArray(reviews) && reviews.length > 3 && (
+      {verifiedReviews.length > paginatedReviews.length && (
         <div className="mt-8 text-center">
-          <button className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-6 rounded-md transition-colors">
-            Load more reviews
+          <button
+            onClick={handleLoadMore}
+            className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-6 rounded-md transition-colors"
+          >
+            Load more verified reviews
           </button>
         </div>
       )}

@@ -35,11 +35,14 @@ const ManageUsers = () => {
 
   // Filter users based on search
   const filteredUsers =
-    users?.filter(
-      (user) =>
-        user.username?.toLowerCase().includes(search.toLowerCase()) ||
-        user.email?.toLowerCase().includes(search.toLowerCase())
-    ) ?? [];
+    users?.filter((user) => {
+      const searchTerm = search.toLowerCase();
+      return (
+        user.username?.toLowerCase().includes(searchTerm) ||
+        user.email?.toLowerCase().includes(searchTerm) ||
+        user.user_id?.toString().includes(searchTerm) // ✅ Thêm tìm theo user_id
+      );
+    }) ?? [];
 
   const handleBan = (user_id) => {
     Swal.fire({

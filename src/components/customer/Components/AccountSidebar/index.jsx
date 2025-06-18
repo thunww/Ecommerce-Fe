@@ -9,6 +9,7 @@ import { IoLocationOutline } from "react-icons/io5";
 import { CiHeart } from "react-icons/ci";
 import { MdOutlineLogout } from "react-icons/md";
 import { fetchAllOrders } from "../../../../redux/orderSlice";
+import { fetchReviewsByProductId } from "../../../../redux/reviewsSilce";
 
 const AccountSidebar = ({ user }) => {
   const navigate = useNavigate();
@@ -19,8 +20,10 @@ const AccountSidebar = ({ user }) => {
     navigate("/login");
   };
   const { orders, loading, error } = useSelector((state) => state.orders);
+  const { reviews } = useSelector((state) => state.reviews);
   useEffect(() => {
     dispatch(fetchAllOrders());
+    dispatch(fetchReviewsByProductId());
   }, [dispatch]);
 
   const orderCount =

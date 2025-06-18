@@ -322,7 +322,7 @@ const OrdersList = () => {
         {/* Modal đánh giá */}
         {showRateModal && selectedOrderItem && (
           <RateModal
-            show={showRateModal}
+            isOpen={showRateModal}
             onClose={() => setShowRateModal(false)}
             orderItem={selectedOrderItem}
           />

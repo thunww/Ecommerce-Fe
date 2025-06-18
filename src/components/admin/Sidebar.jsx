@@ -28,14 +28,15 @@ const Sidebar = ({ isOpen }) => {
 
   return (
     <aside
-      className={`fixed top-0 left-0 h-full z-50 bg-gray-900 text-white border-r border-gray-800 transition-all duration-300 ${isOpen ? "w-64" : "w-20"
-        } overflow-y-auto`}
+      className={`fixed top-0 left-0 h-full z-50 bg-gray-900 text-white border-r border-gray-800 transition-all duration-300 ${
+        isOpen ? "w-64" : "w-20"
+      } overflow-y-auto`}
     >
-
       {/* Logo */}
       <div
-        className={`flex items-center gap-3 p-5 ${isOpen ? "" : "justify-center"
-          }`}
+        className={`flex items-center gap-3 p-5 ${
+          isOpen ? "" : "justify-center"
+        }`}
       >
         <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden">
           <img
@@ -65,12 +66,6 @@ const Sidebar = ({ isOpen }) => {
           to="/admin/sales"
           icon={<DollarSign size={20} />}
           label="Sales Analytics"
-          isOpen={isOpen}
-        />
-        <SidebarItem
-          to="/admin/users"
-          label="Users"
-          icon={<Users size={20} />}
           isOpen={isOpen}
         />
         <SidebarItem
@@ -107,12 +102,6 @@ const Sidebar = ({ isOpen }) => {
           to="/admin/users"
           label="Users"
           icon={<Users size={20} />}
-          isOpen={isOpen}
-        />
-        <SidebarItem
-          to="/admin/orders"
-          icon={<ShoppingCart size={20} />}
-          label="Orders"
           isOpen={isOpen}
         />
         <SidebarItem
