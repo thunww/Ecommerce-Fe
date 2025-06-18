@@ -1,20 +1,22 @@
 import axios from "axios";
 
+// Lấy cổng backend từ biến môi trường hoặc mặc định là 8080 cho local
+const BACKEND_PORT = import.meta.env.VITE_BACKEND_PORT || "8080";
+const API_URL =
+  import.meta.env.VITE_API_URL || `http://localhost:${BACKEND_PORT}/api/v1`;
+
 const axiosClient = axios.create({
-  baseURL: "http://localhost:8080/api/v1",
+  baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Cho phép gửi cookie trong request
   timeout: 10000, // 10 seconds
 });
 
-// Request interceptor
+// Không cần interceptor nữa vì cookie sẽ tự động được gửi
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     return config;
   },
   (error) => {
