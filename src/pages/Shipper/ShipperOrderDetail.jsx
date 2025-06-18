@@ -21,9 +21,7 @@ const ShipperOrderDetail = () => {
 
   const fetchOrderDetails = async () => {
     try {
-      const response = await axiosClient.get(
-        `/shippers/sub_orders/${orderId}`
-      );
+      const response = await axiosClient.get(`/shippers/sub_orders/${orderId}`);
       if (response.data.success) {
         console.log("Order details:", response.data.data);
         setOrder(response.data.data);

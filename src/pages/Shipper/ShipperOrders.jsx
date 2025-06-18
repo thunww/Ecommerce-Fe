@@ -12,74 +12,70 @@ const ShipperOrders = () => {
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('accessToken');
-      
-      if (!token) {
-        toast.error('Vui lòng đăng nhập lại');
-        return;
-      }
 
-      const response = await axiosClient.get("/shippers/sub_orders", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      console.log('Orders Response:', response.data);
+      const response = await axiosClient.get("/shippers/sub_orders");
       const allOrders = response.data.data || [];
-      console.log('All orders:', allOrders);
 
-      const transformedOrders = allOrders.map(order => {
+      const transformedOrders = allOrders.map((order) => {
         const formatAddress = (addressObj) => {
-          if (!addressObj) return 'Không xác định';
+          if (!addressObj) return "Không xác định";
           const parts = [
             addressObj.address_line,
             addressObj.city,
             addressObj.province,
-            addressObj.postal_code
+            addressObj.postal_code,
           ].filter(Boolean);
-          return parts.join(', ');
+          return parts.join(", ");
         };
 
         const user = order.Order?.User || {};
-        console.log('Processing order:', {
-          orderId: order.sub_order_id,
-          user: user,
-          profile_picture: user.profile_picture,
-          rawOrder: order
-        });
-
-        const fullName = user.first_name && user.last_name ? 
-          `${user.first_name} ${user.last_name}` : 'Không xác định';
+        const fullName =
+          user.first_name && user.last_name
+            ? `${user.first_name} ${user.last_name}`
+            : "Không xác định";
 
         return {
-          id: order.sub_order_id?.toString() || 'Không xác định',
+          id: order.sub_order_id?.toString() || "Không xác định",
           customerName: fullName,
-          customerPhone: user.phone || 'Không có SĐT',
-          customerEmail: user.email || '',
+          customerPhone: user.phone || "Không có SĐT",
+          customerEmail: user.email || "",
           customerAvatar: user.profile_picture || null,
           address: formatAddress(order.Order?.shipping_address),
-          time: order.created_at ? new Date(order.created_at).toLocaleString() : 'Không xác định',
-          deliveredTime: order.status === 'delivered' && order.shipment?.actual_delivery_date 
-            ? new Date(order.shipment.actual_delivery_date).toLocaleString() 
-            : null,
-          total: parseFloat(order.total_price || 0).toLocaleString('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
+          time: order.created_at
+            ? new Date(order.created_at).toLocaleString()
+            : "Không xác định",
+          deliveredTime:
+            order.status === "delivered" && order.shipment?.actual_delivery_date
+              ? new Date(order.shipment.actual_delivery_date).toLocaleString()
+              : null,
+          total: parseFloat(order.total_price || 0).toLocaleString("vi-VN", {
+            style: "currency",
+            currency: "VND",
           }),
-          status: order.status === 'processing' ? 'Đang xử lý' 
-                 : order.status === 'shipped' ? 'Đang giao hàng'
-                 : order.status === 'delivered' ? 'Đã hoàn thành'
-                 : order.status === 'cancelled' ? 'Đã hủy'
-                 : 'Không xác định',
+          status:
+            order.status === "processing"
+              ? "Đang xử lý"
+              : order.status === "shipped"
+              ? "Đang giao hàng"
+              : order.status === "delivered"
+              ? "Đã hoàn thành"
+              : order.status === "cancelled"
+              ? "Đã hủy"
+              : "Không xác định",
           rawStatus: order.status,
           sub_order_id: order.sub_order_id,
-          shipment: order.shipment
+          shipment: order.shipment,
         };
       });
 
       setOrders(transformedOrders);
     } catch (error) {
-      console.error('Error fetching orders:', error);
-      toast.error('Không thể tải danh sách đơn hàng');
+      console.error("Error fetching orders:", error);
+      if (error.response?.status === 401) {
+        toast.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+      } else {
+        toast.error("Không thể tải danh sách đơn hàng");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -96,11 +92,12 @@ const ShipperOrders = () => {
   return (
     <div className="flex-1 overflow-hidden">
       <div className="h-full flex flex-col p-4 md:p-6 space-y-6">
-        {/* Orders Section */}
         <div className="flex-1 bg-white rounded-lg shadow-md overflow-hidden">
           <div className="p-4 md:p-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-              <h2 className="text-xl font-semibold text-gray-800">Danh sách đơn hàng</h2>
+              <h2 className="text-xl font-semibold text-gray-800">
+                Danh sách đơn hàng
+              </h2>
               <div className="relative w-full md:w-64">
                 <input
                   type="text"
@@ -119,8 +116,8 @@ const ShipperOrders = () => {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <OrdersTable 
-                  orders={filteredOrders} 
+                <OrdersTable
+                  orders={filteredOrders}
                   onOrderUpdate={fetchOrders}
                 />
               </div>
