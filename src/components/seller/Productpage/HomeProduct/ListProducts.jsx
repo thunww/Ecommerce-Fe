@@ -15,6 +15,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import productApi from "../../../../api/VendorAPI/productApi";
+import revenueApi from "../../../../api/VendorAPI/revenueApi";
 
 const VendorProductManagement = () => {
   const navigate = useNavigate();
@@ -30,6 +31,13 @@ const VendorProductManagement = () => {
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [allReviews, setAllReviews] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]); // To store fetched categories
+  const [revenueData, setRevenueData] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    deliveredOrders: 0,
+    views: 0,
+    deliveredOrdersList: [],
+  });
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 9,
@@ -64,6 +72,25 @@ const VendorProductManagement = () => {
       }
     };
     fetchCategories();
+  }, []);
+
+  // Fetch revenue data
+  const fetchRevenueData = async () => {
+    try {
+      const response = await revenueApi.getRevenue();
+      if (response?.data) {
+        setRevenueData(response.data);
+      } else {
+        console.error("Failed to fetch revenue data");
+      }
+    } catch (error) {
+      console.error("Error fetching revenue data:", error);
+    }
+  };
+
+  // Fetch revenue data on component mount
+  useEffect(() => {
+    fetchRevenueData();
   }, []);
 
   // Fetch products
@@ -375,7 +402,7 @@ const VendorProductManagement = () => {
                   <div>
                     <p className="text-sm text-gray-600">Total Revenue</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      156.235.200 đ
+                      {formatPrice(revenueData.totalRevenue)}
                     </p>
                   </div>
                 </div>
@@ -386,7 +413,7 @@ const VendorProductManagement = () => {
                   <div>
                     <p className="text-sm text-gray-600">Best Seller</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {bestSeller?.name?.slice(0, 15) || "N/A"}
+                      {bestSeller?.name?.slice(0, 15) || 0}
                     </p>
                   </div>
                 </div>
@@ -706,7 +733,10 @@ const VendorProductManagement = () => {
                   <p className="text-gray-500 mb-4">
                     Try adjusting your filters or search terms
                   </p>
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 mx-auto">
+                  <button
+                    onClick={handleAddProduct}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 mx-auto"
+                  >
                     <Plus className="w-5 h-5" />
                     Add Your First Product
                   </button>

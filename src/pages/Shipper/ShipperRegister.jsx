@@ -16,21 +16,17 @@ const ShipperRegister = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        toast.warning("Vui lòng đăng nhập để đăng ký làm shipper");
-        setIsAuthenticated(false);
-        navigate("/login");
-        return;
-      }
+      // const token = localStorage.getItem("accessToken");
+      // if (!token) {
+      //   toast.warning("Vui lòng đăng nhập để đăng ký làm shipper");
+      //   setIsAuthenticated(false);
+      //   navigate("/login");
+      //   return;
+      // }
 
       try {
         // Kiểm tra xem người dùng đã là shipper chưa
-        const response = await axiosClient.get("/shippers/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axiosClient.get("/shippers/profile");
 
         if (response.data.success) {
           // Nếu đã là shipper (có thông tin shipper), chuyển hướng về trang landing
@@ -41,8 +37,11 @@ const ShipperRegister = () => {
 
         setIsAuthenticated(true);
       } catch (error) {
-        // Nếu lỗi 404 (chưa là shipper) thì cho phép tiếp tục đăng ký
-        if (error.response && error.response.status === 404) {
+        // Nếu lỗi 404 hoặc 403 (chưa là shipper) thì cho phép tiếp tục đăng ký
+        if (
+          error.response &&
+          (error.response.status === 404 || error.response.status === 403)
+        ) {
           setIsAuthenticated(true);
         } else {
           console.error("Error checking shipper status:", error);
@@ -103,12 +102,7 @@ const ShipperRegister = () => {
 
     try {
       setLoading(true);
-      const token = localStorage.getItem("accessToken");
-      const response = await axiosClient.post("/shippers/register", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axiosClient.post("/shippers/register", formData);
 
       if (response.data.success) {
         toast.success(

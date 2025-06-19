@@ -244,6 +244,7 @@ export const updateShipperStatus = createAsyncThunk(
 );
 
 const initialState = {
+  
   shippers: [],
   loading: false,
   error: null,

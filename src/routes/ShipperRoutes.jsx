@@ -15,7 +15,7 @@ const ShipperRoutes = () => {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<ShipperLanding />} />
-      <Route path="/register" element={<ShipperRegister />} />
+      {/* <Route path="/register" element={<ShipperRegister />} /> */}
       {/* <Route path="/login" element={<ShipperLogin />} /> */}
 
       {/* Protected routes with layout */}

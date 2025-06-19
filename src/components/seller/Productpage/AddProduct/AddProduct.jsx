@@ -307,14 +307,24 @@ const ProductCreateInterface = () => {
           text: response.data.message || "Đã xảy ra lỗi khi tạo sản phẩm.",
         });
       }
-    } catch (error) {
+    }    catch (error) {
       console.error("Lỗi khi tạo sản phẩm:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Lỗi API!",
-        text: error.message || "Không thể kết nối đến máy chủ.",
-      });
-    } finally {
+      // Kiểm tra lỗi trả về từ backend
+      const errorMsg = error?.response?.data?.message || error.message || "";
+      if (errorMsg.includes("Chưa được cấp phép để tạo sản phẩm")) {
+        Swal.fire({
+          icon: "warning",
+          title: "Bạn chưa được cấp quyền tạo sản phẩm!",
+          text: "Vui lòng liên hệ quản trị viên để được cấp quyền cho shop của bạn.",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Lỗi API!",
+          text: errorMsg || "Không thể kết nối đến máy chủ.",
+        });
+      }
+    }finally {
       setLoading(false);
     }
   };

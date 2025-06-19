@@ -14,7 +14,7 @@ const AppRoutes = () => {
         <Route path="/admin/*" element={<AdminRoutes />} />
       </Route>
       {/* Routes cho Shipper */}
-      <Route path="/shipper/register" element={<ShipperRegister />} />
+      <Route path="/register-shipper" element={<ShipperRegister />} />
       <Route element={<PrivateRoute allowedRoles={["shipper"]} />}>
         <Route path="/shipper/*" element={<ShipperRoutes />} />
       </Route>

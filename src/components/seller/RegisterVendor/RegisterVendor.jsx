@@ -153,10 +153,10 @@ const RegisterVendor = () => {
               </div>
             </div>
             <h1 className="text-2xl font-bold text-gray-800 mb-1">
-              Become a Vendor
+              Trở thành Người bán
             </h1>
             <p className="text-gray-600 text-base">
-              Join us to become a delivery partner
+              Tham gia cùng chúng tôi để trở thành đối tác bán hàng
             </p>
           </div>
 
@@ -174,10 +174,10 @@ const RegisterVendor = () => {
                   </div>
                 </div>
                 <h3 className="text-lg font-bold text-gray-800 mb-1">
-                  Business Success
+                  Thành công trong kinh doanh
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Start your online business journey with us
+                  Bắt đầu hành trình kinh doanh trực tuyến cùng chúng tôi
                 </p>
               </div>
 
@@ -189,10 +189,10 @@ const RegisterVendor = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-800 text-sm">
-                      Expand Market
+                      Mở rộng thị trường
                     </h4>
                     <p className="text-xs text-gray-600">
-                      Reach millions of customers
+                      Tiếp cận hàng triệu khách hàng
                     </p>
                   </div>
                 </div>
@@ -203,10 +203,10 @@ const RegisterVendor = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-800 text-sm">
-                      24/7 Support
+                      Hỗ trợ 24/7
                     </h4>
                     <p className="text-xs text-gray-600">
-                      Professional support team
+                      Đội ngũ hỗ trợ chuyên nghiệp
                     </p>
                   </div>
                 </div>
@@ -217,10 +217,10 @@ const RegisterVendor = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-800 text-sm">
-                      Low Cost
+                      Chi phí thấp
                     </h4>
                     <p className="text-xs text-gray-600">
-                      No initial setup fees
+                      Không có phí thiết lập ban đầu
                     </p>
                   </div>
                 </div>
@@ -234,7 +234,7 @@ const RegisterVendor = () => {
                 <div className="bg-blue-600 px-6 py-4">
                   <h2 className="text-xl font-bold text-white flex items-center">
                     <Award className="w-6 h-6 mr-2" />
-                    Store Information
+                    Thông tin cửa hàng
                   </h2>
                 </div>
 
@@ -243,14 +243,14 @@ const RegisterVendor = () => {
                   <div className="space-y-2">
                     <label className="flex items-center text-base font-semibold text-gray-800">
                       <Store className="w-4 h-4 mr-2 text-blue-600" />
-                      Store Name *
+                      Tên cửa hàng *
                     </label>
                     <input
                       type="text"
                       name="shopName"
                       value={formData.shopName}
                       onChange={handleInputChange}
-                      placeholder="Enter your store name..."
+                      placeholder="Nhập tên cửa hàng của bạn..."
                       className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all duration-200 text-base bg-gray-50 hover:bg-white"
                       required
                     />
@@ -260,13 +260,13 @@ const RegisterVendor = () => {
                   <div className="space-y-2">
                     <label className="flex items-center text-base font-semibold text-gray-800">
                       <FileText className="w-4 h-4 mr-2 text-green-600" />
-                      Store Description *
+                      Mô tả cửa hàng *
                     </label>
                     <textarea
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
-                      placeholder="Describe your store, products and services..."
+                      placeholder="Mô tả cửa hàng, sản phẩm và dịch vụ của bạn..."
                       rows="3"
                       className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-300 focus:border-green-500 transition-all duration-200 text-base resize-none bg-gray-50 hover:bg-white"
                       required
@@ -277,14 +277,14 @@ const RegisterVendor = () => {
                   <div className="space-y-2">
                     <label className="flex items-center text-base font-semibold text-gray-800">
                       <MapPin className="w-4 h-4 mr-2 text-purple-600" />
-                      Address *
+                      Địa chỉ *
                     </label>
                     <input
                       type="text"
                       name="address"
                       value={formData.address}
                       onChange={handleInputChange}
-                      placeholder="Enter your store address..."
+                      placeholder="Nhập địa chỉ cửa hàng của bạn..."
                       className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all duration-200 text-base bg-gray-50 hover:bg-white"
                       required
                     />
@@ -296,7 +296,7 @@ const RegisterVendor = () => {
                     <div className="space-y-2">
                       <label className="flex items-center text-base font-semibold text-gray-800">
                         <Image className="w-4 h-4 mr-2 text-orange-600" />
-                        Store Logo
+                        Logo cửa hàng
                       </label>
                       <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-orange-500 transition-all duration-200 bg-orange-50">
                         {logoPreview ? (
@@ -307,7 +307,7 @@ const RegisterVendor = () => {
                               className="w-16 h-16 object-cover rounded-lg mx-auto border-2 border-gray-300"
                             />
                             <p className="text-xs font-medium text-gray-700">
-                              Logo selected ✓
+                              Đã chọn logo ✓
                             </p>
                           </div>
                         ) : (
@@ -317,10 +317,10 @@ const RegisterVendor = () => {
                             </div>
                             <div>
                               <p className="text-sm text-gray-700 font-semibold">
-                                Upload logo
+                                Tải lên logo
                               </p>
                               <p className="text-xs text-gray-500">
-                                PNG, JPG up to 5MB
+                                PNG, JPG tối đa 5MB
                               </p>
                             </div>
                           </div>
@@ -336,7 +336,7 @@ const RegisterVendor = () => {
                           htmlFor="logo-upload"
                           className="inline-block mt-2 px-4 py-1.5 bg-orange-600 text-white rounded-lg cursor-pointer hover:bg-orange-700 transition-all duration-200 text-sm font-semibold"
                         >
-                          Choose File
+                          Chọn File
                         </label>
                       </div>
                     </div>
@@ -345,7 +345,7 @@ const RegisterVendor = () => {
                     <div className="space-y-2">
                       <label className="flex items-center text-base font-semibold text-gray-800">
                         <Image className="w-4 h-4 mr-2 text-indigo-600" />
-                        Store Banner
+                        Banner cửa hàng
                       </label>
                       <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-indigo-500 transition-all duration-200 bg-indigo-50">
                         {bannerPreview ? (
@@ -356,7 +356,7 @@ const RegisterVendor = () => {
                               className="w-full h-12 object-cover rounded-lg border-2 border-gray-300"
                             />
                             <p className="text-xs font-medium text-gray-700">
-                              Banner selected ✓
+                              Đã chọn banner ✓
                             </p>
                           </div>
                         ) : (
@@ -366,10 +366,10 @@ const RegisterVendor = () => {
                             </div>
                             <div>
                               <p className="text-sm text-gray-700 font-semibold">
-                                Upload banner
+                                Tải lên banner
                               </p>
                               <p className="text-xs text-gray-500">
-                                PNG, JPG up to 10MB
+                                PNG, JPG tối đa 10MB
                               </p>
                             </div>
                           </div>
@@ -385,7 +385,7 @@ const RegisterVendor = () => {
                           htmlFor="banner-upload"
                           className="inline-block mt-2 px-4 py-1.5 bg-indigo-600 text-white rounded-lg cursor-pointer hover:bg-indigo-700 transition-all duration-200 text-sm font-semibold"
                         >
-                          Choose File
+                          Chọn File
                         </label>
                       </div>
                     </div>
@@ -406,19 +406,19 @@ const RegisterVendor = () => {
                         htmlFor="terms"
                         className="text-sm text-gray-700 leading-relaxed"
                       >
-                        I agree to the{" "}
+                        Tôi đồng ý với{" "}
                         <a
                           href="#"
                           className="text-blue-600 hover:text-blue-800 font-semibold"
                         >
-                          Terms of Service
+                          Điều khoản dịch vụ
                         </a>{" "}
-                        and{" "}
+                        và{" "}
                         <a
                           href="#"
                           className="text-green-600 hover:text-green-800 font-semibold"
                         >
-                          Privacy Policy
+                          Chính sách bảo mật
                         </a>
                       </label>
                     </div>
@@ -439,10 +439,10 @@ const RegisterVendor = () => {
                       {isLoading ? (
                         <div className="flex items-center">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Processing...
+                          Đang xử lý...
                         </div>
                       ) : (
-                        "🚀 Register Now"
+                        "🚀 Đăng ký ngay"
                       )}
                     </button>
                   </div>

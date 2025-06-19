@@ -11,6 +11,8 @@ import { MdOutlineShoppingCart } from "react-icons/md";
 import { FaRegHeart } from "react-icons/fa";
 import { MdNotificationsNone } from "react-icons/md";
 import { fetchAllOrders } from "../../../../redux/orderSlice";
+import { getAllShippers } from "../../../../redux/shipperSlice";
+import { fetchAllShops } from "../../../../redux/shopSlice";
 
 import {
   FaUser,
@@ -44,8 +46,18 @@ const Header = () => {
   const user = useSelector((state) => state.admin.selectedUser);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const menuRef = useRef(null);
-
+  const shops = useSelector((state) => state.shops.shops);
+  const shippers = useSelector((state) => state.shipper.shippers);
   const users = useSelector((state) => state.auth.user);
+  const userShop = users
+    ? shops.find((shop) => shop.owner_id === users.user_id)
+    : null;
+
+  const userShipper = users
+    ? shippers.find((shipper) => shipper.shipper_id === users.user_id)
+    : null;
+  
+
   const cartItems = useSelector((state) => state.cart.items);
   const cartCount = users
     ? cartItems.reduce((total, item) => total + item.quantity, 0)
@@ -55,8 +67,14 @@ const Header = () => {
 
   useEffect(() => {
     dispatch(fetchAllOrders());
+    dispatch(getAllShippers());
+    dispatch(fetchAllShops());
+    
   }, [dispatch]);
-
+  console.log("userShipper:", userShipper);
+  console.log("userShop",userShop)
+  console.log("Shop",shops)
+  console.log("userShipper",userShipper)
   const orderCount =
     orders?.reduce((total, order) => {
       return total + (order.subOrders?.length || 0);
@@ -258,34 +276,38 @@ const Header = () => {
                               </Link>
                             </li>
                           )}
-                          {roles.includes("vendor") && (
-                            <li>
-                              <Link
-                                to="/vendor"
-                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
-                                onClick={() => setShowAccountMenu(false)}
-                              >
-                                <FaStore className="text-blue-500 flex-shrink-0" />
-                                <span className="truncate">
-                                  Vendor Dashboard
-                                </span>
-                              </Link>
-                            </li>
-                          )}
-                          {roles.includes("shipper") && (
-                            <li>
-                              <Link
-                                to="/shipper"
-                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
-                                onClick={() => setShowAccountMenu(false)}
-                              >
-                                <FaTruck className="text-blue-500 flex-shrink-0" />
-                                <span className="truncate">
-                                  Shipper Dashboard
-                                </span>
-                              </Link>
-                            </li>
-                          )}
+                          {roles.includes("vendor") &&
+                            userShop?.status === "active" && (
+                              <li>
+                                {console.log(userShop)}
+                                <Link
+                                  to="/vendor"
+                                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
+                                  onClick={() => setShowAccountMenu(false)}
+                                >
+                                  <FaStore className="text-blue-500 flex-shrink-0" />
+                                  <span className="truncate">
+                                    Vendor Dashboard
+                                  </span>
+                                </Link>
+                              </li>
+                            )}
+                          {roles.includes("shipper") &&
+                            userShipper?.status ==
+                              "active" &&(
+                                <li>
+                                  <Link
+                                    to="/shipper"
+                                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 w-full text-left"
+                                    onClick={() => setShowAccountMenu(false)}
+                                  >
+                                    <FaTruck className="text-blue-500 flex-shrink-0" />
+                                    <span className="truncate">
+                                      Shipper Dashboard
+                                    </span>
+                                  </Link>
+                                </li>
+                              )}
                           <li className="border-t border-gray-100 mt-1">
                             <button
                               onClick={handleLogout}
